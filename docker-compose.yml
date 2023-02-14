@@ -1,0 +1,21 @@
+version: '3'
+
+networks:
+  default-app:
+    name: default-app
+    external: true
+  default-db-mongo:
+    name: default-db-mongo
+    external: true
+
+services:
+  api-service:
+    image: paperplanecc/api-service:latest
+    container_name: api-service
+    restart: always
+    networks:
+      - default-app
+      - default-db-mongo
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai

@@ -1,0 +1,35 @@
+kind: pipeline
+name: default
+
+workspace:
+  path: /source
+
+steps:
+  - name: build
+    image: plugins/docker
+    settings:
+      username: paperplanecc
+      password:
+        from_secret: DOCKER_PASSWORD
+      repo: paperplanecc/api-service
+      tags: latest
+      mirror: https://mirror.ccs.tencentyun.com
+      registry: docker.io
+  
+  - name: deploy
+    image: drillster/drone-rsync
+    settings:
+      hosts: [ "paperplane.cc" ]
+      user: ubuntu
+      key:
+        from_secret: DEPLOY_SSH_PRIKEY
+      source: ./docker-compose.yml
+      target: /home/ubuntu/api-service-docker-compose.yml
+      script:
+        - docker compose -f /home/ubuntu/api-service-docker-compose.yml down
+        - docker image rm paperplanecc/api-service:latest
+        - docker compose -f /home/ubuntu/api-service-docker-compose.yml up -d
+
+trigger:
+  branch:
+    - master
