@@ -4,6 +4,7 @@ import { Response } from 'express'
 import { CommonHttpException } from './common.exception'
 
 @Catch()
+/** 全局异常处理与包装 */
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: CommonHttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
