@@ -3,3 +3,5 @@ interface IResponse<T> {
   message: string
   data: T
 }
+
+interface IError<T> extends IResponse<T> {}
