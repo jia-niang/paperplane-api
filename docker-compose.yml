@@ -19,5 +19,4 @@ services:
     environment:
       - NODE_ENV=production
       - TZ=Asia/Shanghai
-    ports:
-      - '2375:2375'
+      - HOST=host.docker.internal
