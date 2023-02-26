@@ -8,3 +8,7 @@ interface IResponse<T> {
 interface IError<T> extends IResponse<T> {
   success: false
 }
+
+interface IWithId<T> extends T {
+  id: string
+}

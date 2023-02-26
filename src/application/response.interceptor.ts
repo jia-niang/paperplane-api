@@ -11,7 +11,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, IResponse<T>> 
       map(data => ({
         success: true,
         code: context.switchToHttp().getResponse().statusCode,
-        message: data.message || '',
+        message: data?.message || '',
         data,
       }))
     )
