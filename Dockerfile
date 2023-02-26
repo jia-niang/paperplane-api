@@ -3,7 +3,7 @@ EXPOSE 6100
 
 WORKDIR /app
 ADD . /app/
-RUN yarn
+RUN yarn --registry=https://registry.yarnpkg.com
 RUN yarn build
 
 CMD [ "yarn", "start:prod" ]
