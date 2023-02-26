@@ -20,3 +20,5 @@ services:
       - NODE_ENV=production
       - TZ=Asia/Shanghai
       - HOST=host.docker.internal
+    extra_hosts:
+      - host.docker.internal:host-gateway
