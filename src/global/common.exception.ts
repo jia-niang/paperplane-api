@@ -8,4 +8,6 @@ export class CommonHttpException extends HttpException {
   ) {
     super({ message, data }, httpStatus)
   }
+
+  public readonly success = false
 }

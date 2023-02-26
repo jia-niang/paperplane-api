@@ -12,6 +12,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const code = exception.getStatus?.() || HttpStatus.INTERNAL_SERVER_ERROR
 
     const errorResponse: IError<typeof exception.data> = {
+      success: false,
       code,
       message: exception.message,
       data: exception.data,
