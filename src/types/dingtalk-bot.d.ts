@@ -5,8 +5,8 @@ type DingtalkBotTypeAuthType = 'keyword' | 'crypto' | 'ip'
 interface IDingtalkBotBase {
   /** 名称 */
   name: string
-  /** 所属群组 */
-  group: string
+  /** 所属公司与群组标识 */
+  scope: string
   /** 认证类别 */
   type: DingtalkBotTypeAuthType
   /** 描述 */
