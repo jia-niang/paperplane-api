@@ -1,5 +1,6 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common'
-import DingtalkBot from 'dingtalk-robot-sender'
+import { Body, Controller, HttpCode, Get, Post, Param } from '@nestjs/common'
+
+import { DingtalkBotService } from './dingtalk.service'
 
 interface ICustomSendBody {
   mode: DingtalkBotTypeAuthType
@@ -11,24 +12,42 @@ interface ICustomSendBody {
 /** 钉钉机器人消息 */
 @Controller('/dingtalk')
 export class DingtalkController {
+  constructor(private readonly dingtalkBotService: DingtalkBotService) {}
+
   /** 使用任意机器人发送消息 */
   @Post('/send')
   @HttpCode(200)
   async customSend(@Body() body: ICustomSendBody) {
-    const { mode, accessToken, secret, message } = body
+    const bot = this.dingtalkBotService.createBotByCryptoConfig({ type: body.mode, ...body })
+    bot.send(body.message)
+  }
 
-    const dingtalkApiUrl = 'https://oapi.dingtalk.com/robot/send'
-    const dingtalkInitConfig: any = {}
+  /** 按名称选择机器人并发送消息 */
+  @Post('/:botName/send')
+  @HttpCode(200)
+  async sendByBotName(@Body() body: any, @Param('botName') botName: string) {
+    const botConfig = await this.getBotByName(botName)
+    const bot = this.dingtalkBotService.createBotByCryptoConfig(botConfig)
+    bot.send(body)
+  }
 
-    if (mode === 'crypto') {
-      dingtalkInitConfig.baseUrl = dingtalkApiUrl
-      dingtalkInitConfig.accessToken = accessToken
-      dingtalkInitConfig.secret = secret
-    } else {
-      dingtalkInitConfig.webhook = `${dingtalkApiUrl}?access_token=${accessToken}`
-    }
+  /** 按名称选择机器人快速发送文本消息 */
+  @Post('/:botName/send-text')
+  @HttpCode(200)
+  async sendTextByBotName(@Body() body: { text: string }, @Param('botName') botName: string) {
+    const messageBody: IDingtalkTextMessage = { msgtype: 'text', text: { content: body.text } }
+    this.sendByBotName(messageBody, botName)
+  }
 
-    const bot = new DingtalkBot(dingtalkInitConfig)
-    bot.send(message)
+  /** 列出所有机器人 */
+  @Get('/')
+  async listBots() {
+    return this.dingtalkBotService.listAll()
+  }
+
+  /** 按照名字查找机器人 */
+  @Get('/:botName')
+  async getBotByName(@Param('botName') botName: string) {
+    return this.dingtalkBotService.getBotByName(botName)
   }
 }

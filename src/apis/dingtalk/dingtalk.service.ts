@@ -1,0 +1,37 @@
+import { Model } from 'mongoose'
+import { Injectable } from '@nestjs/common'
+import DingtalkBot from 'dingtalk-robot-sender'
+
+import { DingtalkBotInject } from 'src/schemas/dingtalk-bot.schema'
+
+@Injectable()
+export class DingtalkBotService {
+  constructor(
+    @DingtalkBotInject()
+    private dingtalkBotModle: Model<ICommonDingtalkBot>
+  ) {}
+
+  async listAll() {
+    return this.dingtalkBotModle.find().exec()
+  }
+
+  async getBotByName(name: string) {
+    return this.dingtalkBotModle.findOne({ name }).exec()
+  }
+
+  createBotByCryptoConfig(config: ICommonDingtalkBot) {
+    const { type, accessToken, secret } = config
+    const dingtalkApiUrl = 'https://oapi.dingtalk.com/robot/send'
+    const dingtalkInitConfig: any = {}
+
+    if (type === 'crypto') {
+      dingtalkInitConfig.baseUrl = dingtalkApiUrl
+      dingtalkInitConfig.accessToken = accessToken
+      dingtalkInitConfig.secret = secret
+    } else {
+      dingtalkInitConfig.webhook = `${dingtalkApiUrl}?access_token=${accessToken}`
+    }
+
+    return new DingtalkBot(dingtalkInitConfig)
+  }
+}

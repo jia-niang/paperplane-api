@@ -37,3 +37,8 @@ interface IIpDingtalkBot extends IDingtalkBotBase {
   /** 允许的 IP 地址列表 */
   ipList: string[]
 }
+
+/** 通用机器人配置 */
+interface ICommonDingtalkBot extends Partial<ICryptoDingtalkBot> {
+  type: DingtalkBotTypeAuthType
+}
