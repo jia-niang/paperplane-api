@@ -7,6 +7,8 @@ import { DockerStatusController } from './apis/docker-status/docker-status.contr
 import { DockerStatusService } from './apis/docker-status/docker-status.service'
 import { DingtalkBotService } from './apis/dingtalk/dingtalk.service'
 import { DingtalkBotModule } from './schemas/dingtalk-bot.schema'
+import { TasksController } from './apis/tasks/tasks.controller'
+import { TasksService } from './apis/tasks/tasks.service'
 
 const mongodbUrl =
   process.env.NODE_ENV === 'production'
@@ -15,7 +17,7 @@ const mongodbUrl =
 
 @Module({
   imports: [MongooseModule.forRoot(mongodbUrl, { dbName: 'paperplane' }), DingtalkBotModule],
-  controllers: [DingtalkController, DockerStatusController],
-  providers: [ResponseInterceptorProvider, DockerStatusService, DingtalkBotService],
+  controllers: [DingtalkController, DockerStatusController, TasksController],
+  providers: [ResponseInterceptorProvider, DockerStatusService, DingtalkBotService, TasksService],
 })
 export class AppModule {}

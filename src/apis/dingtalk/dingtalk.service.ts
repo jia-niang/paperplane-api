@@ -15,11 +15,11 @@ export class DingtalkBotService {
     return this.dingtalkBotModle.find().exec()
   }
 
-  async getBotByName(name: string) {
+  async getConfigByName(name: string): Promise<ICommonDingtalkBot> {
     return this.dingtalkBotModle.findOne({ name }).exec()
   }
 
-  createBotByCryptoConfig(config: ICommonDingtalkBot) {
+  createBotByCryptoConfig(config: ICommonDingtalkBot): DingtalkBot {
     const { type, accessToken, secret } = config
     const dingtalkApiUrl = 'https://oapi.dingtalk.com/robot/send'
     const dingtalkInitConfig: any = {}
@@ -33,5 +33,10 @@ export class DingtalkBotService {
     }
 
     return new DingtalkBot(dingtalkInitConfig)
+  }
+
+  async createBotByName(name: string): Promise<DingtalkBot> {
+    const botConfig = await this.getConfigByName(name)
+    return this.createBotByCryptoConfig(botConfig)
   }
 }

@@ -48,6 +48,6 @@ export class DingtalkController {
   /** 按照名字查找机器人 */
   @Get('/:botName')
   async getBotByName(@Param('botName') botName: string) {
-    return this.dingtalkBotService.getBotByName(botName)
+    return this.dingtalkBotService.getConfigByName(botName)
   }
 }
