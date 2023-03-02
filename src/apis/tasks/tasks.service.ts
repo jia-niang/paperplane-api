@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import dayjs from 'dayjs'
 import { Model } from 'mongoose'
-import { OffworkRecordInject } from 'src/schemas/offwork-record.schema'
+
+import { OffworkRecordInject } from '@/schemas/offwork-record.schema'
+import { drawOffworkNotice } from '@/offwork-notice/offworkNoticeV2'
+import { fetchOffworkRecord } from '@/offwork-notice/fetchOffworkRecord'
+import { sendOtherOffworkNotice } from '@/offwork-notice/offworkOther'
+import { sendOffworkNotice } from '@/offwork-notice/offworkSuzhou'
 
 import { DingtalkBotService } from '../dingtalk/dingtalk.service'
-import { drawOffworkNotice } from './offworkNoticeV2'
-import { fetchOffworkRecord } from './fetchOffworkRecord'
-import { sendOtherOffworkNotice } from './offworkOther'
-import { sendOffworkNotice } from './offworkSuzhou'
 
 @Injectable()
 export class TasksService {

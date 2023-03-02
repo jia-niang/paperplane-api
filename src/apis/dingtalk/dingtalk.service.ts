@@ -2,7 +2,7 @@ import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import DingtalkBot from 'dingtalk-robot-sender'
 
-import { DingtalkBotInject } from 'src/schemas/dingtalk-bot.schema'
+import { DingtalkBotInject } from '@/schemas/dingtalk-bot.schema'
 
 @Injectable()
 export class DingtalkBotService {

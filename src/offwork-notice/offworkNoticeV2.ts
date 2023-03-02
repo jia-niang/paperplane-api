@@ -6,8 +6,8 @@ import { round } from 'lodash'
 import { tmpdir } from 'os'
 import { resolve } from 'path'
 
-import { uploadFileByPath } from '../../utils/cos'
-import { drawCircle } from '../../utils/draw'
+import { uploadFileByPath } from '../utils/cos'
+import { drawCircle } from '../utils/draw'
 
 dayjs.extend(dayOfYear)
 
@@ -17,7 +17,7 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
     const ctx = canvas.getContext('2d')
 
     const bgNumber = 1 + (dayjs().dayOfYear() % 4)
-    const bg = await loadImage(resolve(__dirname, `../../res/bg/bg-${bgNumber}.jpg`))
+    const bg = await loadImage(resolve(__dirname, `../res/bg/bg-${bgNumber}.jpg`))
     ctx.drawImage(bg, 0, 0, 1500, 800)
 
     ctx.font = '170px "Source Han Sans CN"'
@@ -133,5 +133,5 @@ function getWeatherImageByWid(mid: string | number) {
     return 'unknown'
   })()
 
-  return resolve(__dirname, `../../res/weather/${fileName}.png`)
+  return resolve(__dirname, `../res/weather/${fileName}.png`)
 }
