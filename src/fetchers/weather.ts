@@ -25,7 +25,7 @@ export interface IWeatherResponse {
     /** 天气，格式如 `"多云转小雨"` */
     weather: string
     /** 天气标识 ID */
-    wid: { day: string; night: string }
+    wid: string
     /** 风向，格式如 `"西北风"` */
     direct: string
   }
@@ -35,9 +35,11 @@ async function weatherApi(url: string): Promise<IWeatherResponse> {
   const res = await axios.get(url).then(response => response.data)
   const weatherInfo = get(res, 'result')
 
+  const tomorrowWeather = get(weatherInfo, 'future[0]')
+
   return {
     today: get(weatherInfo, 'realtime'),
-    tomorrow: get(weatherInfo, 'future[0]'),
+    tomorrow: { ...tomorrowWeather, wid: get(tomorrowWeather, 'wid.day') },
   }
 }
 

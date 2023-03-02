@@ -7,6 +7,7 @@ import { DockerStatusController } from './apis/docker-status/docker-status.contr
 import { DockerStatusService } from './apis/docker-status/docker-status.service'
 import { DingtalkBotService } from './apis/dingtalk/dingtalk.service'
 import { DingtalkBotModule } from './schemas/dingtalk-bot.schema'
+import { OffworkRecordModule } from './schemas/offwork-record.schema'
 import { TasksController } from './apis/tasks/tasks.controller'
 import { TasksService } from './apis/tasks/tasks.service'
 
@@ -16,7 +17,11 @@ const mongodbUrl =
     : 'mongodb://root:qwer1234@localhost:27017'
 
 @Module({
-  imports: [MongooseModule.forRoot(mongodbUrl, { dbName: 'paperplane' }), DingtalkBotModule],
+  imports: [
+    MongooseModule.forRoot(mongodbUrl, { dbName: 'paperplane' }),
+    DingtalkBotModule,
+    OffworkRecordModule,
+  ],
   controllers: [DingtalkController, DockerStatusController, TasksController],
   providers: [ResponseInterceptorProvider, DockerStatusService, DingtalkBotService, TasksService],
 })

@@ -3,12 +3,7 @@ import axios from 'axios'
 
 const url = 'http://hq.sinajs.cn/list=sz300662'
 
-export interface IStorkApiResponse {
-  today: number
-  yesterday: number
-}
-
-export async function stockApi(): Promise<IStorkApiResponse> {
+export async function stockApi(): Promise<IOffworkStockInfo> {
   const res = await axios
     .get(url, { headers: { Referer: 'http://finance.sina.com.cn' } })
     .then(response => response.data)
