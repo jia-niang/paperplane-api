@@ -104,9 +104,6 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
 
     ws.on('error', rejectPromise)
     ws.on('finish', () => {
-      resolvePromise(filePath)
-      return
-
       uploadFileByPath(`/dingtalk-offwork/${fileName}`, filePath)
         .then(fileInfo => void resolvePromise('https://' + fileInfo.Location))
         .catch(rejectPromise)
