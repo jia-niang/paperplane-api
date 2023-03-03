@@ -3,9 +3,6 @@ EXPOSE 6100
 
 WORKDIR /app
 ADD . /app/
-
-RUN chown -R node /app
-USER node
 RUN yarn
 RUN yarn build
 
