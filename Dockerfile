@@ -4,7 +4,7 @@ EXPOSE 6100
 WORKDIR /app
 ADD . /app/
 
-RUN sudo chown -R node *
+RUN chown -R node *
 USER node
 RUN yarn
 RUN yarn build
