@@ -1,4 +1,4 @@
-FROM node:19-slim
+FROM paperplanecc/node-19-puppeteer
 EXPOSE 6100
 
 WORKDIR /app
