@@ -7,6 +7,6 @@ ADD . /app/
 RUN yarn
 RUN yarn build
 
-USER node
+USER pptruser
 
 CMD [ "yarn", "start:prod" ]
