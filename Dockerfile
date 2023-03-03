@@ -2,7 +2,7 @@ FROM paperplanecc/node-19-puppeteer
 EXPOSE 6100
 
 WORKDIR /app
-RUN sudo chown -R node app
+RUN sudo chown -R node /app
 USER node
 
 ADD . /app/
