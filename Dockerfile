@@ -2,7 +2,7 @@ FROM paperplanecc/node-19-puppeteer
 EXPOSE 6100
 
 WORKDIR /app
-RUN sudo chown $(id -u -n) 。
+RUN chown $(id -u -n) .
 ADD . /app/
 RUN yarn
 RUN yarn build
