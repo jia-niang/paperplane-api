@@ -8,6 +8,7 @@ import { resolve } from 'path'
 
 import { uploadFileByPath } from '../utils/cos'
 import { drawCircle } from '../utils/draw'
+import { generateTrafficMap } from './trafficMap'
 
 dayjs.extend(dayOfYear)
 
@@ -30,29 +31,30 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
     ctx.fillText(countDownText, 300, 280)
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-    ctx.fillRect(1050, 30, 400, 150)
-    ctx.fillRect(1050, 210, 400, 150)
+    ctx.fillRect(890, 30, 260, 100)
+    ctx.fillRect(1210, 30, 260, 100)
 
     const weather = offworkRecord.weather.suzhou
     const todayWeatherImg = await loadImage(getWeatherImageByWid(weather.today.wid))
-    ctx.drawImage(todayWeatherImg, 1310, 40, 130, 130)
+    ctx.drawImage(todayWeatherImg, 1050, 40, 80, 80)
     const tomorrowWeatherImg = await loadImage(getWeatherImageByWid(weather.tomorrow.wid))
-    ctx.drawImage(tomorrowWeatherImg, 1310, 220, 130, 130)
+    ctx.drawImage(tomorrowWeatherImg, 1370, 40, 80, 80)
 
-    ctx.font = '50px "Source Han Sans CN"'
-    ctx.fillStyle = '#333'
+    ctx.font = '30px "Source Han Sans CN"'
+    ctx.fillStyle = '#000'
     ctx.textAlign = 'center'
-    ctx.fillText(weather.today.info, 1200, 90)
-    ctx.fillText(weather.tomorrow.weather, 1200, 270)
-    ctx.fillText(weather.today.temperature + '℃', 1200, 90 + 60)
-    ctx.fillText(weather.tomorrow.temperature, 1200, 270 + 60)
+    ctx.fillText(weather.today.info, 985, 70)
+    ctx.fillText(weather.today.temperature + '℃', 985, 110)
 
-    ctx.font = '40px "Source Han Sans CN"'
+    ctx.fillText(weather.tomorrow.weather, 1305, 70)
+    ctx.fillText(weather.tomorrow.temperature, 1305, 110)
+
+    ctx.font = '30px "Source Han Sans CN"'
     ctx.fillStyle = '#fff'
-    drawCircle(ctx, 1050, 105, 30, 'rgb(67, 108, 165, 0.4)')
-    ctx.fillText('今', 1050, 120)
-    drawCircle(ctx, 1050, 285, 30, 'rgb(67, 108, 165, 0.4)')
-    ctx.fillText('明', 1050, 300)
+    drawCircle(ctx, 890, 80, 22.5, 'rgb(67, 108, 165, 0.4)')
+    ctx.fillText('今', 890, 91.5)
+    drawCircle(ctx, 1210, 80, 22.5, 'rgb(67, 108, 165, 0.4)')
+    ctx.fillText('明', 1210, 91.5)
 
     ctx.lineWidth = 4
     ctx.fillStyle = 'rgba(67, 108, 165, 1)'
@@ -70,7 +72,7 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
     ctx.strokeStyle = 'rgba(67, 108, 165, 1)'
     ctx.strokeRect(170, 690 + 2, ctx.measureText(stockText).width + 40, 60 - 4)
 
-    ctx.fillStyle = '#333'
+    ctx.fillStyle = '#000'
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(67, 108, 165, 1)'
     ctx.fillRect(70 - 2, 470, 100, 60)
@@ -83,7 +85,7 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
     ctx.strokeRect(190, 540, 120, 130)
     ctx.strokeRect(310, 540, 120, 130)
 
-    ctx.fillStyle = '#333'
+    ctx.fillStyle = '#000'
     ctx.textAlign = 'center'
     ctx.fillText('92#', 130, 590)
     ctx.fillText('95#', 130 + 120, 590)
@@ -94,6 +96,9 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
     ctx.fillText(oilprice['92h'], 130, 650)
     ctx.fillText(oilprice['95h'], 130 + 120, 650)
     ctx.fillText(oilprice['98h'], 130 + 240, 650)
+
+    const screenShot = await loadImage(await generateTrafficMap())
+    ctx.drawImage(screenShot, 870, 170, 600, 600)
 
     const fileName = `img-${+new Date()}.png`
     const filePath = `${tmpdir}/${fileName}`

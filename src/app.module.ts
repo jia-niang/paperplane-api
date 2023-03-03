@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { ServeStaticModule } from '@nestjs/serve-static'
 import { MongooseModule } from '@nestjs/mongoose'
 
 import { ResponseInterceptorProvider } from './application/response.interceptor'
@@ -18,6 +19,7 @@ const mongodbUrl =
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({ rootPath: __dirname + '/res/traffic' }),
     MongooseModule.forRoot(mongodbUrl, { dbName: 'paperplane' }),
     DingtalkBotModule,
     OffworkRecordModule,
