@@ -1,9 +1,13 @@
 FROM paperplanecc/node-19-puppeteer
 EXPOSE 6100
 
-WORKDIR /app
-RUN sudo chown $(id -u -n) /app
-ADD . /app/
+USER node
+RUN cd ~
+RUN mkdir app
+
+WORKDIR /home/node/app
+ADD . /home/node/app/
+
 RUN yarn
 RUN yarn build
 
