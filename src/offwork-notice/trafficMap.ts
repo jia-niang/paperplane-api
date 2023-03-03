@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer'
 
 export async function generateTrafficMap(): Promise<Buffer> {
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] })
   const page = await browser.newPage()
   await page.goto('http://localhost:6100/res/static/traffic.html')
   await page.setViewport({ width: 700, height: 700 })
