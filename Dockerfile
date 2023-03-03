@@ -1,14 +1,11 @@
 FROM paperplanecc/node-19-puppeteer
 EXPOSE 6100
 
-USER node
-RUN cd /home/node
-RUN mkdir app
-
-WORKDIR /home/node/app
-ADD . /home/node/app/
-
+WORKDIR /app
+ADD . /app/
 RUN yarn
 RUN yarn build
+
+USER node
 
 CMD [ "yarn", "start:prod" ]
