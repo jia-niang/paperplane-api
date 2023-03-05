@@ -1,8 +1,11 @@
 import DingtalkBot from 'dingtalk-robot-sender'
 
 export async function sendOtherOffworkNotice(bot: DingtalkBot, offworkRecord: IDailyOffworkRecord) {
-  let content = ''
+  if (!offworkRecord.isWorkDay) {
+    return
+  }
 
+  let content = ''
   const { oilprice } = offworkRecord
 
   {
