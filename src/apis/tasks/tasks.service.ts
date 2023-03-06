@@ -22,36 +22,32 @@ export class TasksService {
   }
 
   private async offwork() {
-    const date = dayjs().format('YYYY-MM-DD')
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({ date })
-    if (!todayOffworkRecord.isWorkDay) {
-      return
-    }
-    const bot = await this.dingtalkBotService.createBotByName('FE-Bot')
-    await sendOtherOffworkNotice(bot, todayOffworkRecord)
-    await sendOffworkNotice(bot, todayOffworkRecord)
+    await this.__offwork('FE-Bot')
   }
 
   private async offworkTest() {
+    await this.__offwork('TestBot')
+  }
+
+  private async __offwork(botName: string) {
     const date = dayjs().format('YYYY-MM-DD')
     const todayOffworkRecord = await this.offworkRecordModel.findOne({ date })
-    const bot = await this.dingtalkBotService.createBotByName('TestBot')
+    const bot = await this.dingtalkBotService.createBotByName(botName)
     await sendOtherOffworkNotice(bot, todayOffworkRecord)
     await sendOffworkNotice(bot, todayOffworkRecord)
   }
 
   private async offworkNoticeV2() {
-    const date = dayjs().format('YYYY-MM-DD')
-    const bot = await this.dingtalkBotService.createBotByName('FE-Bot')
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({ date })
-    const cosFileInfo = await drawOffworkNotice(todayOffworkRecord)
-    await sendOtherOffworkNotice(bot, todayOffworkRecord)
-    await bot.markdown('下班了', `![](${cosFileInfo})`, { atMobiles: [], isAtAll: false })
+    await this.__offworkNoticeV2('FE-Bot')
   }
 
   private async offworkNoticeV2Test() {
+    await this.__offworkNoticeV2('TestBot')
+  }
+
+  private async __offworkNoticeV2(botName: string) {
     const date = dayjs().format('YYYY-MM-DD')
-    const bot = await this.dingtalkBotService.createBotByName('TestBot')
+    const bot = await this.dingtalkBotService.createBotByName(botName)
     const todayOffworkRecord = await this.offworkRecordModel.findOne({ date })
     const cosFileInfo = await drawOffworkNotice(todayOffworkRecord)
     await sendOtherOffworkNotice(bot, todayOffworkRecord)
