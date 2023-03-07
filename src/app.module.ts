@@ -11,6 +11,8 @@ import { DingtalkBotModule } from './schemas/dingtalk-bot.schema'
 import { OffworkRecordModule } from './schemas/offwork-record.schema'
 import { TasksController } from './apis/tasks/tasks.controller'
 import { TasksService } from './apis/tasks/tasks.service'
+import { AiController } from './apis/ai/ai.controller'
+import { AiService } from './apis/ai/ai.service'
 
 const mongodbUrl =
   process.env.NODE_ENV === 'production'
@@ -24,7 +26,13 @@ const mongodbUrl =
     DingtalkBotModule,
     OffworkRecordModule,
   ],
-  controllers: [DingtalkController, DockerStatusController, TasksController],
-  providers: [ResponseInterceptorProvider, DockerStatusService, DingtalkBotService, TasksService],
+  controllers: [DingtalkController, DockerStatusController, TasksController, AiController],
+  providers: [
+    ResponseInterceptorProvider,
+    DockerStatusService,
+    DingtalkBotService,
+    TasksService,
+    AiService,
+  ],
 })
 export class AppModule {}
