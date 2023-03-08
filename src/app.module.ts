@@ -22,7 +22,7 @@ import { AiService } from './apis/ai/ai.service'
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.MONGODB_URL, { dbName: 'paperplane' }),
-    ServeStaticModule.forRoot({ rootPath: __dirname + '/res/traffic' }),
+    ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
     DingtalkBotModule,
     OffworkRecordModule,
   ],
