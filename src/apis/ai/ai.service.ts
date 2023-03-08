@@ -19,6 +19,7 @@ export class AiService {
       .createCompletion({
         model: 'text-davinci-003',
         prompt,
+        max_tokens: 3000,
       })
       .then(res => res.data)
       .then(res => res.choices?.[0].text)
@@ -29,6 +30,7 @@ export class AiService {
       .createChatCompletion({
         model: 'gpt-3.5-turbo-0301',
         messages: [{ role: 'user', content: prompt }],
+        max_tokens: 3000,
       })
       .then(res => res.data)
       .then(res => res.choices?.[0].message?.content)
