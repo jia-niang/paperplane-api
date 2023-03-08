@@ -14,7 +14,7 @@ services:
     container_name: paperplane-api
     restart: always
     volumes:
-      - ./.env.production:/source/.env.production:ro
+      - ./.env.production:/app/.env.production:ro
     networks:
       - default-app
       - default-db-mongo
