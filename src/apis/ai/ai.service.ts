@@ -6,7 +6,7 @@ export class AiService {
   openai = new OpenAIApi(
     new Configuration({
       apiKey: process.env.OPEN_AI_KEY,
-      baseOptions: { proxy: JSON.parse(process.env.OPEN_AI_PROXY_CONFIG || 'undefined') },
+      baseOptions: { proxy: JSON.parse(process.env.OPEN_AI_PROXY_CONFIG || '{}') },
     })
   )
 
