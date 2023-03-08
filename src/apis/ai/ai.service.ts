@@ -5,11 +5,8 @@ import { Configuration, OpenAIApi } from 'openai'
 export class AiService {
   openai = new OpenAIApi(
     new Configuration({
-      apiKey: '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',
-      baseOptions:
-        process.env.NODE_ENV === 'production'
-          ? {}
-          : { proxy: { protocol: 'http', host: '127.0.0.1', port: 7890 } },
+      apiKey: process.env.OPEN_AI_KEY,
+      baseOptions: { proxy: JSON.parse(process.env.OPEN_AI_PROXY_CONFIG || 'undefined') },
     })
   )
 

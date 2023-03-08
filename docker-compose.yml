@@ -9,10 +9,12 @@ networks:
     external: true
 
 services:
-  api-service:
-    image: paperplanecc/api-service:latest
-    container_name: api-service
+  paperplane-api:
+    image: paperplanecc/paperplane-api:latest
+    container_name: paperplane-api
     restart: always
+    volumes:
+      - ./.env.production:/source/.env.production:ro
     networks:
       - default-app
       - default-db-mongo

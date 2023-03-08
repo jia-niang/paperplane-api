@@ -45,18 +45,18 @@ async function weatherApi(url: string): Promise<IWeatherResponse> {
 
 export async function suzhouWeatherApi() {
   return weatherApi(
-    'http://apis.juhe.cn/simpleWeather/query?city=1357&key=a5f26bc48839c1d0bed81796fd6ae664'
+    `http://apis.juhe.cn/simpleWeather/query?city=1357&key=${process.env.JUHE_WEATHER_API_KEY}`
   )
 }
 
 export async function shanghaiWeatherApi() {
   return weatherApi(
-    'http://apis.juhe.cn/simpleWeather/query?city=18&key=a5f26bc48839c1d0bed81796fd6ae664'
+    `http://apis.juhe.cn/simpleWeather/query?city=18&key=${process.env.JUHE_WEATHER_API_KEY}`
   )
 }
 
 export async function beijingWeatherApi() {
   return weatherApi(
-    'http://apis.juhe.cn/simpleWeather/query?city=3&key=a5f26bc48839c1d0bed81796fd6ae664'
+    `http://apis.juhe.cn/simpleWeather/query?city=3&key=${process.env.JUHE_WEATHER_API_KEY}`
   )
 }

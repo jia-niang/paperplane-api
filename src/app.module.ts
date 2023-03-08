@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { MongooseModule } from '@nestjs/mongoose'
 
@@ -14,15 +15,14 @@ import { TasksService } from './apis/tasks/tasks.service'
 import { AiController } from './apis/ai/ai.controller'
 import { AiService } from './apis/ai/ai.service'
 
-const mongodbUrl =
-  process.env.NODE_ENV === 'production'
-    ? 'mongodb://root:qwer1234@mongo:27017'
-    : 'mongodb://root:qwer1234@localhost:27017'
-
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: ['.env.local', '.env.development', '.env.production', '.env'],
+      isGlobal: true,
+    }),
+    MongooseModule.forRoot(process.env.MONGODB_URL, { dbName: 'paperplane' }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res/traffic' }),
-    MongooseModule.forRoot(mongodbUrl, { dbName: 'paperplane' }),
     DingtalkBotModule,
     OffworkRecordModule,
   ],

@@ -1,9 +1,11 @@
 import { get } from 'lodash'
 import axios from 'axios'
 
-const url = 'http://apis.juhe.cn/gnyj/query?key=41d363ec1114fe9fb959adf4d301037f'
-
 export async function todayOilPriceApi(): Promise<Record<offworkNoticeCity, IOffworkOilpriceInfo>> {
+  const apiHost = 'http://apis.juhe.cn/gnyj/query'
+  const key = process.env.JUHE_OIL_PRICE_API_KEY
+
+  const url = `${apiHost}?key=${key}`
   const res = await axios.get(url).then(response => response.data)
   const result = get(res, 'result', [])
 
