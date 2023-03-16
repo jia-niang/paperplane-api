@@ -1,4 +1,4 @@
-FROM paperplanecc/node-19-puppeteer
+FROM paperplanecc/paperplane-api-base:latest
 EXPOSE 6100
 
 WORKDIR /app
