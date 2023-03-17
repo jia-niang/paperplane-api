@@ -127,8 +127,8 @@ export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Pro
 
     ws.on('error', rejectPromise)
     ws.on('finish', () => {
-      uploadFileByPath(`/dingtalk-offwork/${fileName}`, filePath)
-        .then(fileInfo => void resolvePromise('https://' + fileInfo.Location))
+      uploadFileByPath(`/dingtalk-offwork/${fileName}`, filePath, { usePaperplaneDomain: true })
+        .then(fileInfo => void resolvePromise(fileInfo.Location))
         .catch(rejectPromise)
     })
   })
