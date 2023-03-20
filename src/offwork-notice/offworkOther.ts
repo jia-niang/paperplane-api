@@ -5,7 +5,7 @@ export async function generateOtherOffworkNoticeMessage(
   const { oilprice } = offworkRecord
 
   {
-    content += '在北京的 @15071204048 同学看这里：\n'
+    content += '在北京的 Waiho 同学看这里：\n'
 
     const { today: todayWeather, tomorrow: tomorrowWeather } = offworkRecord.weather.beijing
     const { info, temperature } = todayWeather
@@ -20,7 +20,7 @@ export async function generateOtherOffworkNoticeMessage(
   }
 
   {
-    content += '在上海的 @18317035969 同学看这里：\n'
+    content += '在上海的 Niki 同学看这里：\n'
 
     const { today: todayWeather, tomorrow: tomorrowWeather } = offworkRecord.weather.shanghai
     const { info, temperature } = todayWeather
@@ -37,9 +37,6 @@ export async function generateOtherOffworkNoticeMessage(
   return {
     msgtype: 'text',
     text: { content },
-    at: {
-      isAtAll: false,
-      atMobiles: ['15071204048', '18317035969'],
-    },
+    at: { isAtAll: false, atMobiles: [] },
   }
 }
