@@ -12,6 +12,8 @@ import { generateTrafficMap } from './trafficMap'
 
 dayjs.extend(dayOfYear)
 
+registerFont(resolve(__dirname, '../res/fonts/fzxinshusong.ttf'), { family: 'fzxinshusong' })
+
 export async function generateOffworkNoticeImageCOSUrl(
   offworkRecord: IDailyOffworkRecord
 ): Promise<string> {
@@ -24,7 +26,6 @@ export async function generateOffworkNoticeImageCOSUrl(
     ctx.drawImage(bg, 0, 0, 1500, 800)
 
     // 大标题
-    registerFont(resolve(__dirname, '../res/fonts/fzxinshusong.ttf'), { family: 'fzxinshusong' })
     ctx.font = '170px fzxinshusong'
     ctx.fillText('下班了', 50, 180)
 
