@@ -1,10 +1,6 @@
-import DingtalkBot from 'dingtalk-robot-sender'
-
-export async function sendOtherOffworkNotice(bot: DingtalkBot, offworkRecord: IDailyOffworkRecord) {
-  if (!offworkRecord.isWorkDay) {
-    return
-  }
-
+export async function generateOtherOffworkNoticeMessage(
+  offworkRecord: IDailyOffworkRecord
+): Promise<IDingtalkTextMessage> {
   let content = ''
   const { oilprice } = offworkRecord
 
@@ -38,12 +34,12 @@ export async function sendOtherOffworkNotice(bot: DingtalkBot, offworkRecord: ID
     content += `※ 附近路况：${traffic}`
   }
 
-  await bot.send({
+  return {
     msgtype: 'text',
     text: { content },
     at: {
       isAtAll: false,
       atMobiles: ['15071204048', '18317035969'],
     },
-  })
+  }
 }

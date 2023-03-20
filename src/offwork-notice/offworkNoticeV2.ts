@@ -12,7 +12,9 @@ import { generateTrafficMap } from './trafficMap'
 
 dayjs.extend(dayOfYear)
 
-export async function drawOffworkNotice(offworkRecord: IDailyOffworkRecord): Promise<string> {
+export async function generateOffworkNoticeImageCOSUrl(
+  offworkRecord: IDailyOffworkRecord
+): Promise<string> {
   return new Promise(async (resolvePromise, rejectPromise) => {
     const canvas = createCanvas(1500, 800)
     const ctx = canvas.getContext('2d')

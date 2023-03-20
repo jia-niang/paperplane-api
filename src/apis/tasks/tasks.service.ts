@@ -3,10 +3,10 @@ import dayjs from 'dayjs'
 import { Model } from 'mongoose'
 
 import { OffworkRecordInject } from '@/schemas/offwork-record.schema'
-import { drawOffworkNotice } from '@/offwork-notice/offworkNoticeV2'
+import { generateOffworkNoticeImageCOSUrl } from '@/offwork-notice/offworkNoticeV2'
 import { fetchOffworkRecord } from '@/offwork-notice/fetchOffworkRecord'
-import { sendOtherOffworkNotice } from '@/offwork-notice/offworkOther'
-import { sendOffworkNotice } from '@/offwork-notice/offworkSuzhou'
+import { generateOtherOffworkNoticeMessage } from '@/offwork-notice/offworkOther'
+import { generateOffworkNoticeMessage } from '@/offwork-notice/offworkSuzhou'
 
 import { DingtalkBotService } from '../dingtalk/dingtalk.service'
 
@@ -22,41 +22,59 @@ export class TasksService {
   }
 
   private async offwork() {
-    await this.__offwork('FE-Bot')
+    const todayOffworkRecord = await this.offworkRecordModel.findOne({
+      date: dayjs().format('YYYY-MM-DD'),
+    })
+    if (todayOffworkRecord.isWorkDay) {
+      await this.__offwork('FE-Bot', todayOffworkRecord)
+    }
   }
 
   private async offworkTest() {
-    await this.__offwork('TestBot')
+    const todayOffworkRecord = await this.offworkRecordModel.findOne({
+      date: dayjs().format('YYYY-MM-DD'),
+    })
+    await this.__offwork('TestBot', todayOffworkRecord)
   }
 
-  private async __offwork(botName: string) {
-    const date = dayjs().format('YYYY-MM-DD')
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({ date })
+  private async __offwork(botName: string, record: IDailyOffworkRecord) {
     const bot = await this.dingtalkBotService.createBotByName(botName)
-    await sendOtherOffworkNotice(bot, todayOffworkRecord)
-    await sendOffworkNotice(bot, todayOffworkRecord)
+
+    const otherOffworkNotice = await generateOtherOffworkNoticeMessage(record)
+    await bot.send(otherOffworkNotice)
+
+    const suzhouOffworkNotice = await generateOffworkNoticeMessage(record)
+    await bot.send(suzhouOffworkNotice)
   }
 
   private async offworkNoticeV2() {
-    await this.__offworkNoticeV2('FE-Bot')
+    const todayOffworkRecord = await this.offworkRecordModel.findOne({
+      date: dayjs().format('YYYY-MM-DD'),
+    })
+    if (todayOffworkRecord.isWorkDay) {
+      await this.__offworkNoticeV2('FE-Bot', todayOffworkRecord)
+    }
   }
 
   private async offworkNoticeV2Test() {
-    await this.__offworkNoticeV2('TestBot')
+    const todayOffworkRecord = await this.offworkRecordModel.findOne({
+      date: dayjs().format('YYYY-MM-DD'),
+    })
+    await this.__offworkNoticeV2('TestBot', todayOffworkRecord)
   }
 
-  private async __offworkNoticeV2(botName: string) {
-    const date = dayjs().format('YYYY-MM-DD')
+  private async __offworkNoticeV2(botName: string, record: IDailyOffworkRecord) {
     const bot = await this.dingtalkBotService.createBotByName(botName)
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({ date })
-    const cosFileInfo = await drawOffworkNotice(todayOffworkRecord)
-    await sendOtherOffworkNotice(bot, todayOffworkRecord)
-    await bot.markdown('下班了', `![](${cosFileInfo})`, { atMobiles: [], isAtAll: false })
+
+    const otherOffworkNotice = await generateOtherOffworkNoticeMessage(record)
+    await bot.send(otherOffworkNotice)
+
+    const cosFileUrl = await generateOffworkNoticeImageCOSUrl(record)
+    await bot.markdown('下班了', `![](${cosFileUrl})`, { atMobiles: [], isAtAll: true })
   }
 
   private async saveTodayOffworkRecord() {
-    const date = dayjs().format('YYYY-MM-DD')
-    await this.offworkRecordModel.deleteMany({ date })
+    await this.offworkRecordModel.deleteMany({ date: dayjs().format('YYYY-MM-DD') })
 
     const offworkRecord = await fetchOffworkRecord()
     const offworkDO = new this.offworkRecordModel(offworkRecord)

@@ -1,10 +1,6 @@
-import DingtalkBot from 'dingtalk-robot-sender'
-
-export async function sendOffworkNotice(bot: DingtalkBot, offworkRecord: IDailyOffworkRecord) {
-  if (!offworkRecord.isWorkDay) {
-    return
-  }
-
+export async function generateOffworkNoticeMessage(
+  offworkRecord: IDailyOffworkRecord
+): Promise<IDingtalkTextMessage> {
   let content = '下班时间到啦，磨刀不误砍柴工，劳逸结合，不要太辛苦自己噢~\n\n'
 
   const { today: todayWeather, tomorrow: tomorrowWeather } = offworkRecord.weather.suzhou
@@ -30,9 +26,9 @@ export async function sendOffworkNotice(bot: DingtalkBot, offworkRecord: IDailyO
     content += `今天是发薪日，加油！\n`
   }
 
-  await bot.send({
+  return {
     msgtype: 'text',
     text: { content },
     at: { isAtAll: true, atMobiles: [] },
-  })
+  }
 }
