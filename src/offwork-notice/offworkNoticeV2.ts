@@ -148,6 +148,8 @@ function getWeatherImageByDesc(mid: string | number, weatherName?: string) {
     if (0 === numbericMid) {
       if (weatherName?.includes('小雨')) return 'xiaoyu'
       if (weatherName?.includes('中雨')) return 'zhongyu'
+      if (weatherName?.includes('大雨')) return 'dayu'
+      if (weatherName?.includes('雨')) return 'xiaoyu'
       return 'qing'
     }
 
