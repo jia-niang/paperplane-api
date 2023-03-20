@@ -48,9 +48,13 @@ export async function generateOffworkNoticeImageCOSUrl(
 
     // 天气图标
     const weather = offworkRecord.weather.suzhou
-    const todayWeatherImg = await loadImage(getWeatherImageByWid(weather.today.wid))
+    const todayWeatherImg = await loadImage(
+      getWeatherImageByDesc(weather.today.wid, weather.today.info)
+    )
     ctx.drawImage(todayWeatherImg, 1050, 40, 80, 80)
-    const tomorrowWeatherImg = await loadImage(getWeatherImageByWid(weather.tomorrow.wid))
+    const tomorrowWeatherImg = await loadImage(
+      getWeatherImageByDesc(weather.tomorrow.wid, weather.tomorrow.weather)
+    )
     ctx.drawImage(tomorrowWeatherImg, 1370, 40, 80, 80)
 
     // 天气文本
@@ -137,11 +141,16 @@ export async function generateOffworkNoticeImageCOSUrl(
   })
 }
 
-function getWeatherImageByWid(mid: string | number) {
+function getWeatherImageByDesc(mid: string | number, weatherName?: string) {
   const numbericMid = Number(mid)
 
   const fileName = (function () {
-    if (0 === numbericMid) return 'qing'
+    if (0 === numbericMid) {
+      if (weatherName?.includes('小雨')) return 'xiaoyu'
+      if (weatherName?.includes('中雨')) return 'zhongyu'
+      return 'qing'
+    }
+
     if (1 === numbericMid) return 'duoyun'
     if (2 === numbericMid) return 'yin'
     if (3 === numbericMid) return 'zhenyu'
