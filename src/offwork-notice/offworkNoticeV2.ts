@@ -146,14 +146,22 @@ function getWeatherImageByDesc(mid: string | number, weatherName?: string) {
   const numbericMid = Number(mid)
 
   const fileName = (function () {
-    if (0 === numbericMid) {
+    // 存在例如“阴转小雨”的情况且 wid 仍为 0~2，此时应优先展示含有“雨”的图标
+    if ([0, 1, 2].includes(numbericMid) && weatherName?.includes('雨')) {
       if (weatherName?.includes('小雨')) return 'xiaoyu'
       if (weatherName?.includes('中雨')) return 'zhongyu'
       if (weatherName?.includes('大雨')) return 'dayu'
-      if (weatherName?.includes('雨')) return 'xiaoyu'
-      return 'qing'
+      return 'xiaoyu'
     }
 
+    if ([0, 1, 2].includes(numbericMid) && weatherName?.includes('雪')) {
+      if (weatherName?.includes('小雪')) return 'xiaoxue'
+      if (weatherName?.includes('中雪')) return 'zhongxue'
+      if (weatherName?.includes('大雪')) return 'daxue'
+      return 'xiaoxue'
+    }
+
+    if (0 === numbericMid) return 'qing'
     if (1 === numbericMid) return 'duoyun'
     if (2 === numbericMid) return 'yin'
     if (3 === numbericMid) return 'zhenyu'
