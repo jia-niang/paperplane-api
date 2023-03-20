@@ -14,9 +14,9 @@ type DingtalkMessageType =
 /** @ 人的消息配置结构 */
 interface IDingtalkMessageAtConfigInfo {
   /** 是否 @ 全体 */
-  isAtAll?: boolean
+  isAtAll: boolean
   /** 需要 @ 的人的手机号 */
-  atMobiles?: string[]
+  atMobiles: string[]
   /** 需要 @ 的人的用户 ID */
   atUserIds?: string[]
 }
@@ -33,6 +33,7 @@ interface IDingtalkMessageBase {
 
 /** 纯文本消息 */
 interface IDingtalkTextMessage extends IDingtalkMessageBase, IDingtalkMessageAtBase {
+  msgtype: 'text'
   text: {
     /** 文本消息内容，注意 @ 人需包含在内 */
     content: string
@@ -41,6 +42,7 @@ interface IDingtalkTextMessage extends IDingtalkMessageBase, IDingtalkMessageAtB
 
 /** 链接卡片消息 */
 interface IDingtalkLinkMessage extends IDingtalkMessageBase {
+  msgtype: 'link'
   link: {
     title: string
     text: string
@@ -53,6 +55,7 @@ interface IDingtalkLinkMessage extends IDingtalkMessageBase {
 
 /** Markdown 富文本消息 */
 interface IDingtalkMarkdownMessage extends IDingtalkMessageBase, IDingtalkMessageAtBase {
+  msgtype: 'markdown'
   markdown: {
     /** 标题，只显示在对话列表左边 */
     title: string
@@ -63,6 +66,7 @@ interface IDingtalkMarkdownMessage extends IDingtalkMessageBase, IDingtalkMessag
 
 /** 图文按钮卡片，有单按钮和多按钮两种模式 */
 interface IDingtalkActionCardMessageBase extends IDingtalkMessageBase {
+  msgtype: 'actionCard'
   actionCard: {
     title: string
     text: string
@@ -86,6 +90,7 @@ interface IDingtalkActionCardMessageBase extends IDingtalkMessageBase {
 
 /** 公众号聚合消息型卡片 */
 interface IDingtalkFeedCardMessage extends IDingtalkMessageBase {
+  actionCard: 'feedCard'
   feedCard: {
     links: {
       /** 标题 */
