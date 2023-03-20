@@ -1,4 +1,4 @@
-import { createCanvas, loadImage } from 'canvas'
+import { createCanvas, loadImage, registerFont } from 'canvas'
 import dayjs from 'dayjs'
 import dayOfYear from 'dayjs/plugin/dayOfYear'
 import { createWriteStream } from 'fs'
@@ -24,21 +24,22 @@ export async function generateOffworkNoticeImageCOSUrl(
     ctx.drawImage(bg, 0, 0, 1500, 800)
 
     // 大标题
-    ctx.font = '170px "Source Han Sans CN"'
+    registerFont(resolve(__dirname, '../res/fonts/fzxinshusong.ttf'), { family: 'fzxinshusong' })
+    ctx.font = '170px fzxinshusong'
     ctx.fillText('下班了', 50, 180)
 
     // 倒计时
     const restDays = offworkRecord.salaryDay.restDays
     const countDownText = restDays <= 0 ? `今天是发薪日~` : `发薪倒计时 ${restDays} 天`
     ctx.textAlign = 'center'
-    ctx.font = '60px "Source Han Sans CN"'
+    ctx.font = '60px fzxinshusong'
     ctx.fillText(countDownText, 300, 280)
 
     // 天气标签
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
     ctx.fillRect(890, 30, 260, 100)
     ctx.fillRect(1210, 30, 260, 100)
-    ctx.font = '30px "Source Han Sans CN"'
+    ctx.font = '30px fzxinshusong'
     ctx.fillStyle = '#fff'
     drawCircle(ctx, 890, 80, 22.5, 'rgb(67, 108, 165, 0.4)')
     ctx.fillText('今', 890, 91.5)
@@ -53,7 +54,7 @@ export async function generateOffworkNoticeImageCOSUrl(
     ctx.drawImage(tomorrowWeatherImg, 1370, 40, 80, 80)
 
     // 天气文本
-    ctx.font = '30px "Source Han Sans CN"'
+    ctx.font = '30px fzxinshusong'
     ctx.fillStyle = '#000'
     ctx.textAlign = 'center'
     ctx.fillText(weather.today.info, 985, 70)
@@ -66,14 +67,14 @@ export async function generateOffworkNoticeImageCOSUrl(
     ctx.fillStyle = 'rgba(67, 108, 165, 1)'
     ctx.fillRect(70 - 2, 690, 100, 60)
     ctx.fillStyle = '#000'
-    ctx.font = '40px "Source Han Sans CN"'
+    ctx.font = '40px fzxinshusong'
     ctx.fillText('股价', 120, 735)
 
     // 股价线框
     ctx.textAlign = 'left'
     const delta = round(offworkRecord.stock.today - offworkRecord.stock.yesterday, 2)
     const signText = delta > 0 ? '+' : ''
-    ctx.font = '30px "Source Han Sans CN"'
+    ctx.font = '30px fzxinshusong'
     const stockText = `${offworkRecord.stock.today} (${signText}${delta})`
     ctx.fillText(stockText, 190, 730)
     ctx.strokeStyle = 'rgba(67, 108, 165, 1)'
@@ -85,7 +86,7 @@ export async function generateOffworkNoticeImageCOSUrl(
     ctx.fillStyle = 'rgba(67, 108, 165, 1)'
     ctx.fillRect(70 - 2, 470, 100, 60)
     ctx.fillStyle = '#000'
-    ctx.font = '40px "Source Han Sans CN"'
+    ctx.font = '40px fzxinshusong'
     ctx.fillText('油价', 120, 515)
 
     // 油价线框
@@ -116,7 +117,7 @@ export async function generateOffworkNoticeImageCOSUrl(
     ctx.fillStyle = 'rgba(67, 108, 165, 1)'
     ctx.fillRect(1370, 170, 100, 60)
     ctx.fillStyle = '#000'
-    ctx.font = '40px "Source Han Sans CN"'
+    ctx.font = '40px fzxinshusong'
     ctx.textAlign = 'center'
     ctx.fillText('路况', 1420, 215)
 
