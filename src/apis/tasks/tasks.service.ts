@@ -1,20 +1,18 @@
 import { Injectable } from '@nestjs/common'
-import dayjs from 'dayjs'
-import { Model } from 'mongoose'
 
-import { OffworkRecordInject } from '@/schemas/offwork-record.schema'
 import { generateOffworkNoticeImageCOSUrl } from '@/offwork-notice/offworkNoticeV2'
 import { fetchOffworkRecord } from '@/offwork-notice/fetchOffworkRecord'
 import { generateOtherOffworkNoticeMessage } from '@/offwork-notice/offworkOther'
 import { generateOffworkNoticeMessage } from '@/offwork-notice/offworkSuzhou'
 
+import { OffworkNoticeRecordService } from '../offwork-notice-record/offwork-notice-record.service'
 import { DingtalkBotService } from '../dingtalk/dingtalk.service'
 
 @Injectable()
 export class TasksService {
   constructor(
     private readonly dingtalkBotService: DingtalkBotService,
-    @OffworkRecordInject() private readonly offworkRecordModel: Model<IDailyOffworkRecord>
+    private readonly offworkNoticeRecordService: OffworkNoticeRecordService
   ) {}
 
   async runTaskByName(taskName: string) {
@@ -22,18 +20,14 @@ export class TasksService {
   }
 
   private async offwork() {
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({
-      date: dayjs().format('YYYY-MM-DD'),
-    })
+    const todayOffworkRecord = await this.offworkNoticeRecordService.getTodayRecord()
     if (todayOffworkRecord.isWorkDay) {
       await this.__offwork('FE-Bot', todayOffworkRecord)
     }
   }
 
   private async offworkTest() {
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({
-      date: dayjs().format('YYYY-MM-DD'),
-    })
+    const todayOffworkRecord = await this.offworkNoticeRecordService.getTodayRecord()
     await this.__offwork('TestBot', todayOffworkRecord)
   }
 
@@ -48,18 +42,14 @@ export class TasksService {
   }
 
   private async offworkNoticeV2() {
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({
-      date: dayjs().format('YYYY-MM-DD'),
-    })
+    const todayOffworkRecord = await this.offworkNoticeRecordService.getTodayRecord()
     if (todayOffworkRecord.isWorkDay) {
       await this.__offworkNoticeV2('FE-Bot', todayOffworkRecord)
     }
   }
 
   private async offworkNoticeV2Test() {
-    const todayOffworkRecord = await this.offworkRecordModel.findOne({
-      date: dayjs().format('YYYY-MM-DD'),
-    })
+    const todayOffworkRecord = await this.offworkNoticeRecordService.getTodayRecord()
     await this.__offworkNoticeV2('TestBot', todayOffworkRecord)
   }
 
@@ -74,10 +64,7 @@ export class TasksService {
   }
 
   private async saveTodayOffworkRecord() {
-    await this.offworkRecordModel.deleteMany({ date: dayjs().format('YYYY-MM-DD') })
-
     const offworkRecord = await fetchOffworkRecord()
-    const offworkDO = new this.offworkRecordModel(offworkRecord)
-    await offworkDO.save()
+    await this.offworkNoticeRecordService.addTodayRecord(offworkRecord)
   }
 }
