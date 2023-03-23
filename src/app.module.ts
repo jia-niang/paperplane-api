@@ -29,7 +29,7 @@ import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork
       ],
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URL, { dbName: 'paperplane' }),
+    MongooseModule.forRoot(process.env.MONGODB_URL, { dbName: process.env.MONGODB_DBNAME }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
     DingtalkBotModule,
     OffworkRecordModule,

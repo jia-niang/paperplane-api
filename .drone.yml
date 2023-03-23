@@ -17,14 +17,14 @@ steps:
       registry: docker.io
 
   - name: deploy
-    image: drillster/drone-rsync
+    image: appleboy/drone-ssh
     settings:
-      hosts: ['paperplane.cc']
-      user: ubuntu
+      host:
+        - 'paperplane.cc'
+      username: ubuntu
       key:
         from_secret: DEPLOY_SSH_PRIKEY
-      source: ./docker-compose.yml
-      target: /home/ubuntu/project-config/paperplane-api/docker-compose.yml
+      command_timeout: 5m
       script:
         - cd /home/ubuntu/project-config/paperplane-api
         - docker compose down || true
