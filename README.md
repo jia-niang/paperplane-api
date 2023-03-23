@@ -38,7 +38,21 @@ yarn build && yarn start:prod
 
 ## 基础镜像
 
-因为使用到 `puppeteer` 对运行环境有要求，Node.js 基础镜像无法满足需求，需要使用特定的基础镜像来运行。
+因为使用到 `puppeteer`、`git` 等对运行环境有要求的工具，而 Node.js 基础镜像无法满足需求，所以需要使用特定的基础镜像来运行。
+
+可以使用官方推荐的 `puppeteer` 镜像：
+```bash
+# 官方地址，有可能无法拉取成功
+docker pull ghcr.io/puppeteer/puppeteer:latest
+
+# 备用
+docker pull ghcr.nju.edu.cn/puppeteer/puppeteer:latest
+```
+
+基于这个镜像，再添加 `git` 等工具。
+
+---
+
 在文件 `Dockerfile` 中可以看到使用 `paperplanecc/paperplane-api-base` 作为基础镜像。
 
 此处给出基础镜像的构建方式：
