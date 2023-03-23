@@ -20,7 +20,13 @@ import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.local', '.env.development', '.env.production', '.env'],
+      envFilePath: [
+        ...(process.env.NODE_ENV === 'production'
+          ? ['.env.production.local', '.env.production']
+          : ['.env.development.local', '.env.development']),
+        '.env.local',
+        '.env',
+      ],
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.MONGODB_URL, { dbName: 'paperplane' }),
