@@ -39,12 +39,14 @@ yarn build && yarn start:prod
 ## 基础镜像
 
 因为使用到 `puppeteer`、`git` 等工具，对运行环境有要求，Node.js 基础镜像无法满足需求，需要使用特定的基础镜像来运行。
+注意，请不要使用 `-slim`、`-alpine` 类型的镜像，它们会导致开发运行时报错重启。
+
 在文件 `Dockerfile` 中可以看到使用 `paperplanecc/paperplane-api-base` 作为基础镜像。
 
 此处给出基础镜像的构建方式：
 
 ```Dockerfile
-FROM node:19-slim
+FROM node:19
 
 RUN apt-get update && apt-get install -y git
 
