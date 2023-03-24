@@ -16,7 +16,7 @@
 # 启动
 docker compose up
 
-# 如果需要安装依赖或执行其它命令，可以进入容器的 bash
+# 如果需要执行其它命令，可以进入容器的 bash
 docker exec -it paperplane-api-local bash
 ```
 
@@ -38,7 +38,7 @@ yarn build && yarn start:prod
 
 ## 基础镜像
 
-因为使用到 `puppeteer` 对运行环境有要求，Node.js 基础镜像无法满足需求，需要使用特定的基础镜像来运行。
+因为使用到 `puppeteer`、`git` 等工具，对运行环境有要求，Node.js 基础镜像无法满足需求，需要使用特定的基础镜像来运行。
 在文件 `Dockerfile` 中可以看到使用 `paperplanecc/paperplane-api-base` 作为基础镜像。
 
 此处给出基础镜像的构建方式：
@@ -67,4 +67,13 @@ docker build -t paperplanecc/paperplane-api-base:latest .
 docker push paperplanecc/paperplane-api-base
 ```
 
-注意中间的步骤需要访问 Google。
+这些步骤需要访问 Google，需要国际互联网访问能力。
+
+## 问题排查
+
+在 Apple Silicon 设备上运行失败时，可按照以下步骤解决问题：
+- 打开 Docker Desktop；
+- 使用快捷键 `Commend` + `,` 打开设置；
+- 选择 “Features in development” 选项卡；
+- 勾选 “Use Rosetta for x86/amd64 emulation on Apple Silicon”；
+- 点击右下角 “Apply & restart”，使设置生效。
