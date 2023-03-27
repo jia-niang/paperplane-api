@@ -12,6 +12,9 @@
 
 ## 本机 Docker 运行（推荐）
 
+此运行方式需要已安装 Docker。
+此运行方式对环境依赖较小，且可以做到和部署后的服务端环境保持一致，推荐使用此方式来运行。
+
 ```bash
 # 启动
 docker compose up
@@ -23,11 +26,13 @@ docker exec -it paperplane-api-local bash
 ## 本机运行
 
 安装依赖：
+
 ```bash
 yarn
 ```
 
 启动：
+
 ```bash
 # 开发模式
 yarn dev
@@ -58,6 +63,8 @@ RUN apt-get update \
     && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+  
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/google-chrome-stable
 
 CMD ["google-chrome-stable"]
 ```
@@ -74,6 +81,7 @@ docker push paperplanecc/paperplane-api-base
 ## 问题排查
 
 在 Apple Silicon 设备上运行失败时，可按照以下步骤解决问题：
+
 - 打开 Docker Desktop；
 - 使用快捷键 `Commend` + `,` 打开设置；
 - 选择 “Features in development” 选项卡；
