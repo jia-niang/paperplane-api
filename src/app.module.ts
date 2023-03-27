@@ -16,8 +16,11 @@ import { AiController } from './apis/ai/ai.controller'
 import { OffworkRecordModule } from './schemas/offwork-record.schema'
 import { OffworkNoticeRecordController } from './apis/offwork-notice-record/offwork-notice-record.controller'
 import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork-notice-record.service'
-import { AiGitHelperService } from './apis/git/git.service'
-import { AiGitHelperController } from './apis/git/git.controller'
+import { GitService } from './apis/git/git.service'
+import { GitController } from './apis/git/git.controller'
+import { TaskOffworkNoticeService } from './apis/tasks/task-offwork-notice.service'
+import { TaskGitService } from './apis/tasks/task-git.service'
+import { GitModule } from './schemas/git.schema'
 
 @Module({
   imports: [
@@ -35,6 +38,7 @@ import { AiGitHelperController } from './apis/git/git.controller'
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
     DingtalkBotModule,
     OffworkRecordModule,
+    GitModule,
   ],
   controllers: [
     DingtalkController,
@@ -42,7 +46,7 @@ import { AiGitHelperController } from './apis/git/git.controller'
     TasksController,
     AiController,
     OffworkNoticeRecordController,
-    AiGitHelperController,
+    GitController,
   ],
   providers: [
     ResponseInterceptorProvider,
@@ -51,7 +55,9 @@ import { AiGitHelperController } from './apis/git/git.controller'
     TasksService,
     AiService,
     OffworkNoticeRecordService,
-    AiGitHelperService,
+    GitService,
+    TaskOffworkNoticeService,
+    TaskGitService,
   ],
 })
 export class AppModule {}

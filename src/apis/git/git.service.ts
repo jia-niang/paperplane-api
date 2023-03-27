@@ -12,7 +12,7 @@ import {
 } from '@/git-action'
 
 @Injectable()
-export class AiGitHelperService {
+export class GitService {
   public readonly sshPublicKey = readFileSync(resolve(homedir(), './.ssh/id_rsa.pub'))
     .toString()
     .trim()
