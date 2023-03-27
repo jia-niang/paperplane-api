@@ -3,7 +3,7 @@ import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/com
 import { getRepoNameByUrl } from '@/git-action'
 import { AiGitHelperService } from './git.service'
 
-@Controller('/git-helper')
+@Controller('/git')
 export class AiGitHelperController {
   constructor(private readonly aiGitHelperService: AiGitHelperService) {}
 
