@@ -2,12 +2,12 @@ import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import dayjs from 'dayjs'
 
-import { OffworkRecordInject } from '@/schemas/offwork-record.schema'
+import { OffworkRecordDBInject } from '@/schemas/offwork-record.schema'
 
 @Injectable()
 export class OffworkNoticeRecordService {
   constructor(
-    @OffworkRecordInject()
+    @OffworkRecordDBInject()
     private offworkNoticeRecordModel: Model<IDailyOffworkRecord>
   ) {}
 

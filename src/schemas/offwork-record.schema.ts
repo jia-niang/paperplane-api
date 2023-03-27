@@ -1,5 +1,4 @@
 import { InjectModel, MongooseModule, Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { HydratedDocument } from 'mongoose'
 
 function generateRawPropByCity<T>(input: T): Record<offworkNoticeCity, T> {
   return raw({ suzhou: input, beijing: input, shanghai: input })
@@ -50,9 +49,7 @@ export class DailyOffworkRecord {
 
 const offworkRecordModelName = 'offwork'
 
-export type OffworkRecordDocument = HydratedDocument<DailyOffworkRecord>
-export const OffworkRecordSchema = SchemaFactory.createForClass(DailyOffworkRecord)
-export const OffworkRecordInject = () => InjectModel(offworkRecordModelName)
+export const OffworkRecordDBInject = () => InjectModel(offworkRecordModelName)
 export const OffworkRecordModule = MongooseModule.forFeature([
-  { name: offworkRecordModelName, schema: OffworkRecordSchema },
+  { name: offworkRecordModelName, schema: SchemaFactory.createForClass(DailyOffworkRecord) },
 ])

@@ -1,5 +1,4 @@
 import { InjectModel, MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { HydratedDocument } from 'mongoose'
 
 @Schema()
 class CommonDingtalkBot {
@@ -27,9 +26,7 @@ class CommonDingtalkBot {
 
 const dingtalkBotModelName = 'bots'
 
-export type DingtalkBotDocument = HydratedDocument<CommonDingtalkBot>
-export const DingtalkBotSchema = SchemaFactory.createForClass(CommonDingtalkBot)
-export const DingtalkBotInject = () => InjectModel(dingtalkBotModelName)
+export const DingtalkBotDBInject = () => InjectModel(dingtalkBotModelName)
 export const DingtalkBotModule = MongooseModule.forFeature([
-  { name: dingtalkBotModelName, schema: DingtalkBotSchema },
+  { name: dingtalkBotModelName, schema: SchemaFactory.createForClass(CommonDingtalkBot) },
 ])
