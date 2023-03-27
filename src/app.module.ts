@@ -16,6 +16,8 @@ import { AiController } from './apis/ai/ai.controller'
 import { OffworkRecordModule } from './schemas/offwork-record.schema'
 import { OffworkNoticeRecordController } from './apis/offwork-notice-record/offwork-notice-record.controller'
 import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork-notice-record.service'
+import { AiGitHelperService } from './apis/ai-git-helper/ai-git-helper.service'
+import { AiGitHelperController } from './apis/ai-git-helper/ai-git-helper.controller'
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork
     TasksController,
     AiController,
     OffworkNoticeRecordController,
+    AiGitHelperController,
   ],
   providers: [
     ResponseInterceptorProvider,
@@ -48,6 +51,7 @@ import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork
     TasksService,
     AiService,
     OffworkNoticeRecordService,
+    AiGitHelperService,
   ],
 })
 export class AppModule {}
