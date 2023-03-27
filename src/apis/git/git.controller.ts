@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common'
 
 import { getRepoNameByUrl } from '@/git-action'
 import { AiGitHelperService } from './git.service'
@@ -13,7 +13,6 @@ export class AiGitHelperController {
   }
 
   @Post('/clone')
-  @HttpCode(200)
   async clone(@Body() body: { url: string }) {
     const repoName = getRepoNameByUrl(body.url)
     await this.aiGitHelperService.clone(body.url)
