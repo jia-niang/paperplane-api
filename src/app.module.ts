@@ -16,8 +16,8 @@ import { AiController } from './apis/ai/ai.controller'
 import { OffworkRecordModule } from './schemas/offwork-record.schema'
 import { OffworkNoticeRecordController } from './apis/offwork-notice-record/offwork-notice-record.controller'
 import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork-notice-record.service'
-import { AiGitHelperService } from './apis/ai-git-helper/ai-git-helper.service'
-import { AiGitHelperController } from './apis/ai-git-helper/ai-git-helper.controller'
+import { AiGitHelperService } from './apis/git/git.service'
+import { AiGitHelperController } from './apis/git/git.controller'
 
 @Module({
   imports: [
