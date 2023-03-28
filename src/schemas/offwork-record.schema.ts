@@ -1,11 +1,12 @@
 import { InjectModel, MongooseModule, Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document } from 'mongoose'
 
 function generateRawPropByCity<T>(input: T): Record<offworkNoticeCity, T> {
   return raw({ suzhou: input, beijing: input, shanghai: input })
 }
 
 @Schema()
-export class DailyOffworkRecord {
+export class DailyOffworkRecord extends Document {
   @Prop()
   date: string
 

@@ -1,7 +1,8 @@
 import { InjectModel, MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document } from 'mongoose'
 
 @Schema()
-class CommonDingtalkBot {
+export class CommonDingtalkBot extends Document {
   @Prop({ required: true })
   name: string
 

@@ -1,7 +1,8 @@
 import { InjectModel, MongooseModule, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document } from 'mongoose'
 
 @Schema()
-class Git {}
+export class Git extends Document {}
 
 const gitModelName = 'git'
 
