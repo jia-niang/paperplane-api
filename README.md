@@ -33,6 +33,7 @@ Windows 使用 wsl2 运行本项目的准备工作：
 - 本机已安装 [wsl2](https://learn.microsoft.com/zh-cn/windows/wsl/install)；
 - 本机已安装 Docker，并在安装时选择 “使用 wsl2 引擎”，或是在 wsl2 中已安装 Docker；
 - 在 VSCode 中安装 WSL 扩展，[点此链接](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)；
+- 在 wsl 子系统中，需要安装 Git，可以这样做：`sudo apt-get update && sudo apt-get install git`。
 
 安装 WSL 扩展后，VSCode 左侧边栏会出现 “远程资源管理器”，此时便可以在 wsl 子系统中克隆仓库并打开。
 建议转到 VSCode “扩展” 页面，部分扩展需要在子系统中重新安装一遍。
@@ -49,7 +50,7 @@ wsl
 cp -r .ssh ~/
 
 # 设置正确的权限，这一步可能会要求输入密码
-sudo chmod -R 600 ~/.ssh
+chmod 600 ~/.ssh/*
 ```
 
 运行项目：
