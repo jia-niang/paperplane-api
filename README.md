@@ -10,7 +10,7 @@
 
 为了让本地和云端环境一致，建议使用 Docker 镜像运行。
 
-## 本机 Docker 运行（推荐）
+## macOS 在 Docker 中运行（推荐）
 
 此运行方式需要已安装 Docker。
 此运行方式对环境依赖较小，且可以做到和部署后的服务端环境保持一致，推荐使用此方式来运行。
@@ -22,6 +22,47 @@ docker compose up
 # 如果需要执行其它命令，可以进入容器的 bash
 docker exec -it paperplane-api-local bash
 ```
+
+## Windows 在 Docker 中运行（Windows 环境推荐）
+
+请注意：在 Windows 系统下，Docker 的挂载目录可能无法即时监听文件更改，表现为更改了代码后不会及时重新编译。
+因此推荐使用 wsl2 配合 VSCode 的 [WSL 扩展](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) 来进行开发。
+
+Windows 使用 wsl2 运行本项目的准备工作：
+
+- 本机已安装 [wsl2](https://learn.microsoft.com/zh-cn/windows/wsl/install)；
+- 本机已安装 Docker，并在安装时选择 “使用 wsl2 引擎”，或是在 wsl2 中已安装 Docker；
+- 在 VSCode 中安装 WSL 扩展，[点此链接](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)；
+
+安装 WSL 扩展后，VSCode 左侧边栏会出现 “远程资源管理器”，此时便可以在 wsl 子系统中克隆仓库并打开。
+建议转到 VSCode “扩展” 页面，部分扩展需要在子系统中重新安装一遍。
+
+首次运行前需执行的指令（仅需执行一次，用于拷贝 ssh 密钥）：
+
+```bash
+# 请在 Windows 的命令行输入：
+wsl
+
+# 此时进入 wsl 子系统中
+
+# 先复制 .ssh
+cp -r .ssh ~/
+
+# 设置正确的权限，这一步可能会要求输入密码
+sudo chmod -R 600 ~/.ssh
+```
+
+运行项目：
+打开 VSCode 终端，此时终端已连接到 wsl 子系统中，执行：
+
+```bash
+# 启动项目
+docker compose up
+
+# 如果需要执行其它命令，可以进入容器的 bash
+docker exec -it paperplane-api-local bash
+```
+
 
 ## 本机运行
 
@@ -63,7 +104,7 @@ RUN apt-get update \
     && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
-  
+
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/google-chrome-stable
 
 CMD ["google-chrome-stable"]
