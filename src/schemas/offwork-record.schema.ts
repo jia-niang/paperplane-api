@@ -1,8 +1,10 @@
 import { InjectModel, MongooseModule, Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
 
-function generateRawPropByCity<T>(input: T): Record<offworkNoticeCity, T> {
-  return raw({ suzhou: input, beijing: input, shanghai: input })
+const cities: offworkNoticeCity[] = ['suzhou', 'beijing', 'shanghai']
+
+function generateRawPropByCities<T>(input: T): Record<offworkNoticeCity, T> {
+  return raw(cities.reduce((obj, city) => ({ ...obj, [city]: input }), {}))
 }
 
 @Schema()
@@ -17,7 +19,7 @@ export class DailyOffworkRecord extends Document {
   stock: IOffworkStockInfo
 
   @Prop(
-    generateRawPropByCity({
+    generateRawPropByCities({
       today: {
         info: String,
         temperature: String,
@@ -33,7 +35,7 @@ export class DailyOffworkRecord extends Document {
   weather: Record<offworkNoticeCity, IOffworkNoticeWeatherInfo>
 
   @Prop(
-    generateRawPropByCity({
+    generateRawPropByCities({
       '92h': String,
       '95h': String,
       '98h': String,
@@ -41,7 +43,7 @@ export class DailyOffworkRecord extends Document {
   )
   oilprice: Record<offworkNoticeCity, IOffworkOilpriceInfo>
 
-  @Prop(generateRawPropByCity(String))
+  @Prop(generateRawPropByCities(String))
   traffic: Record<offworkNoticeCity, string>
 
   @Prop(raw({ salaryDate: String, salaryDateText: String, restDays: Number }))
