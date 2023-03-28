@@ -10,6 +10,8 @@ export class GitRepo {
   url: string
 }
 
+export const GitRepoSchema = SchemaFactory.createForClass(GitRepo)
+
 @Schema()
 export class GitStaff {
   @Prop({ required: true })
@@ -22,6 +24,8 @@ export class GitStaff {
   alternativeNames: string[]
 }
 
+export const GitStaffSchema = SchemaFactory.createForClass(GitStaff)
+
 @Schema()
 export class GitProject extends Document {
   @Prop({ required: true })
@@ -30,16 +34,16 @@ export class GitProject extends Document {
   @Prop({ required: true })
   scope: string
 
-  @Prop({ required: true, type: [GitRepo], default: [] })
-  repos: GitRepo[]
+  @Prop({ required: true, type: [GitRepoSchema], default: [] })
+  repos: GitRepo
 
-  @Prop({ required: true, type: [GitStaff], default: [] })
+  @Prop({ required: true, type: [GitStaffSchema], default: [] })
   staff: GitStaff[]
 }
 
-const gitModelName = 'git'
+export const GitProjectSchema = SchemaFactory.createForClass(GitProject)
+
+const gitModelName = 'gits'
 
 export const GitDBInject = () => InjectModel(gitModelName)
-export const GitModule = MongooseModule.forFeature([
-  { name: 'git', schema: SchemaFactory.createForClass(GitProject) },
-])
+export const GitModule = MongooseModule.forFeature([{ name: 'git', schema: GitProjectSchema }])

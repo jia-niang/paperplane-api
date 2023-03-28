@@ -50,9 +50,11 @@ export class DailyOffworkRecord extends Document {
   salaryDay: IOffworkSalaryDayInfo
 }
 
-const offworkRecordModelName = 'offwork'
+export const OffworkRecordSchema = SchemaFactory.createForClass(DailyOffworkRecord)
+
+const offworkRecordModelName = 'offworks'
 
 export const OffworkRecordDBInject = () => InjectModel(offworkRecordModelName)
 export const OffworkRecordModule = MongooseModule.forFeature([
-  { name: offworkRecordModelName, schema: SchemaFactory.createForClass(DailyOffworkRecord) },
+  { name: offworkRecordModelName, schema: OffworkRecordSchema },
 ])

@@ -25,9 +25,11 @@ export class CommonDingtalkBot extends Document {
   secret: string
 }
 
+export const dingtalkBotSchema = SchemaFactory.createForClass(CommonDingtalkBot)
+
 const dingtalkBotModelName = 'bots'
 
 export const DingtalkBotDBInject = () => InjectModel(dingtalkBotModelName)
 export const DingtalkBotModule = MongooseModule.forFeature([
-  { name: dingtalkBotModelName, schema: SchemaFactory.createForClass(CommonDingtalkBot) },
+  { name: dingtalkBotModelName, schema: dingtalkBotSchema },
 ])

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 
-import { GitService } from '../ai-git-helper/git.service'
+import { GitService } from '../git/git.service'
 
 @Injectable()
 export class TaskGitService {
