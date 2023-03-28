@@ -31,6 +31,6 @@ export class OffworkNoticeRecordService {
   }
 
   async deleteRecordsByDate(date: string) {
-    this.offworkNoticeRecordModel.deleteMany({ date })
+    await this.offworkNoticeRecordModel.deleteMany({ date })
   }
 }
