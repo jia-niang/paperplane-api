@@ -8,6 +8,12 @@ export class GitRepo {
 
   @Prop({ required: true })
   url: string
+
+  @Prop({ required: true })
+  status: GitRepoStatusType
+
+  @Prop()
+  head: string
 }
 
 export const GitRepoSchema = SchemaFactory.createForClass(GitRepo)

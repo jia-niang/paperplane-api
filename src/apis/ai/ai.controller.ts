@@ -18,16 +18,17 @@ export class AiController {
   @Post('/completions')
   @HttpCode(200)
   async completions(@Body() body: IAiCompletionsBody) {
-    const { text } = body
-
-    return this.aiService.completions(text).then(res => ({ answer: res?.trimStart() }))
+    return this.aiService.completions(body.text).then(res => ({ answer: res?.trimStart() }))
   }
 
   @Post('/chat')
   @HttpCode(200)
   async chat(@Body() body: IAiCompletionsBody) {
-    const { text } = body
+    return this.aiService.chat(body.text).then(res => ({ answer: res?.trimStart() }))
+  }
 
-    return this.aiService.chat(text).then(res => ({ answer: res?.trimStart() }))
+  @Post('/weekly')
+  async weekly(@Body() body: { text: string; mode: weeklyModeType }) {
+    return this.aiService.weekly(body.text, body.mode).then(res => ({ answer: res?.trimStart() }))
   }
 }
