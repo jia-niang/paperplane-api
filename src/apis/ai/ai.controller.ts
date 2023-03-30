@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post } from '@nestjs/common'
 
 import { AiService } from './ai.service'
 
@@ -16,13 +16,11 @@ export class AiController {
   }
 
   @Post('/completions')
-  @HttpCode(200)
   async completions(@Body() body: IAiCompletionsBody) {
     return this.aiService.completions(body.text).then(res => ({ answer: res?.trimStart() }))
   }
 
   @Post('/chat')
-  @HttpCode(200)
   async chat(@Body() body: IAiCompletionsBody) {
     return this.aiService.chat(body.text).then(res => ({ answer: res?.trimStart() }))
   }

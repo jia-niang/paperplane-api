@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Param, Post } from '@nestjs/common'
+import { Controller, Param, Post } from '@nestjs/common'
 
 import { TasksService } from './tasks.service'
 
@@ -7,7 +7,6 @@ export class TasksController {
   constructor(private readonly taskService: TasksService) {}
 
   @Post('/:taskName/run')
-  @HttpCode(200)
   async runTaskByName(@Param('taskName') taskName: string) {
     await this.taskService.runTaskByName(taskName)
   }

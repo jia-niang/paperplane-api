@@ -9,11 +9,14 @@ export class GitRepo {
   @Prop({ required: true })
   url: string
 
-  @Prop({ required: true })
-  status: GitRepoStatusType
+  @Prop({ required: true, default: 'init' })
+  status?: GitRepoStatusType
 
   @Prop()
-  head: string
+  lastSyncTs?: number
+
+  @Prop({ required: true, default: [] })
+  recentBranches: string[]
 }
 
 export const GitRepoSchema = SchemaFactory.createForClass(GitRepo)
@@ -41,7 +44,7 @@ export class GitProject extends Document {
   repos: GitRepo[]
 
   @Prop({ required: true, type: [GitStaffSchema], default: [] })
-  staff: GitStaff[]
+  staffs: GitStaff[]
 }
 
 export const GitProjectSchema = SchemaFactory.createForClass(GitProject)

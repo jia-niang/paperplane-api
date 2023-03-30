@@ -1,5 +1,6 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 
+import { GitStaff } from '@/schemas/git.schema'
 import { GitHelperService } from './git-helper.service'
 
 @Controller('/git-helper')
@@ -7,26 +8,40 @@ export class GitHelperController {
   constructor(private readonly gitHelperService: GitHelperService) {}
 
   @Post('/project')
-  @HttpCode(200)
   async addProject(@Body() body: { name: string }) {
-    await this.gitHelperService.addProject(body.name)
+    return this.gitHelperService.addProject(body.name)
+  }
+
+  @Get('/project')
+  async listAllProject() {
+    return this.gitHelperService.listAllProject()
   }
 
   @Get('/project/:name')
-  @HttpCode(200)
   async getProjectById(@Param('name') name: string) {
-    return await this.gitHelperService.selectProjectByName(name)
+    return this.gitHelperService.selectProjectByName(name)
+  }
+
+  @Post('/project/:projectName/repo')
+  async addRepoByUrl(@Param('projectName') projectName: string, @Body() body: { url: string }) {
+    return this.gitHelperService.projectAddRepo(projectName, body.url)
   }
 
   @Get('/project/:projectName/repo/:repoName')
-  @HttpCode(200)
   async getRepoByProject(
     @Param('projectName') projectName: string,
     @Param('repoName') repoName: string
   ) {
-    const project = await this.gitHelperService.selectProjectByName(projectName)
-    const repo = await this.gitHelperService.selectRepoByNameAndProject(repoName, project)
+    return this.gitHelperService.selectRepoByNameAndProject(projectName, repoName)
+  }
 
-    return repo
+  @Post('/project/:projectName/staff')
+  async addStaff(@Param('projectName') projectName: string, @Body() body: { staff: GitStaff }) {
+    return this.gitHelperService.projectAddStaff(projectName, body.staff)
+  }
+
+  @Post('/project/:projectName/repo/:repoName/sync')
+  async syncRepo(@Param('projectName') projectName: string, @Param('repoName') repoName: string) {
+    return this.gitHelperService.syncRepo(projectName, repoName)
   }
 }
