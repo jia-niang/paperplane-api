@@ -49,4 +49,6 @@ export const GitProjectSchema = SchemaFactory.createForClass(GitProject)
 const gitModelName = 'gits'
 
 export const GitDBInject = () => InjectModel(gitModelName)
-export const GitModule = MongooseModule.forFeature([{ name: 'git', schema: GitProjectSchema }])
+export const GitModule = MongooseModule.forFeature([
+  { name: gitModelName, schema: GitProjectSchema },
+])
