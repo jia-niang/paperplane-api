@@ -37,9 +37,6 @@ export class GitProject extends Document {
   @Prop({ required: true })
   name: string
 
-  @Prop({ required: true })
-  scope: string
-
   @Prop({ required: true, type: [GitRepoSchema], default: [] })
   repos: GitRepo[]
 

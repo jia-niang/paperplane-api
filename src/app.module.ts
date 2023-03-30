@@ -21,6 +21,8 @@ import { GitController } from './apis/git/git.controller'
 import { TaskOffworkNoticeService } from './apis/tasks/task-offwork-notice.service'
 import { TaskGitService } from './apis/tasks/task-git.service'
 import { GitModule } from './schemas/git.schema'
+import { GitHelperController } from './apis/git-helper/git-helper.controller'
+import { GitHelperService } from './apis/git-helper/git-helper.service'
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { GitModule } from './schemas/git.schema'
     AiController,
     OffworkNoticeRecordController,
     GitController,
+    GitHelperController,
   ],
   providers: [
     ResponseInterceptorProvider,
@@ -58,6 +61,7 @@ import { GitModule } from './schemas/git.schema'
     GitService,
     TaskOffworkNoticeService,
     TaskGitService,
+    GitHelperService,
   ],
 })
 export class AppModule {}
