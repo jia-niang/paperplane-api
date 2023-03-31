@@ -122,39 +122,53 @@ export class GitHelperService {
   }
 
   async gitWeekly(projectName: string) {
+    function isMyCommit(staff: GitStaff, commit: GitCommit) {
+      function lowCaseInclude(target: string, keywords: string) {
+        return target.toLowerCase().includes(keywords.toLowerCase())
+      }
+
+      return (
+        lowCaseInclude(commit.author_name, staff.name) ||
+        staff.alternativeNames.some(t => lowCaseInclude(commit.author_name, t)) ||
+        staff.emails.some(t => lowCaseInclude(commit.author_email, t))
+      )
+    }
+
     const project = await this.selectProjectByName(projectName)
+    const { staffs, repos } = project
 
-    const aggregateCommits = project.staffs.reduce(
-      (r, current) => ({ ...r, [current.name]: [] }),
-      {}
-    )
+    project.weeklyStatus = 'pending'
+    await project.save()
 
-    for (const repo of project.repos) {
-      const commitObject = await this.aggregateCommits(projectName, repo.name)
-      Object.entries(commitObject).forEach(([k, v]) => {
-        let commitList: GitCommit[] = aggregateCommits[k].concat(v)
+    try {
+      for (const staff of staffs) {
+        let commitList: GitCommit[] = []
+
+        for (const repo of repos) {
+          commitList = commitList.concat(repo.recentCommits.filter(item => isMyCommit(staff, item)))
+        }
 
         commitList = commitList.filter(item => !item.message.startsWith('Merge'))
         commitList = commitList.filter(item => !item.message.startsWith('fix: #'))
         commitList = commitList.filter(item => !item.message.startsWith('refactor: lint'))
 
-        aggregateCommits[k] = commitList
-      })
+        const commitJoinText = commitList.map(t => t.message).join('\n')
+        const aiText = `一份周报分为5个章节：目标和进度、详细进展、复盘与思考、需要的帮助和支持、后续行动项，其中“目标与进度”章节内容固定为“待补充”，“复盘与思考”、“需要的帮助和支持”章节的内容固定为“暂无”，不需要大标题，请根据我上周的 Git 提交记录填充为一篇完整的周报，用 markdown 格式以分点叙述的形式输出：${commitJoinText}`
+
+        const weekly = await this.aiService
+          .completions(aiText)
+          .then(text => text.slice(text.indexOf('#')))
+
+        staff.weeklyText = weekly
+        await project.save()
+      }
+
+      project.weeklyStatus = 'ready'
+      project.save()
+    } catch {
+      project.weeklyStatus = 'error'
+      project.save()
     }
-
-    const result: Record<string, string> = {}
-    const entries = Object.entries(aggregateCommits)
-    for (const kvPair of entries) {
-      const [k, v] = kvPair as [string, string[]]
-
-      const commitText = v.join('\n')
-      const aiText = `一份周报分为5个章节：目标和进度、详细进展、复盘与思考、需要的帮助和支持、后续行动项，其中“目标与进度”章节内容固定为“待补充”，“复盘与思考”、“需要的帮助和支持”章节的内容固定为“暂无”，不需要大标题，请根据我上周的 Git 提交记录填充为一篇完整的周报，用 markdown 格式以分点叙述的形式输出：${commitText}`
-      const answer = await this.aiService.completions(aiText)
-
-      result[k] = answer
-    }
-
-    return result
   }
 
   async addStaff(projectName: string, gitStaff: GitStaff) {

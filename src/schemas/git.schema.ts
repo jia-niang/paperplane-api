@@ -57,6 +57,9 @@ export class GitStaff {
 
   @Prop({ required: true, default: [] })
   alternativeNames: string[]
+
+  @Prop()
+  weeklyText?: string
 }
 
 export const GitStaffSchema = SchemaFactory.createForClass(GitStaff)
@@ -71,6 +74,9 @@ export class GitProject extends Document {
 
   @Prop({ required: true, type: [GitStaffSchema], default: [] })
   staffs: GitStaff[]
+
+  @Prop({ required: true, default: 'init' })
+  weeklyStatus: GitRepoStatusType
 }
 
 export const GitProjectSchema = SchemaFactory.createForClass(GitProject)

@@ -65,6 +65,6 @@ export class GitHelperController {
 
   @Post('/project/:projectName/git-weekly')
   async gitWeekly(@Param('projectName') projectName: string) {
-    return this.gitHelperService.gitWeekly(projectName)
+    this.gitHelperService.gitWeekly(projectName)
   }
 }
