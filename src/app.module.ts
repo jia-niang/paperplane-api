@@ -36,7 +36,10 @@ import { GitHelperService } from './apis/git-helper/git-helper.service'
       ],
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URL, { dbName: process.env.MONGODB_DBNAME }),
+    MongooseModule.forRoot(process.env.MONGODB_URL, {
+      dbName: process.env.MONGODB_DBNAME,
+      pluralize: null,
+    }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
     DingtalkBotModule,
     OffworkRecordModule,

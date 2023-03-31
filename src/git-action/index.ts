@@ -11,14 +11,10 @@ export async function cloneOrSyncRepo(url: string) {
   const isExist = existsSync(repoPath) && existsSync(resolve(repoPath, '.git'))
   if (!isExist) {
     rmSync(repoPath, { force: true, recursive: true })
-
-    const git = simpleGit()
-    await git.clone(url, repoPath)
-
-    return git
+    await simpleGit().clone(url, repoPath)
   }
 
-  return selectRepo(repoPath)
+  return simpleGit(repoPath)
 }
 
 /** 选择某个仓库，返回 git 对象 */
@@ -46,6 +42,12 @@ export async function listRecentCommits(git: SimpleGit, branchName: string, days
   const result = await git.log([`--since=${days}.days`])
 
   return result.all
+}
+
+/** 删除仓库和文件 */
+export async function deleteRepo(repoName: string) {
+  const repoPath = getRepoPathByName(repoName)
+  rmSync(repoPath, { force: true, recursive: true })
 }
 
 /** 从仓库 url 中提取仓库名称 */

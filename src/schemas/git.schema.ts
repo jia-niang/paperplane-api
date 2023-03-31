@@ -2,6 +2,29 @@ import { InjectModel, MongooseModule, Prop, Schema, SchemaFactory } from '@nestj
 import { Document } from 'mongoose'
 
 @Schema()
+export class GitCommit {
+  @Prop({ required: true })
+  hash: string
+
+  @Prop({ required: true })
+  date: string
+
+  @Prop({ required: true })
+  message: string
+
+  @Prop({ required: true })
+  author_name: string
+
+  @Prop({ required: true })
+  author_email: string
+
+  @Prop()
+  refs?: string
+}
+
+export const GitCommitSchema = SchemaFactory.createForClass(GitCommit)
+
+@Schema()
 export class GitRepo {
   @Prop({ required: true })
   name: string
@@ -17,6 +40,9 @@ export class GitRepo {
 
   @Prop({ required: true, default: [] })
   recentBranches: string[]
+
+  @Prop({ required: true, type: [GitCommitSchema], default: [] })
+  recentCommits: GitCommit[]
 }
 
 export const GitRepoSchema = SchemaFactory.createForClass(GitRepo)
@@ -35,7 +61,7 @@ export class GitStaff {
 
 export const GitStaffSchema = SchemaFactory.createForClass(GitStaff)
 
-@Schema()
+@Schema({ versionKey: false })
 export class GitProject extends Document {
   @Prop({ required: true })
   name: string
