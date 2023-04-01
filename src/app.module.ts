@@ -16,10 +16,7 @@ import { AiController } from './apis/ai/ai.controller'
 import { OffworkRecordModule } from './schemas/offwork-record.schema'
 import { OffworkNoticeRecordController } from './apis/offwork-notice-record/offwork-notice-record.controller'
 import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork-notice-record.service'
-import { GitService } from './apis/git/git.service'
-import { GitController } from './apis/git/git.controller'
 import { TaskOffworkNoticeService } from './apis/tasks/task-offwork-notice.service'
-import { TaskGitService } from './apis/tasks/task-git.service'
 import { GitModule } from './schemas/git.schema'
 import { GitHelperController } from './apis/git-helper/git-helper.controller'
 import { GitHelperService } from './apis/git-helper/git-helper.service'
@@ -51,7 +48,6 @@ import { GitHelperService } from './apis/git-helper/git-helper.service'
     TasksController,
     AiController,
     OffworkNoticeRecordController,
-    GitController,
     GitHelperController,
   ],
   providers: [
@@ -61,9 +57,7 @@ import { GitHelperService } from './apis/git-helper/git-helper.service'
     TasksService,
     AiService,
     OffworkNoticeRecordService,
-    GitService,
     TaskOffworkNoticeService,
-    TaskGitService,
     GitHelperService,
   ],
 })

@@ -77,6 +77,12 @@ export class GitProject extends Document {
 
   @Prop({ required: true, default: 'init' })
   weeklyStatus: GitRepoStatusType
+
+  @Prop()
+  publicKey: string
+
+  @Prop()
+  privateKey: string
 }
 
 export const GitProjectSchema = SchemaFactory.createForClass(GitProject)

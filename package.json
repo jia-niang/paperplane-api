@@ -38,7 +38,8 @@
     "puppeteer": "^19.7.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "simple-git": "^3.17.0"
+    "simple-git": "^3.17.0",
+    "sshpk": "^1.17.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -49,6 +50,7 @@
     "@types/jest": "29.2.4",
     "@types/lodash": "^4.14.191",
     "@types/node": "18.11.18",
+    "@types/sshpk": "^1.17.1",
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",

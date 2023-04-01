@@ -6,9 +6,11 @@ import { GitCommit, GitDBInject, GitProject, GitStaff } from '@/schemas/git.sche
 import {
   cloneOrSyncRepo,
   deleteRepo,
+  generateAndWriteRSAKeyPair,
   getRepoNameByUrl,
   listRecentCommitBranches,
   listRecentCommits,
+  prepareGitRepoPath,
 } from '@/git-action'
 import { AiService } from '../ai/ai.service'
 
@@ -17,10 +19,15 @@ export class GitHelperService {
   constructor(
     @GitDBInject() private readonly gitProjectModel: Model<GitProject>,
     private readonly aiService: AiService
-  ) {}
+  ) {
+    prepareGitRepoPath()
+  }
 
   async addProject(name: string) {
     const project = new this.gitProjectModel({ name })
+    await project.save()
+    Object.assign(project, generateAndWriteRSAKeyPair(String(project._id)))
+
     return await project.save()
   }
 
@@ -29,7 +36,7 @@ export class GitHelperService {
   }
 
   async selectProjectByName(name: string) {
-    return await this.gitProjectModel.findOne({ name })
+    return await this.gitProjectModel.findOne({ name }).select({ privateKey: 0 })
   }
 
   async addRepo(projectName: string, url: string) {
@@ -67,7 +74,7 @@ export class GitHelperService {
     await project.save()
 
     const syncTask = async () => {
-      const git = await cloneOrSyncRepo(repo.url)
+      const git = await cloneOrSyncRepo(repo.url, String(project._id))
       const branches = await listRecentCommitBranches(git, 10)
 
       repo.recentBranches = branches
