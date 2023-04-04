@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Traffic Map</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" style="height: 700px; width: 700px"></div>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=3.0&ak=XqvE8XjeKnYVLb2p6sPm0UPxACOOFOvR"></script>
+    <script>
+      var map = new BMapGL.Map('map')
+      map.centerAndZoom(new BMapGL.Point(120.73817280081882, 31.270915071296887), 17)
+      map.enableScrollWheelZoom(true)
+      map.setTrafficOn()
+      map.addEventListener('tilesloaded', function () {
+        setTimeout(() => {
+          window.mapOK = true
+        }, 5000)
+      })
+    </script>
+  </body>
+</html>

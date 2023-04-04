@@ -19,5 +19,8 @@ interface IError<T> extends IResponse<T> {
 }
 
 interface IWithId<T> extends T {
-  id: string
+  _id: string
 }
+
+/** 获取数组的类型 */
+type TypeofArray<T extends any[]> = T extends (infer U)[] ? U : never

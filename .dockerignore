@@ -1,6 +1,5 @@
 **/.classpath
 **/.dockerignore
-**/.env
 **/.git
 **/.gitignore
 **/.project
@@ -16,10 +15,13 @@
 **/charts
 **/docker-compose*
 **/Dockerfile*
-**/node_modules
 **/npm-debug.log
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
 LICENSE
 README.md
+
+**/.env.local
+**/.env.development.local
+**/.env.production.local

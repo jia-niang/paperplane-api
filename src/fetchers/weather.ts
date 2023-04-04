@@ -25,7 +25,7 @@ export interface IWeatherResponse {
     /** 天气，格式如 `"多云转小雨"` */
     weather: string
     /** 天气标识 ID */
-    wid: { day: string; night: string }
+    wid: string
     /** 风向，格式如 `"西北风"` */
     direct: string
   }
@@ -35,26 +35,28 @@ async function weatherApi(url: string): Promise<IWeatherResponse> {
   const res = await axios.get(url).then(response => response.data)
   const weatherInfo = get(res, 'result')
 
+  const tomorrowWeather = get(weatherInfo, 'future[0]')
+
   return {
     today: get(weatherInfo, 'realtime'),
-    tomorrow: get(weatherInfo, 'future[0]'),
+    tomorrow: { ...tomorrowWeather, wid: get(tomorrowWeather, 'wid.day') },
   }
 }
 
 export async function suzhouWeatherApi() {
   return weatherApi(
-    'http://apis.juhe.cn/simpleWeather/query?city=1357&key=a5f26bc48839c1d0bed81796fd6ae664'
+    `http://apis.juhe.cn/simpleWeather/query?city=1357&key=${process.env.JUHE_WEATHER_API_KEY}`
   )
 }
 
 export async function shanghaiWeatherApi() {
   return weatherApi(
-    'http://apis.juhe.cn/simpleWeather/query?city=18&key=a5f26bc48839c1d0bed81796fd6ae664'
+    `http://apis.juhe.cn/simpleWeather/query?city=18&key=${process.env.JUHE_WEATHER_API_KEY}`
   )
 }
 
 export async function beijingWeatherApi() {
   return weatherApi(
-    'http://apis.juhe.cn/simpleWeather/query?city=3&key=a5f26bc48839c1d0bed81796fd6ae664'
+    `http://apis.juhe.cn/simpleWeather/query?city=3&key=${process.env.JUHE_WEATHER_API_KEY}`
   )
 }

@@ -5,16 +5,10 @@ import axios from 'axios'
 
 dayjs.extend(duration)
 
-const url = 'http://v.juhe.cn/calendar/month'
-const key = '929815d4097edc502db0ee7c4a1b5f37'
+export async function salaryDayApi(): Promise<IOffworkSalaryDayInfo> {
+  const url = 'http://v.juhe.cn/calendar/month'
+  const key = process.env.JUHE_HOLIDAY_API_KEY
 
-export interface ISalaryDayResponse {
-  salaryDate: string
-  salaryDateText: string
-  restDays: number
-}
-
-export async function salaryDayApi() {
   const now = dayjs()
   const dateStr = now.format('YYYY-M')
   const res = await axios

@@ -1,24 +1,20 @@
+# 本地运行专用 docker compose 文件
 version: '3'
 
-networks:
-  default-app:
-    name: default-app
-    external: true
-  default-db-mongo:
-    name: default-db-mongo
-    external: true
-
 services:
-  api-service:
-    image: paperplanecc/api-service:latest
-    container_name: api-service
-    restart: always
-    networks:
-      - default-app
-      - default-db-mongo
+  paperplane-api-local:
+    image: paperplanecc/paperplane-api-base:latest
+    container_name: paperplane-api-local
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - '6100:6100'
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - TZ=Asia/Shanghai
       - HOST=host.docker.internal
     extra_hosts:
       - host.docker.internal:host-gateway
+    command: 'sh -c "yarn && yarn dev"'

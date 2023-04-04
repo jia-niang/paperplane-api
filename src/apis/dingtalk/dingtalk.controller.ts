@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Get, Post, Param } from '@nestjs/common'
+import { Body, Controller, Get, Post, Param } from '@nestjs/common'
 
 import { DingtalkBotService } from './dingtalk.service'
 
@@ -16,7 +16,6 @@ export class DingtalkController {
 
   /** 使用任意机器人发送消息 */
   @Post('/send')
-  @HttpCode(200)
   async customSend(@Body() body: ICustomSendBody) {
     const bot = this.dingtalkBotService.createBotByCryptoConfig({ type: body.mode, ...body })
     bot.send(body.message)
@@ -24,7 +23,6 @@ export class DingtalkController {
 
   /** 按名称选择机器人并发送消息 */
   @Post('/:botName/send')
-  @HttpCode(200)
   async sendByBotName(@Body() body: any, @Param('botName') botName: string) {
     const botConfig = await this.getBotByName(botName)
     const bot = this.dingtalkBotService.createBotByCryptoConfig(botConfig)
@@ -33,7 +31,6 @@ export class DingtalkController {
 
   /** 按名称选择机器人快速发送文本消息 */
   @Post('/:botName/send-text')
-  @HttpCode(200)
   async sendTextByBotName(@Body() body: { text: string }, @Param('botName') botName: string) {
     const messageBody: IDingtalkTextMessage = { msgtype: 'text', text: { content: body.text } }
     this.sendByBotName(messageBody, botName)
