@@ -128,7 +128,7 @@ export class GitHelperService {
     return result
   }
 
-  async gitWeekly(projectName: string) {
+  async gitWeekly(projectName: string, staffName?: string) {
     function isMyCommit(staff: GitStaff, commit: GitCommit) {
       function lowCaseInclude(target: string, keywords: string) {
         return target.toLowerCase().includes(keywords.toLowerCase())
@@ -144,11 +144,12 @@ export class GitHelperService {
     const project = await this.selectProjectByName(projectName)
     const { staffs, repos } = project
 
+    const staffList = staffName ? staffs.filter(item => item.name === staffName) : staffs
     project.weeklyStatus = 'pending'
     await project.save()
 
     try {
-      for (const staff of staffs) {
+      for (const staff of staffList) {
         let commitList: GitCommit[] = []
 
         for (const repo of repos) {
