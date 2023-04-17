@@ -45,6 +45,8 @@ export class GitRepo {
   recentCommits: GitCommit[]
 }
 
+export type DraftGitRepo = Pick<GitRepo, 'url'>
+
 export const GitRepoSchema = SchemaFactory.createForClass(GitRepo)
 
 @Schema()
@@ -61,6 +63,8 @@ export class GitStaff {
   @Prop()
   weeklyText?: string
 }
+
+export type DraftGitStaff = Omit<GitStaff, 'weeklyText'>
 
 export const GitStaffSchema = SchemaFactory.createForClass(GitStaff)
 
@@ -84,6 +88,8 @@ export class GitProject extends Document {
   @Prop()
   privateKey: string
 }
+
+export type DraftGitProject = Pick<GitProject, 'name'>
 
 export const GitProjectSchema = SchemaFactory.createForClass(GitProject)
 

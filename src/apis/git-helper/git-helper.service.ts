@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common'
-import { Model } from 'mongoose'
+import { Model, Types } from 'mongoose'
 import { last, uniqBy } from 'lodash'
 
-import { GitCommit, GitDBInject, GitProject, GitStaff } from '@/schemas/git.schema'
+import {
+  DraftGitProject,
+  DraftGitRepo,
+  GitCommit,
+  GitDBInject,
+  GitProject,
+  GitRepo,
+  GitStaff,
+} from '@/schemas/git.schema'
 import {
   cloneOrSyncRepo,
   deleteRepo,
@@ -23,25 +31,37 @@ export class GitHelperService {
     prepareGitRepoPath()
   }
 
-  async addProject(name: string) {
-    const project = new this.gitProjectModel({ name })
+  async addProject(newProject: DraftGitProject) {
+    const project = new this.gitProjectModel(newProject)
     await project.save()
-    Object.assign(project, generateAndWriteRSAKeyPair(String(project._id)))
 
-    return await project.save()
+    Object.assign(project, generateAndWriteRSAKeyPair(String(project._id)))
+    await project.save()
+
+    return await this.selectProjectById(project._id)
   }
 
   async listAllProject() {
-    return await this.gitProjectModel.find()
+    const allProjects = await this.gitProjectModel.find()
+    const result = allProjects.map(item => ({ _id: item._id, name: item.name }))
+
+    return result
   }
 
-  async selectProjectByName(name: string) {
-    return await this.gitProjectModel.findOne({ name }).select({ privateKey: 0 })
+  async selectProjectById(projectId: string, hidePrivateKey?: boolean) {
+    const projection: Partial<Record<keyof GitProject, 1 | 0>> = {}
+    if (hidePrivateKey) {
+      projection.privateKey = 0
+    }
+
+    return await this.gitProjectModel.findById(new Types.ObjectId(projectId), projection)
   }
 
-  async addRepo(projectName: string, url: string) {
-    const project = await this.selectProjectByName(projectName)
+  async addRepo(projectId: string, repo: DraftGitRepo) {
+    const { url } = repo
+    const project = await this.selectProjectById(projectId)
     const name = getRepoNameByUrl(url)
+
     if (project.repos.find(item => item.url === url)) {
       throw new Error('此仓库已添加')
     }
@@ -52,29 +72,36 @@ export class GitHelperService {
     return last(project.repos)
   }
 
-  async selectRepo(projectName: string, name: string) {
-    const project = await this.selectProjectByName(projectName)
-    const repo = project.repos.find(repo => repo.name === name)
+  async selectRepo(projectId: string, repoId: string) {
+    const project = await this.selectProjectById(projectId)
+    const repo = project.repos.find((repo: GitRepo & IWithId) => String(repo._id) === repoId)
 
     return repo
   }
 
-  async deleteRepo(projectName: string, repoName: string) {
-    await deleteRepo(repoName)
-    const project = await this.selectProjectByName(projectName)
-    project.repos = project.repos.filter(item => item.name !== repoName)
+  async deleteRepo(projectId: string, repoId: string) {
+    await deleteRepo(projectId)
+    const project = await this.selectProjectById(projectId)
+
+    project.repos = project.repos.filter((repo: GitRepo & IWithId) => String(repo._id) !== repoId)
     await project.save()
   }
 
-  async syncRepo(projectName: string, repoName: string) {
-    const project = await this.selectProjectByName(projectName)
-    const repo = project.repos.find(t => t.name === repoName)
+  async syncRepo(projectId: string, repoId: string) {
+    const project = await this.selectProjectById(projectId)
+    const repo = project.repos.find((t: GitRepo & IWithId) => String(t._id) === repoId) as GitRepo &
+      IWithId
 
     repo.status = 'pending'
     await project.save()
 
     const syncTask = async () => {
-      const git = await cloneOrSyncRepo(repo.url, String(project._id))
+      const git = await cloneOrSyncRepo({
+        url: repo.url,
+        projectId: String(project._id),
+        repoId: String(repo._id),
+        privateKey: project.privateKey,
+      })
       const branches = await listRecentCommitBranches(git, 10)
 
       repo.recentBranches = branches
@@ -103,9 +130,9 @@ export class GitHelperService {
     })
   }
 
-  async aggregateCommits(projectName: string, repoName: string) {
-    const project = await this.selectProjectByName(projectName)
-    const repo = project.repos.find(t => t.name === repoName)
+  async aggregateCommits(projectId: string, repoId: string) {
+    const project = await this.selectProjectById(projectId)
+    const repo = project.repos.find((t: GitRepo & IWithId) => String(t._id) === repoId)
     const staffs = project.staffs
 
     function lowCaseInclude(target: string, keywords: string) {
@@ -128,7 +155,7 @@ export class GitHelperService {
     return result
   }
 
-  async gitWeekly(projectName: string, staffName?: string) {
+  async gitWeekly(projectId: string, staffId?: string) {
     function isMyCommit(staff: GitStaff, commit: GitCommit) {
       function lowCaseInclude(target: string, keywords: string) {
         return target.toLowerCase().includes(keywords.toLowerCase())
@@ -141,10 +168,13 @@ export class GitHelperService {
       )
     }
 
-    const project = await this.selectProjectByName(projectName)
+    const project = await this.selectProjectById(projectId)
     const { staffs, repos } = project
 
-    const staffList = staffName ? staffs.filter(item => item.name === staffName) : staffs
+    const staffList = staffId
+      ? staffs.filter((item: GitStaff & IWithId) => String(item._id) === staffId)
+      : staffs
+
     project.weeklyStatus = 'pending'
     await project.save()
 
@@ -179,17 +209,19 @@ export class GitHelperService {
     }
   }
 
-  async addStaff(projectName: string, gitStaff: GitStaff) {
-    const project = await this.selectProjectByName(projectName)
+  async addStaff(projectId: string, gitStaff: GitStaff) {
+    const project = await this.selectProjectById(projectId)
     project.staffs.push(gitStaff)
     await project.save()
 
     return last(project.staffs)
   }
 
-  async deleteStaff(projectName: string, staffName: string) {
-    const project = await this.selectProjectByName(projectName)
-    project.staffs = project.staffs.filter(item => item.name !== staffName)
+  async deleteStaff(projectId: string, staffId: string) {
+    const project = await this.selectProjectById(projectId)
+    project.staffs = project.staffs.filter(
+      (staff: GitStaff & IWithId) => String(staff._id) !== staffId
+    )
     await project.save()
   }
 }

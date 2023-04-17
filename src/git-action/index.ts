@@ -6,40 +6,34 @@ import simpleGit, { SimpleGit } from 'simple-git'
 import sshPK from 'sshpk'
 
 /** 克隆新仓库或同步现存仓库 */
-export async function cloneOrSyncRepo(url: string, projectId: string) {
-  const repoName = getRepoNameByUrl(url)
-  const repoPath = getRepoPathByName(repoName)
+export async function cloneOrSyncRepo(options: {
+  url: string
+  projectId: string
+  repoId: string
+  privateKey?: string
+}) {
+  const { url, privateKey, projectId, repoId } = options
 
-  const privateKeyFilePath = getRepoPathByName(projectId) + '_rsa'
+  const repoPath = getRepoPathById(repoId)
+  const privateKeyFilePath = preparePrivateKeyFile({ projectId, privateKeyValue: privateKey })
 
   const isExist = existsSync(repoPath) && existsSync(resolve(repoPath, '.git'))
   if (!isExist) {
     rmSync(repoPath, { force: true, recursive: true })
-    await simpleGit()
-      .env(
-        'GIT_SSH_COMMAND',
-        `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
-      )
-      .clone(url, repoPath)
+
+    const tempGit = await createGit({ privateKeyFilePath })
+    await tempGit.clone(url, repoPath)
   }
 
-  return simpleGit(repoPath).env(
-    'GIT_SSH_COMMAND',
-    `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
-  )
+  return await createGit({ repoPath, privateKeyFilePath })
 }
 
 /** 选择某个仓库，返回 git 对象 */
-export async function selectRepoGit(repoName: string, projectId: string) {
-  const repoPath = getRepoPathByName(repoName)
-  const privateKeyFilePath = getRepoPathByName(projectId) + '_rsa'
+export async function selectRepoGit(repoName: string, projectId: string, privateKey?: string) {
+  const repoPath = getRepoPathById(repoName)
+  const privateKeyFilePath = preparePrivateKeyFile({ projectId, privateKeyValue: privateKey })
 
-  const git = simpleGit(repoPath).env(
-    'GIT_SSH_COMMAND',
-    `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
-  )
-
-  return git
+  return await createGit({ repoPath, privateKeyFilePath })
 }
 
 /** 列出仓库最近提交的数个分支 */
@@ -62,9 +56,10 @@ export async function listRecentCommits(git: SimpleGit, branchName: string, days
 }
 
 /** 删除仓库和文件 */
-export async function deleteRepo(repoName: string) {
-  const repoPath = getRepoPathByName(repoName)
+export async function deleteRepo(repoId: string) {
+  const repoPath = getRepoPathById(repoId)
   rmSync(repoPath, { force: true, recursive: true })
+  rmSync(repoPath + '_rsa', { force: true, recursive: true })
 }
 
 /** 生成 RSA 密钥对 */
@@ -82,8 +77,7 @@ export function generateAndWriteRSAKeyPair(projectId: string): {
     .toString('ssh')
     .replace('(unnamed)', projectId)
 
-  writeFileSync(getRepoPathByName(projectId) + '_rsa', keyPair.privateKey, { flag: 'w+' })
-  chmodSync(getRepoPathByName(projectId) + '_rsa', '600')
+  preparePrivateKeyFile({ projectId, privateKeyValue: keyPair.privateKey })
 
   return keyPair
 }
@@ -95,16 +89,41 @@ export function getRepoNameByUrl(repoUrl: string) {
 
 /** 准备 Git 仓库暂存目录 */
 export function prepareGitRepoPath() {
-  mkdirSync(getRepoPathByName(), { recursive: true })
+  mkdirSync(getRepoPathById(), { recursive: true })
 }
 
-/** 按仓库名称解析出存储文件路径 */
-function getRepoPathByName(repoName?: string) {
+/** 按仓库 ID 解析出存储文件路径 */
+function getRepoPathById(repoId?: string) {
   const gitRepoRootPath =
     process.env.GIT_REPO_STORAGE_PATH?.replace('~', homedir()) ??
     resolve(homedir(), './.paperplane-api/git-repos')
 
-  const repoPath = repoName ? resolve(gitRepoRootPath, repoName) : gitRepoRootPath
+  const repoPath = repoId ? resolve(gitRepoRootPath, repoId) : gitRepoRootPath
 
   return repoPath
+}
+
+/** 确保 SSH Key 已存在 */
+function preparePrivateKeyFile(options: { projectId?: string; privateKeyValue?: string }) {
+  const { projectId, privateKeyValue } = options
+
+  const repoPath = getRepoPathById(projectId)
+  const sshKeyPath = repoPath + '_rsa'
+
+  if (!existsSync(sshKeyPath)) {
+    writeFileSync(sshKeyPath, privateKeyValue, { flag: 'w+' })
+    chmodSync(sshKeyPath, '600')
+  }
+
+  return sshKeyPath
+}
+
+/** 创建 Git 对象 */
+async function createGit(options: { repoPath?: string; privateKeyFilePath?: string }) {
+  const { repoPath, privateKeyFilePath } = options
+
+  return await simpleGit(repoPath).env(
+    'GIT_SSH_COMMAND',
+    `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
+  )
 }

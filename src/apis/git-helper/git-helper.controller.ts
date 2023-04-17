@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common'
 
-import { GitStaff } from '@/schemas/git.schema'
+import { DraftGitProject, DraftGitRepo, DraftGitStaff } from '@/schemas/git.schema'
 import { GitHelperService } from './git-helper.service'
 
 @Controller('/git-helper')
@@ -8,8 +8,8 @@ export class GitHelperController {
   constructor(private readonly gitHelperService: GitHelperService) {}
 
   @Post('/project')
-  async addProject(@Body() body: { name: string }) {
-    return this.gitHelperService.addProject(body.name)
+  async addProject(@Body() body: { project: DraftGitProject }) {
+    return this.gitHelperService.addProject(body.project)
   }
 
   @Get('/project')
@@ -17,62 +17,56 @@ export class GitHelperController {
     return this.gitHelperService.listAllProject()
   }
 
-  @Get('/project/:name')
-  async getProject(@Param('name') name: string) {
-    return this.gitHelperService.selectProjectByName(name)
+  @Get('/project/:projectId')
+  async getProject(@Param('projectId') projectId: string) {
+    return this.gitHelperService.selectProjectById(projectId, true)
   }
 
-  @Post('/project/:projectName/repo')
-  async addRepo(@Param('projectName') projectName: string, @Body() body: { url: string }) {
-    return this.gitHelperService.addRepo(projectName, body.url)
+  @Post('/project/:projectId/repo')
+  async addRepo(@Param('projectId') projectId: string, @Body() body: { repo: DraftGitRepo }) {
+    return this.gitHelperService.addRepo(projectId, body.repo)
   }
 
-  @Get('/project/:projectName/repo/:repoName')
-  async getRepo(@Param('projectName') projectName: string, @Param('repoName') repoName: string) {
-    return this.gitHelperService.selectRepo(projectName, repoName)
+  @Get('/project/:projectId/repo/:repoId')
+  async getRepo(@Param('projectId') projectId: string, @Param('repoId') repoId: string) {
+    return this.gitHelperService.selectRepo(projectId, repoId)
   }
 
-  @Delete('/project/:projectName/repo/:repoName')
-  async deleteRepo(@Param('projectName') projectName: string, @Param('repoName') repoName: string) {
-    return this.gitHelperService.deleteRepo(projectName, repoName)
+  @Delete('/project/:projectId/repo/:repoId')
+  async deleteRepo(@Param('projectId') projectId: string, @Param('repoId') repoId: string) {
+    return this.gitHelperService.deleteRepo(projectId, repoId)
   }
 
-  @Post('/project/:projectName/staff')
-  async addStaff(@Param('projectName') projectName: string, @Body() body: { staff: GitStaff }) {
-    return this.gitHelperService.addStaff(projectName, body.staff)
+  @Post('/project/:projectId/staff')
+  async addStaff(@Param('projectId') projectId: string, @Body() body: { staff: DraftGitStaff }) {
+    return this.gitHelperService.addStaff(projectId, body.staff)
   }
 
-  @Delete('/project/:projectName/staff/:staffName')
-  async deleteStaff(
-    @Param('projectName') projectName: string,
-    @Param('staffName') staffName: string
-  ) {
-    return this.gitHelperService.deleteStaff(projectName, staffName)
+  @Delete('/project/:projectId/staff/:staffId')
+  async deleteStaff(@Param('projectId') projectId: string, @Param('staffId') staffId: string) {
+    return this.gitHelperService.deleteStaff(projectId, staffId)
   }
 
-  @Post('/project/:projectName/repo/:repoName/sync')
-  async syncRepo(@Param('projectName') projectName: string, @Param('repoName') repoName: string) {
-    return this.gitHelperService.syncRepo(projectName, repoName)
+  @Post('/project/:projectId/repo/:repoId/sync')
+  async syncRepo(@Param('projectId') projectId: string, @Param('repoId') repoId: string) {
+    return this.gitHelperService.syncRepo(projectId, repoId)
   }
 
-  @Post('/project/:projectName/repo/:repoName/aggregate-commits')
-  async aggregateCommits(
-    @Param('projectName') projectName: string,
-    @Param('repoName') repoName: string
-  ) {
-    return this.gitHelperService.aggregateCommits(repoName, repoName)
+  @Post('/project/:projectId/repo/:repoId/aggregate-commits')
+  async aggregateCommits(@Param('projectId') projectId: string, @Param('repoId') repoId: string) {
+    return this.gitHelperService.aggregateCommits(projectId, repoId)
   }
 
-  @Post('/project/:projectName/git-weekly')
-  async gitWeekly(@Param('projectName') projectName: string) {
-    this.gitHelperService.gitWeekly(projectName)
+  @Post('/project/:projectId/git-weekly')
+  async gitWeekly(@Param('projectId') projectId: string) {
+    this.gitHelperService.gitWeekly(projectId)
   }
 
-  @Post('/project/:projectName/staff/:staffName/git-weekly')
+  @Post('/project/:projectId/staff/:staffId/git-weekly')
   async gitWeeklyByStaffName(
-    @Param('projectName') projectName: string,
-    @Param('staffName') staffName: string
+    @Param('projectId') projectId: string,
+    @Param('staffId') staffId: string
   ) {
-    this.gitHelperService.gitWeekly(projectName, staffName)
+    this.gitHelperService.gitWeekly(projectId, staffId)
   }
 }
