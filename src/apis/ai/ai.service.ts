@@ -19,7 +19,7 @@ export class AiService {
       .createCompletion({
         model: 'text-davinci-003',
         prompt,
-        max_tokens: 3000,
+        max_tokens: 2000,
       })
       .then(res => res.data)
       .then(res => res.choices?.[0].text)
