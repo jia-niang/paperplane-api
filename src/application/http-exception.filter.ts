@@ -7,6 +7,8 @@ import { CommonHttpException } from './common.exception'
 /** 全局异常处理与包装 */
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: CommonHttpException, host: ArgumentsHost) {
+    console.log('ERROR ', exception)
+
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
     const code = exception.getStatus?.() || HttpStatus.INTERNAL_SERVER_ERROR
