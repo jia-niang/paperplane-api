@@ -133,7 +133,7 @@ async function createGit(options: { repoPath?: string; privateKeyFilePath?: stri
     'GIT_SSH_COMMAND',
     `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
   )
-  await git.addConfig('pull.rebase', 'false', true, 'local')
+  await git.addConfig('pull.rebase', 'false', true)
 
   return git
 }
