@@ -121,7 +121,9 @@ export class GitHelperService {
       await project.save()
     }
 
-    syncTask().catch(() => {
+    syncTask().catch(e => {
+      console.log('sync repo error:', e)
+
       repo.status = 'error'
       project.save()
     })
