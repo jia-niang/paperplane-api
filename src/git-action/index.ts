@@ -25,7 +25,10 @@ export async function cloneOrSyncRepo(options: {
     await tempGit.clone(url, repoPath)
   }
 
-  return await createGit({ repoPath, privateKeyFilePath })
+  const result = await createGit({ repoPath, privateKeyFilePath })
+  await result.fetch(['--prune'])
+
+  return result
 }
 
 /** 选择某个仓库，返回 git 对象 */
@@ -48,9 +51,11 @@ export async function listRecentCommitBranches(git: SimpleGit, count: number) {
 
 /** 列出仓库当前分支最近的数次提交 */
 export async function listRecentCommits(git: SimpleGit, branchName: string, days: number) {
+  const currentBranchName = await git.checkout()
   await git.checkout(branchName)
   await git.pull()
   const result = await git.log([`--since=${days}.days`])
+  await git.checkout(currentBranchName)
 
   return result.all
 }
@@ -122,8 +127,11 @@ function preparePrivateKeyFile(options: { projectId?: string; privateKeyValue?: 
 async function createGit(options: { repoPath?: string; privateKeyFilePath?: string }) {
   const { repoPath, privateKeyFilePath } = options
 
-  return await simpleGit(repoPath).env(
+  const git = await simpleGit(repoPath).env(
     'GIT_SSH_COMMAND',
     `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
   )
+  await git.addConfig('pull.rebase', 'false', true, 'local')
+
+  return git
 }

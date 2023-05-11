@@ -110,9 +110,6 @@ export class GitHelperService {
 
       let recentCommits = []
       for (const branch of branches) {
-        await git.checkout(branch)
-        await git.pull()
-
         const commits = await listRecentCommits(git, branch, 7)
         recentCommits = uniqBy(recentCommits.concat(commits), (item: GitCommit) => item.hash)
       }
