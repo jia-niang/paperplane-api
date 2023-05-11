@@ -23,14 +23,13 @@ export async function cloneOrSyncRepo(options: {
 
     const tempGit = await createGit({ privateKeyFilePath })
     await tempGit.clone(url, repoPath)
-
-    return await createGit({ repoPath, privateKeyFilePath })
   }
 
-  const result = await createGit({ repoPath, privateKeyFilePath })
-  await result.fetch(['--prune'])
+  const git = await createGit({ repoPath, privateKeyFilePath })
+  await git.addConfig('pull.rebase', 'false', true, 'local')
+  await git.fetch(['--prune'])
 
-  return result
+  return git
 }
 
 /** 选择某个仓库，返回 git 对象 */
@@ -133,7 +132,6 @@ async function createGit(options: { repoPath?: string; privateKeyFilePath?: stri
     'GIT_SSH_COMMAND',
     `ssh -i ${privateKeyFilePath} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`
   )
-  await git.addConfig('pull.rebase', 'false')
 
   return git
 }
