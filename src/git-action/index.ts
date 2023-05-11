@@ -23,6 +23,8 @@ export async function cloneOrSyncRepo(options: {
 
     const tempGit = await createGit({ privateKeyFilePath })
     await tempGit.clone(url, repoPath)
+
+    return await createGit({ repoPath, privateKeyFilePath })
   }
 
   const result = await createGit({ repoPath, privateKeyFilePath })
