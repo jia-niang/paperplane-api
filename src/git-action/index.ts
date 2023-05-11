@@ -52,7 +52,7 @@ export async function listRecentCommitBranches(git: SimpleGit, count: number) {
 
 /** 列出仓库当前分支最近的数次提交 */
 export async function listRecentCommits(git: SimpleGit, branchName: string, days: number) {
-  const currentBranchName = await git.checkout()
+  const currentBranchName = await git.revparse(['--abbrev-ref', 'HEAD'])
   await git.checkout(branchName)
   await git.pull()
   const result = await git.log([`--since=${days}.days`])
