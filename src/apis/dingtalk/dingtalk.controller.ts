@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Post, Param } from '@nestjs/common'
 
-import { CommonDingtalkBot } from '@/schemas/dingtalk-bot.schema'
 import { DingtalkBotService } from './dingtalk.service'
 
 interface ICustomSendBody {
@@ -17,7 +16,7 @@ export class DingtalkController {
 
   /** 添加机器人 */
   @Post('/addBot')
-  async addBot(@Body() body: CommonDingtalkBot) {
+  async addBot(@Body() body: ICommonDingtalkBot) {
     this.dingtalkBotService.addBot(body)
   }
 

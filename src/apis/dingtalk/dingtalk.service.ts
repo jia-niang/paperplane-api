@@ -2,7 +2,7 @@ import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import DingtalkBot from 'dingtalk-robot-sender'
 
-import { CommonDingtalkBot, DingtalkBotDBInject } from '@/schemas/dingtalk-bot.schema'
+import { DingtalkBotDBInject } from '@/schemas/dingtalk-bot.schema'
 
 @Injectable()
 export class DingtalkBotService {
@@ -40,7 +40,7 @@ export class DingtalkBotService {
     return this.createBotByCryptoConfig(botConfig)
   }
 
-  async addBot(body: CommonDingtalkBot) {
+  async addBot(body: ICommonDingtalkBot) {
     await this.dingtalkBotModle.create(body)
   }
 }
