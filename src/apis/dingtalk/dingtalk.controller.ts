@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Param } from '@nestjs/common'
 
 import { CommonDingtalkBot } from '@/schemas/dingtalk-bot.schema'
 import { DingtalkBotService } from './dingtalk.service'
+
 interface ICustomSendBody {
   mode: DingtalkBotTypeAuthType
   accessToken?: string
