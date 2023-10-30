@@ -4,6 +4,7 @@ import { AiService } from './ai.service'
 
 interface IAiCompletionsBody {
   text: string
+  num?: number
 }
 
 @Controller('/ai')
@@ -23,6 +24,13 @@ export class AiController {
   @Post('/chat')
   async chat(@Body() body: IAiCompletionsBody) {
     return this.aiService.chat(body.text).then(res => ({ answer: res?.trimStart() }))
+  }
+
+  @Post('/multiple-chat')
+  async multipleChat(@Body() body: IAiCompletionsBody) {
+    return this.aiService
+      .multipleChat(body.text, body.num)
+      .then(res => res.map(answer => answer?.trimStart()))
   }
 
   @Post('/weekly')

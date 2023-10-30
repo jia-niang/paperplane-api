@@ -36,6 +36,18 @@ export class AiService {
       .then(res => res.choices?.[0].message?.content)
   }
 
+  async multipleChat(prompt: string, n = 1) {
+    return this.openai
+      .createChatCompletion({
+        model: 'gpt-3.5-turbo-0301',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 3000,
+        n,
+      })
+      .then(res => res.data)
+      .then(res => res.choices?.map(item => item.message?.content))
+  }
+
   async weekly(text: string, mode: weeklyModeType) {
     let ask = ''
 
