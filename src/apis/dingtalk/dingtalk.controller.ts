@@ -15,7 +15,7 @@ export class DingtalkController {
   constructor(private readonly dingtalkBotService: DingtalkBotService) {}
 
   /** 添加机器人 */
-  @Post('/addBot')
+  @Post('/')
   async addBot(@Body() body: ICommonDingtalkBot) {
     this.dingtalkBotService.addBot(body)
   }
