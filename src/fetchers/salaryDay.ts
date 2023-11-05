@@ -1,7 +1,7 @@
+import axios from 'axios'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import get from 'lodash/get'
-import axios from 'axios'
 
 dayjs.extend(duration)
 

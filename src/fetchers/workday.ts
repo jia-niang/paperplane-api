@@ -1,5 +1,5 @@
-import dayjs from 'dayjs'
 import axios from 'axios'
+import dayjs from 'dayjs'
 
 export async function todayIsWorkdayApi(): Promise<boolean> {
   const url = 'http://apis.juhe.cn/fapig/calendar/day.php'

@@ -1,6 +1,6 @@
-import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import DingtalkBot from 'dingtalk-robot-sender'
+import { Model } from 'mongoose'
 
 import { DingtalkBotDBInject } from '@/schemas/dingtalk-bot.schema'
 

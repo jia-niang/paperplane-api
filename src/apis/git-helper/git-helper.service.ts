@@ -1,16 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Model, Types } from 'mongoose'
 import { last, uniqBy } from 'lodash'
+import { Model, Types } from 'mongoose'
 
-import {
-  DraftGitProject,
-  DraftGitRepo,
-  GitCommit,
-  GitDBInject,
-  GitProject,
-  GitRepo,
-  GitStaff,
-} from '@/schemas/git.schema'
 import {
   cloneOrSyncRepo,
   deleteRepo,
@@ -20,6 +11,16 @@ import {
   listRecentCommits,
   prepareGitRepoPath,
 } from '@/git-action'
+import {
+  DraftGitProject,
+  DraftGitRepo,
+  GitCommit,
+  GitDBInject,
+  GitProject,
+  GitRepo,
+  GitStaff,
+} from '@/schemas/git.schema'
+
 import { AiService } from '../ai/ai.service'
 
 @Injectable()

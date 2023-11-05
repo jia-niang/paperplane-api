@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 
-import { generateOffworkNoticeImageCOSUrl } from '@/offwork-notice/offworkNoticeV2'
 import { fetchOffworkRecord } from '@/offwork-notice/fetchOffworkRecord'
+import { generateOffworkNoticeImageCOSUrl } from '@/offwork-notice/offworkNoticeV2'
 import { generateOtherOffworkNoticeMessage } from '@/offwork-notice/offworkOther'
 import { generateOffworkNoticeMessage } from '@/offwork-notice/offworkSuzhou'
 
-import { OffworkNoticeRecordService } from '../offwork-notice-record/offwork-notice-record.service'
 import { DingtalkBotService } from '../dingtalk/dingtalk.service'
+import { OffworkNoticeRecordService } from '../offwork-notice-record/offwork-notice-record.service'
 
 @Injectable()
 export class TaskOffworkNoticeService {

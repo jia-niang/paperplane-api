@@ -1,5 +1,5 @@
-import { round, split } from 'lodash'
 import axios from 'axios'
+import { round, split } from 'lodash'
 
 const url = 'http://hq.sinajs.cn/list=sz300662'
 

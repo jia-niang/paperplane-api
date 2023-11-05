@@ -1,5 +1,5 @@
-import { get } from 'lodash'
 import axios from 'axios'
+import { get } from 'lodash'
 
 export async function todayOilPriceApi(): Promise<Record<offworkNoticeCity, IOffworkOilpriceInfo>> {
   const apiHost = 'http://apis.juhe.cn/gnyj/query'

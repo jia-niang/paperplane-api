@@ -1,5 +1,5 @@
-import { get } from 'lodash'
 import axios from 'axios'
+import { get } from 'lodash'
 
 async function trafficApi(url: string): Promise<string> {
   const res = await axios.get(url).then(response => response.data)

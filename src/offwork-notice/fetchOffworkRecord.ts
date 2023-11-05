@@ -1,11 +1,11 @@
 import dayjs from 'dayjs'
 
-import { todayIsWorkdayApi } from '../fetchers/workday'
-import { suzhouWeatherApi, beijingWeatherApi, shanghaiWeatherApi } from '../fetchers/weather'
-import { suzhouTrafficApi, beijingTrafficApi, shanghaiTrafficApi } from '../fetchers/traffic'
 import { todayOilPriceApi } from '../fetchers/oilprice'
 import { salaryDayApi } from '../fetchers/salaryDay'
 import { stockApi } from '../fetchers/stock'
+import { suzhouTrafficApi, beijingTrafficApi, shanghaiTrafficApi } from '../fetchers/traffic'
+import { suzhouWeatherApi, beijingWeatherApi, shanghaiWeatherApi } from '../fetchers/weather'
+import { todayIsWorkdayApi } from '../fetchers/workday'
 
 export async function fetchOffworkRecord(): Promise<IDailyOffworkRecord> {
   const [isWorkDay, oilprice, stock, salaryDay, weather, traffic] = await Promise.all([
