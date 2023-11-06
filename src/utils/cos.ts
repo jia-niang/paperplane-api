@@ -43,8 +43,6 @@ export async function uploadFileByPath(
             )
           }
 
-          console.log('fileUrl = ', fileUrl)
-
           resolve({ ...data, Location: fileUrl })
         }
       }
