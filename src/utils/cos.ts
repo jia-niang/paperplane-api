@@ -1,12 +1,8 @@
-import COS from 'cos-nodejs-sdk-v5'
+import AWS from 'aws-sdk'
+import { readFileSync } from 'fs'
+import { trimStart } from 'lodash'
 
-export interface ICosFileUploadInfo {
-  statusCode: number
-  headers: Record<string, string>
-  Location: string
-  ETag: string
-  RequestId: string
-}
+export interface ICosFileUploadInfo extends AWS.S3.ManagedUpload.SendData {}
 
 export interface IUploadFileByPathOptions {
   /** 是否使用 oss.paperplane.cc 域名  */
@@ -18,32 +14,37 @@ export async function uploadFileByPath(
   key: string,
   filePath: string,
   options?: IUploadFileByPathOptions
-): Promise<ICosFileUploadInfo> {
-  const cos = new COS({
-    SecretId: process.env.COS_SECRET_ID,
-    SecretKey: process.env.COS_SECRET_KEY,
+): Promise<AWS.S3.ManagedUpload.SendData> {
+  const s3 = new AWS.S3({
+    accessKeyId: process.env.COS_SECRET_ID,
+    secretAccessKey: process.env.COS_SECRET_KEY,
+    region: 'ap-shanghai',
+    endpoint: 'https://cos.ap-shanghai.myqcloud.com',
+    apiVersion: '2006-03-01',
   })
+
   const { usePaperplaneDomain } = Object.assign({}, options)
 
   return new Promise((resolve, reject) => {
-    cos.uploadFile(
-      {
-        Bucket: 'paperplane-1253277322',
-        Region: 'ap-shanghai',
-        Key: key,
-        FilePath: filePath,
-      },
-      function (err, data: ICosFileUploadInfo) {
+    const Body = readFileSync(filePath)
+
+    s3.upload(
+      { Bucket: 'paperplane-1253277322', Key: trimStart(key, '/'), Body },
+
+      function (err, data) {
         if (err) {
           reject(err)
         } else {
-          let fileUrl = 'https://' + data.Location
+          let fileUrl = data.Location
           if (usePaperplaneDomain) {
             fileUrl = fileUrl.replace(
               'paperplane-1253277322.cos.ap-shanghai.myqcloud.com',
               'oss.paperplane.cc'
             )
           }
+
+          console.log('fileUrl = ', fileUrl)
+
           resolve({ ...data, Location: fileUrl })
         }
       }
