@@ -28,6 +28,10 @@ export class AiController {
 
   @Post('/multiple-chat')
   async multipleChat(@Body() body: IAiCompletionsBody) {
+    if (typeof body.num !== 'number' || body.num < 1 || body.num > 3) {
+      body.num = 1
+    }
+
     return this.aiService
       .multipleChat(body.text, body.num)
       .then(res => res.map(answer => answer?.trimStart()))
