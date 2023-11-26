@@ -6,7 +6,6 @@ services:
     image: paperplanecc/paperplane-api-base:latest
     container_name: paperplane-api-local
     restart: on-failure
-    init: true
     working_dir: /app
     volumes:
       - ./:/app

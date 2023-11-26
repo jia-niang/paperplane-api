@@ -1,5 +1,4 @@
 import AWS from 'aws-sdk'
-import { readFileSync } from 'fs'
 import { trimStart } from 'lodash'
 
 export interface ICosFileUploadInfo extends AWS.S3.ManagedUpload.SendData {}
@@ -9,10 +8,10 @@ export interface IUploadFileByPathOptions {
   usePaperplaneDomain?: boolean
 }
 
-/** 上传文件到存储桶，需指定存储路径和本地文件路径 */
-export async function uploadFileByPath(
+/** 上传文件到存储桶，需指定存储桶中的路径和文件内容 Buffer */
+export async function uploadFile(
   key: string,
-  filePath: string,
+  fileBuffer: Buffer,
   options?: IUploadFileByPathOptions
 ): Promise<AWS.S3.ManagedUpload.SendData> {
   const s3 = new AWS.S3({
@@ -26,10 +25,8 @@ export async function uploadFileByPath(
   const { usePaperplaneDomain } = Object.assign({}, options)
 
   return new Promise((resolve, reject) => {
-    const Body = readFileSync(filePath)
-
     s3.upload(
-      { Bucket: 'paperplane-1253277322', Key: trimStart(key, '/'), Body },
+      { Bucket: 'paperplane-1253277322', Key: trimStart(key, '/'), Body: fileBuffer },
 
       function (err, data) {
         if (err) {

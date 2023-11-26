@@ -1,9 +1,6 @@
 import axios from 'axios'
 import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
 import get from 'lodash/get'
-
-dayjs.extend(duration)
 
 export async function salaryDayApi(): Promise<IOffworkSalaryDayInfo> {
   const url = 'http://v.juhe.cn/calendar/month'
