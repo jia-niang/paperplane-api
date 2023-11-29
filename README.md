@@ -1,4 +1,7 @@
-# PaperPlane API
+# PaperPlane API [![Build Status](https://drone.paperplane.cc/api/badges/jia-niang/paperplane-api/status.svg)](https://drone.paperplane.cc/jia-niang/paperplane-api)
+
+为 https://app.paperplane.cc 提供 API 支持。  
+[原始代码仓库](https://git.paperplane.cc/jia-niang/paperplane-api) · [Github 代码镜像](https://github.com/PaperplaneJS/webapi) · [CI/CD](https://drone.paperplane.cc/jia-niang/paperplane-api)
 
 ## 本地调试开发
 
@@ -45,15 +48,13 @@ Windows 使用 wsl2 运行本项目的准备工作：
 # 启动项目
 docker compose up
 
-# 如果需要执行其它命令，可以进入容器的 bash
+# 如果需要执行其它命令（例如 yarn add），可以进入容器的 bash
 docker exec -it paperplane-api-local bash
 ```
-
 
 ## 本机运行
 
 需求 Node.js 的 16 及以上版本，[点此下载 16 版本](https://nodejs.org/download/release/v16.20.0/) 或者 [点此选择一个版本下载](https://nodejs.org/en/download/releases)；安装完 Node.js 后，请运行 `npm i -g yarn --registry=https://registry.npmmirror.com` 来安装 `yarn`，这也是一个必备的依赖项。
-
 
 安装依赖：
 
@@ -98,13 +99,6 @@ RUN apt-get update \
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/google-chrome-stable
 
 CMD ["google-chrome-stable"]
-```
-
-构建和推送镜像：
-
-```bash
-docker build -t paperplanecc/paperplane-api-base:latest .
-docker push paperplanecc/paperplane-api-base
 ```
 
 注意构建的步骤中需要访问 Google，请确保具备国际互联网访问能力。
