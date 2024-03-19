@@ -1,13 +1,15 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common'
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common'
 import { Response } from 'express'
 
 import { CommonHttpException } from './common.exception'
 
-@Catch()
 /** 全局异常处理与包装 */
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger('系统 HttpExceptionFilter')
+
   catch(exception: CommonHttpException, host: ArgumentsHost) {
-    console.log('ERROR ', exception)
+    this.logger.verbose(exception)
 
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()

@@ -151,25 +151,25 @@
     <div class="main">
       <div class="title">下班了</div>
 
-      <% if (salaryDay.restDays <= 0) { %>
+      <% if (restDays <= 0) { %>
       <div class="sub-title">今天是发薪日🥳</div>
       <% } else { %>
-      <div class="sub-title">发薪倒计时 <%= salaryDay.restDays %> 天</div>
+      <div class="sub-title">发薪倒计时 <%= restDays %> 天</div>
       <% } %>
 
       <div class="weathers">
         <div class="weather">
           <div class="weather-title">天气</div>
-          <div class="weather-info"><%= weather.suzhou.today.info %></div>
+          <div class="weather-info"><%= todayWeather %></div>
           <img class="weather-icon" src="<%= todayWeatherUrl %>" alt="" />
-          <div class="weather-temp"><%= weather.suzhou.today.temperature %>℃</div>
+          <div class="weather-temp"><%= todayTemperature %></div>
         </div>
 
         <div class="weather">
           <div class="weather-title">明天</div>
-          <div class="weather-info"><%= weather.suzhou.tomorrow.weather %></div>
+          <div class="weather-info"><%= tomorrowWeather %></div>
           <img class="weather-icon" src="<%= tomorrowWeatherUrl %>" alt="" />
-          <div class="weather-temp"><%= weather.suzhou.tomorrow.temperature %></div>
+          <div class="weather-temp"><%= tomorrowTemperature %></div>
         </div>
 
         <div class="oilprice">
@@ -178,17 +178,17 @@
           <div class="oilprices">
             <div class="oilprice-item">
               <div class="oilprice-kind">92#</div>
-              <div class="oilprice-price">￥<%= oilprice.suzhou['92h'] %></div>
+              <div class="oilprice-price">￥<%= h92 %></div>
             </div>
 
             <div class="oilprice-item">
               <div class="oilprice-kind">95#</div>
-              <div class="oilprice-price">￥<%= oilprice.suzhou['95h'] %></div>
+              <div class="oilprice-price">￥<%= h95 %></div>
             </div>
 
             <div class="oilprice-item">
               <div class="oilprice-kind">98#</div>
-              <div class="oilprice-price">￥<%= oilprice.suzhou['98h'] %></div>
+              <div class="oilprice-price">￥<%= h98 %></div>
             </div>
           </div>
         </div>
@@ -197,16 +197,24 @@
       <div id="map"></div>
       <div class="map-desc">交通拥堵状况</div>
 
-      <div class="stock">科锐国际股价：<%= stockText %></div>
+      <div class="stock"><%= company %>股价：<%= stockText %></div>
     </div>
 
     <script src="https://api.map.baidu.com/api?type=webgl&v=3.0&ak=<%= baiduMapAK %>"></script>
     <script>
       var map = new BMapGL.Map('map')
-      map.centerAndZoom(new BMapGL.Point(120.73817280081882, 31.270915071296887), 17)
+      map.centerAndZoom(
+        new BMapGL.Point(Number('<%= mapLongitude %>'), Number('<%= mapLatitude %>')),
+        17
+      )
       map.enableScrollWheelZoom(true)
       map.setMapStyleV2({ styleId: '975d24a1bf601154fa5f759cac0ff9a5' })
       map.setTrafficOn()
+
+      const companyMark = new BMapGL.Marker(
+        new BMapGL.Point(Number('<%= mapLongitude %>'), Number('<%= mapLatitude %>'))
+      )
+      map.addOverlay(companyMark)
 
       map.addEventListener('tilesloaded', function () {
         setTimeout(() => {

@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESQL_URL")
+}
+
+// 工作日流水记录
+model WorkdayRecord {
+  id        String  @id @default(cuid())
+  date      String
+  isWorkDay Boolean
+
+  allCompanyRecords DailyCompanyRecord[]
+  DailyCityRecord DailyCityRecord[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// 公司
+model Company {
+  id         String  @id @default(cuid())
+  company    String
+  stockCode  String?
+  salaryDate Int?
+
+  allDailyRecords  DailyCompanyRecord[]
+  allCities        City[]
+  allMessageRobots MessageRobot[]
+
+  OffworkNoticeSetting OffworkNoticeSetting[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// 每日公司状况记录
+model DailyCompanyRecord {
+  id             String  @id @default(cuid())
+  salaryDate     String?
+  restDays       Int?
+  todayStock     Float?
+  yesterdayStock Float?
+  delta          Float?
+
+  beloneToWorkday WorkdayRecord @relation(fields: [workdayRecordId], references: [id], onDelete: Cascade)
+  workdayRecordId String
+  belongToCompany Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId       String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// 城市
+model City {
+  id           String  @id @default(cuid())
+  city         String
+  weatherCode  String?
+  oilpriceCode String?
+  mapLatitude  String?
+  mapLongitude String?
+
+  belongToCompany Company @relation(fields: [companyId], references: [id])
+  companyId       String
+
+  allDailyRecords DailyCityRecord[]
+
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  deletedAt            DateTime?
+  OffworkNoticeSetting OffworkNoticeSetting[]
+}
+
+// 每日城市状况记录
+model DailyCityRecord {
+  id                  String  @id @default(cuid())
+  todayWeather        String?
+  todayTemperature    String?
+  todayWid            String?
+  tomorrowWeather     String?
+  tomorrowTemperature String?
+  tomorrowWid         String?
+
+  h92     Float?
+  h95     Float?
+  h98     Float?
+  traffic String?
+
+  belongToWorkday WorkdayRecord @relation(fields: [workdayRecordId], references: [id], onDelete: Cascade)
+  workdayRecordId String
+  belongToCity    City          @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  cityId          String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// 消息机器人类型
+enum MessageRobotType {
+  DINGTALK
+  WXBIZ
+  FEISHU
+}
+
+// 消息机器人
+model MessageRobot {
+  id                  String           @id @default(cuid())
+  name                String
+  type                MessageRobotType
+  accessToken         String?
+  secret              String?
+  extraAuthentication Json?
+  desc                String?
+
+  belongToCompany Company @relation(fields: [companyId], references: [id])
+  companyId       String
+
+  OffworkNoticeSetting OffworkNoticeSetting[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// Offwork 提醒登记表
+model OffworkNoticeSetting {
+  id       String  @id @default(cuid())
+  disabled Boolean @default(false)
+
+  belongToRobot   MessageRobot @relation(fields: [messageRobotId], references: [id])
+  messageRobotId  String
+  belongToCompany Company      @relation(fields: [companyId], references: [id])
+  companyId       String
+  belongToCity    City         @relation(fields: [cityId], references: [id])
+  cityId          String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}

@@ -1,16 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { last, uniqBy } from 'lodash'
 import { Model, Types } from 'mongoose'
 
-import {
-  cloneOrSyncRepo,
-  deleteRepo,
-  generateAndWriteRSAKeyPair,
-  getRepoNameByUrl,
-  listRecentCommitBranches,
-  listRecentCommits,
-  prepareGitRepoPath,
-} from '@/git-action'
 import {
   DraftGitProject,
   DraftGitRepo,
@@ -22,6 +13,15 @@ import {
 } from '@/schemas/git.schema'
 
 import { AiService } from '../ai/ai.service'
+import {
+  cloneOrSyncRepo,
+  deleteRepo,
+  generateAndWriteRSAKeyPair,
+  getRepoNameByUrl,
+  listRecentCommitBranches,
+  listRecentCommits,
+  prepareGitRepoPath,
+} from './git-action'
 
 @Injectable()
 export class GitHelperService {
@@ -123,7 +123,7 @@ export class GitHelperService {
     }
 
     syncTask().catch(e => {
-      console.log('sync repo error:', e)
+      Logger.error(`同步仓库时出错：`, e)
 
       repo.status = 'error'
       project.save()

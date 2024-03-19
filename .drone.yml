@@ -16,7 +16,7 @@ steps:
       mirror: https://mirror.ccs.tencentyun.com
       registry: docker.io
 
-  - name: deploy
+  - name: stop-service
     image: appleboy/drone-ssh
     settings:
       host:
@@ -28,8 +28,34 @@ steps:
       script:
         - cd /home/ubuntu/project-config/paperplane-api
         - docker compose down || true
+
+  - name: prisma-sync-db
+    image: node:19
+    volumes:
+      - name: npmcache
+        path: /usr/local/share/.cache/yarn
+    commands:
+      - yarn config set registry https://registry.npmmirror.com
+      - yarn global add prisma dotenv-cli
+      - yarn dotenv -c production -- prisma migrate deploy
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        - 'paperplane.cc'
+      username: ubuntu
+      key:
+        from_secret: DEPLOY_SSH_PRIKEY
+      command_timeout: 5m
+      script:
         - docker image rm paperplanecc/paperplane-api:latest || true
         - docker compose up -d
+
+volumes:
+  - name: npmcache
+    host:
+      path: /home/ubuntu/npmcache
 
 trigger:
   branch:

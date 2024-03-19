@@ -38,7 +38,7 @@ export class AiController {
   }
 
   @Post('/weekly')
-  async weekly(@Body() body: { text: string; mode: weeklyModeType }) {
-    return this.aiService.weekly(body.text, body.mode).then(res => ({ answer: res?.trimStart() }))
+  async weekly(@Body() body: { text: string }) {
+    return this.aiService.weekly(body.text).then(res => ({ answer: res?.trimStart() }))
   }
 }

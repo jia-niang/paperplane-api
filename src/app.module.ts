@@ -2,24 +2,23 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
 import { ServeStaticModule } from '@nestjs/serve-static'
+import { PrismaModule } from 'nestjs-prisma'
+import { createSoftDeleteMiddleware } from 'prisma-soft-delete-middleware'
 
-import { AiController } from './apis/ai/ai.controller'
-import { AiService } from './apis/ai/ai.service'
-import { DingtalkController } from './apis/dingtalk/dingtalk.controller'
-import { DingtalkBotService } from './apis/dingtalk/dingtalk.service'
-import { DockerStatusController } from './apis/docker-status/docker-status.controller'
-import { DockerStatusService } from './apis/docker-status/docker-status.service'
-import { GitHelperController } from './apis/git-helper/git-helper.controller'
-import { GitHelperService } from './apis/git-helper/git-helper.service'
-import { OffworkNoticeRecordController } from './apis/offwork-notice-record/offwork-notice-record.controller'
-import { OffworkNoticeRecordService } from './apis/offwork-notice-record/offwork-notice-record.service'
-import { TaskOffworkNoticeService } from './apis/tasks/task-offwork-notice.service'
-import { TasksController } from './apis/tasks/tasks.controller'
-import { TasksService } from './apis/tasks/tasks.service'
-import { ResponseInterceptorProvider } from './application/response.interceptor'
-import { DingtalkBotModule } from './schemas/dingtalk-bot.schema'
+import { ResponseInterceptorProvider } from './app/response.interceptor'
 import { GitModule } from './schemas/git.schema'
-import { OffworkRecordModule } from './schemas/offwork-record.schema'
+import { AiController } from './services/ai/ai.controller'
+import { AiService } from './services/ai/ai.service'
+import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
+import { DailyOffworkController } from './services/daily-offwork/daily-offwork.controller'
+import { DailyOffworkService } from './services/daily-offwork/daily-offwork.service'
+import { DockerStatusController } from './services/docker-status/docker-status.controller'
+import { DockerStatusService } from './services/docker-status/docker-status.service'
+import { GitHelperController } from './services/git-helper/git-helper.controller'
+import { GitHelperService } from './services/git-helper/git-helper.service'
+import { MessageRobotController } from './services/message-robot/message-robot.controller'
+import { MessageRobotService } from './services/message-robot/message-robot.service'
+import { ThirdPartyService } from './services/third-party/third-party.service'
 
 @Module({
   imports: [
@@ -38,27 +37,37 @@ import { OffworkRecordModule } from './schemas/offwork-record.schema'
       pluralize: null,
     }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
-    DingtalkBotModule,
-    OffworkRecordModule,
+    PrismaModule.forRoot({
+      prismaServiceOptions: {
+        middlewares: [
+          createSoftDeleteMiddleware({
+            models: {},
+            defaultConfig: {
+              field: 'deletedAt',
+              createValue: deleted => (deleted ? new Date() : null),
+            },
+          }),
+        ],
+      },
+    }),
     GitModule,
   ],
   controllers: [
-    DingtalkController,
     DockerStatusController,
-    TasksController,
     AiController,
-    OffworkNoticeRecordController,
     GitHelperController,
+    MessageRobotController,
+    DailyOffworkController,
   ],
   providers: [
     ResponseInterceptorProvider,
+    ThirdPartyService,
     DockerStatusService,
-    DingtalkBotService,
-    TasksService,
     AiService,
-    OffworkNoticeRecordService,
-    TaskOffworkNoticeService,
     GitHelperService,
+    MessageRobotService,
+    DailyOffworkService,
+    DailyOffworkRecordService,
   ],
 })
 export class AppModule {}

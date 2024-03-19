@@ -47,4 +47,5 @@ interface IOffworkSalaryDayInfo {
 interface IOffworkStockInfo {
   today: number
   yesterday: number
+  delta?: number
 }
