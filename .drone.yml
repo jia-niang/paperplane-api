@@ -39,7 +39,7 @@ steps:
       - npm config set registry https://registry.npmmirror.com
       - npm i -g prisma
       - npm i -g dotenv-cli
-      - npx dotenv -c production -- prisma migrate deploy
+      - yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh

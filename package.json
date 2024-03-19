@@ -22,7 +22,8 @@
     "dbgen": "prisma generate",
     "dbpush": "dotenv -c development -- prisma db push",
     "dbmi": "dotenv -c development -- prisma migrate dev",
-    "dbdeploy": "dotenv -c development -- prisma migrate deploy"
+    "dbdeploy": "dotenv -c development -- prisma migrate deploy",
+    "dbdeploy:prod": "dotenv -c production -- prisma migrate deploy"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.23.0",
