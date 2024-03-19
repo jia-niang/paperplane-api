@@ -54,7 +54,7 @@ docker exec -it paperplane-api-local bash
 
 ## 本机运行
 
-需求 Node.js 的 16 及以上版本，[点此下载 16 版本](https://nodejs.org/download/release/v16.20.0/) 或者 [点此选择一个版本下载](https://nodejs.org/en/download/releases)；安装完 Node.js 后，请运行 `npm i -g yarn --registry=https://registry.npmmirror.com` 来安装 `yarn`，这也是一个必备的依赖项。
+需求 Node.js 的 19 及以上版本，[点此下载最新版](https://nodejs.org/) 或者 [点此选择一个版本下载](https://nodejs.org/en/download/releases)；安装完 Node.js 后，请运行 `npm i -g yarn --registry=https://registry.npmmirror.com` 来安装 `yarn`，这也是一个必备的依赖项。
 
 安装依赖：
 
@@ -71,6 +71,13 @@ yarn dev
 # 编译构建+生产模式运行
 yarn build && yarn start:prod
 ```
+
+## 关于 Prisma
+
+项目使用 `prisma` 来持久化存储数据库表结构关系。
+每次发布新版本，如果涉及到数据库表结构的修改，需要在客户端运行 `yarn dbmi` 生成迁移所需的 SQL 文件且自动存储于 `/prisma/..` 目录，然后一同提交代码。CI/CD 会在部署前运行这些 SQL。
+
+开发调试时，可以使用 `yarn dbgen` 生成新的结构关系 scheme；可以使用 `yarn dbpush` 来在当前连接的开发数据库中应用 scheme。
 
 ## 基础镜像
 
