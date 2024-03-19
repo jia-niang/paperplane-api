@@ -7,7 +7,7 @@
 
 本项目对系统内已安装的应用有要求：
 
-- 必须已安装 Node.js 16 及以上版本，这是必须的运行条件；
+- 必须已安装 Node.js 19 及以上版本，这是必须的运行条件；
 - 如果有用到 `puppeteer` 相关功能（例如每日下班提醒生成图片），则需求已安装 Chrome；
 - 如果有用到 `simple-git` 相关功能（例如 Git 周报助手），则需求已安装 Git。
 
@@ -47,10 +47,16 @@ Windows 使用 wsl2 运行本项目的准备工作：
 ```bash
 # 启动项目
 docker compose up
+```
 
-# 如果需要执行其它命令（例如 yarn add），可以进入容器的 bash
+启动项目后，新开一个终端，通过以下命令进入项目所在的容器内：
+
+```bash
+# 进入容器内的终端
 docker exec -it paperplane-api-local bash
 ```
+
+此时就可以执行 `yarn add` 等命令了。
 
 ## 本机运行
 
