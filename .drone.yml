@@ -36,7 +36,9 @@ steps:
         path: /usr/local/share/.cache/yarn
     commands:
       - yarn config set registry https://registry.npmmirror.com
-      - yarn global add prisma dotenv-cli
+      - npm config set registry https://registry.npmmirror.com
+      - npm i -g prisma
+      - npm i -g dotenv-cli
       - yarn dotenv -c production -- prisma migrate deploy
 
   - name: deploy
