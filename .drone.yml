@@ -42,7 +42,7 @@ steps:
       script:
         - cd /home/ubuntu/project-config/paperplane-api
         - docker pull paperplanecc/paperplane-api:latest
-        - docker run -it --name paperplane-api-prisma --network default-db-postgres -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
+        - docker run -t --name paperplane-api-prisma --network default-db-postgres -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh
