@@ -28,6 +28,18 @@ steps:
       script:
         - cd /home/ubuntu/project-config/paperplane-api
         - docker compose down || true
+  
+  - name: prisma-sync-db
+    image: node:19
+    volumes:
+      - name: npmcache
+        path: /usr/local/share/.cache/yarn
+    commands:
+      - yarn config set registry https://registry.npmmirror.com
+      - npm config set registry https://registry.npmmirror.com
+      - npm i -g prisma
+      - npm i -g dotenv-cli
+      - yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh
@@ -40,6 +52,7 @@ steps:
       command_timeout: 5m
       script:
         - docker image rm paperplanecc/paperplane-api:latest || true
+        - cd /home/ubuntu/project-config/paperplane-api
         - docker compose up -d
 
 volumes:
