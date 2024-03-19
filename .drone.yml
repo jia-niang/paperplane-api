@@ -28,6 +28,7 @@ steps:
       script:
         - cd /home/ubuntu/project-config/paperplane-api
         - docker compose down || true
+        - docker rm paperplane-api-prisma || true
         - docker image rm paperplanecc/paperplane-api:latest || true
   
   - name: prisma-sync-db
