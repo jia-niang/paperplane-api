@@ -34,11 +34,14 @@ steps:
     volumes:
       - name: npmcache
         path: /usr/local/share/.cache/yarn
+      - name: appconfig
+        path: /appconfig
     commands:
       - yarn config set registry https://registry.npmmirror.com
       - npm config set registry https://registry.npmmirror.com
       - npm i -g prisma
       - npm i -g dotenv-cli
+      - cp /appconfig/.env.production .
       - yarn dbdeploy:prod
 
   - name: deploy
@@ -59,6 +62,9 @@ volumes:
   - name: npmcache
     host:
       path: /home/ubuntu/npmcache
+  - name: appconfig
+    host:
+      path: /home/ubuntu/project-config/paperplane-api
 
 trigger:
   branch:
