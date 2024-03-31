@@ -38,7 +38,7 @@ steps:
       username: root
       key:
         from_secret: DEPLOY_SSH_PRIKEY
-      command_timeout: 5m
+      command_timeout: 20m
       script:
         - cd /root/project-config/paperplane-api
         - docker pull paperplanecc/paperplane-api:latest
@@ -53,7 +53,7 @@ steps:
       username: root
       key:
         from_secret: DEPLOY_SSH_PRIKEY
-      command_timeout: 5m
+      command_timeout: 20m
       script:
         - docker image rm paperplanecc/paperplane-api:latest || true
         - cd /root/project-config/paperplane-api
