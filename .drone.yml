@@ -8,12 +8,12 @@ steps:
   - name: build
     image: plugins/docker
     settings:
-      username: paperplanecc
+      username: jia-niang
       password:
-        from_secret: DOCKER_PASSWORD
-      repo: paperplanecc/paperplane-api
+        from_secret: GITEA_DOCKER_PUBLISH_TOKEN
+      repo: jia-niang/paperplane-api
       tags: latest
-      registry: docker.io
+      registry: git.paperplane.cc
 
   - name: stop-service
     image: appleboy/drone-ssh
@@ -28,7 +28,7 @@ steps:
         - cd /root/project-config/paperplane-api
         - docker compose down || true
         - docker rm paperplane-api-prisma || true
-        - docker image rm paperplanecc/paperplane-api:latest || true
+        - docker image rm git.paperplane.cc/jia-niang/paperplane-api:latest || true
   
   - name: prisma-sync-db
     image: appleboy/drone-ssh
@@ -42,7 +42,7 @@ steps:
       script:
         - cd /root/project-config/paperplane-api
         - docker pull paperplanecc/paperplane-api:latest
-        - docker run -t --name paperplane-api-prisma --network root_default -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
+        - docker run -t --name paperplane-api-prisma --network root_default -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro git.paperplane.cc/jia-niang/paperplane-api:latest yarn dbdeploy:prod
         - docker rm paperplane-api-prisma || true
 
   - name: deploy
@@ -55,7 +55,7 @@ steps:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 20m
       script:
-        - docker image rm paperplanecc/paperplane-api:latest || true
+        - docker image rm git.paperplane.cc/jia-niang/paperplane-api:latest || true
         - cd /root/project-config/paperplane-api
         - docker compose up -d
 
