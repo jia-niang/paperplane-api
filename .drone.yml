@@ -13,7 +13,6 @@ steps:
         from_secret: DOCKER_PASSWORD
       repo: paperplanecc/paperplane-api
       tags: latest
-      mirror: https://mirror.ccs.tencentyun.com
       registry: docker.io
 
   - name: stop-service
@@ -21,12 +20,12 @@ steps:
     settings:
       host:
         - 'paperplane.cc'
-      username: ubuntu
+      username: root
       key:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 5m
       script:
-        - cd /home/ubuntu/project-config/paperplane-api
+        - cd /root/project-config/paperplane-api
         - docker compose down || true
         - docker rm paperplane-api-prisma || true
         - docker image rm paperplanecc/paperplane-api:latest || true
@@ -36,12 +35,12 @@ steps:
     settings:
       host:
         - 'paperplane.cc'
-      username: ubuntu
+      username: root
       key:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 5m
       script:
-        - cd /home/ubuntu/project-config/paperplane-api
+        - cd /root/project-config/paperplane-api
         - docker pull paperplanecc/paperplane-api:latest
         - docker run -t --name paperplane-api-prisma --network default-db-postgres -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
         - docker rm paperplane-api-prisma || true
@@ -51,19 +50,22 @@ steps:
     settings:
       host:
         - 'paperplane.cc'
-      username: ubuntu
+      username: root
       key:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 5m
       script:
         - docker image rm paperplanecc/paperplane-api:latest || true
-        - cd /home/ubuntu/project-config/paperplane-api
+        - cd /root/project-config/paperplane-api
         - docker compose up -d
 
 volumes:
-  - name: npmcache
+  - name: webroot
     host:
-      path: /home/ubuntu/npmcache
+      path: /root/www
+  - name: yarncache
+    host:
+      path: /root/.yarncache
 
 trigger:
   branch:
