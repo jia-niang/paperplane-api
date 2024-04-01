@@ -7,6 +7,9 @@ workspace:
 steps:
   - name: build
     image: plugins/docker
+    volumes:
+      - name: dockeroverlay
+        path: /var/lib/docker/overlay2
     settings:
       username: jia-niang
       password:
@@ -59,6 +62,11 @@ steps:
         - docker image rm docker.paperplane.cc/paperplanecc/paperplane-api:latest || true
         - cd /root/project-config/paperplane-api
         - docker compose up -d
+
+volumes:
+  - name: dockeroverlay
+    host:
+      path: /var/lib/docker/overlay2
 
 trigger:
   branch:
