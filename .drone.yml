@@ -10,10 +10,13 @@ steps:
     volumes:
     - name: dockersock
       path: /var/run/docker.sock
+    - name: imagedir
+      path: /imagedir
     commands:
       - docker build -t paperplanecc/paperplane-api:latest .
+      - docker image save paperplanecc/paperplane-api:latest | gzip > /imagedir/paperplane-api.tar.gz
 
-  - name: stop-service
+  - name: prepare-docker
     image: appleboy/drone-ssh
     settings:
       host:
@@ -27,6 +30,7 @@ steps:
         - docker compose down || true
         - docker rm paperplane-api-prisma || true
         - docker image rm paperplanecc/paperplane-api:latest || true
+        - docker image load < /root/images-export/paperplane-api.tar.gz
 
   - name: prisma-sync-db
     image: appleboy/drone-ssh
@@ -60,9 +64,9 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
-  - name: dockerdir
+  - name: imagedir
     host:
-      path: /var/lib/docker/
+      path: /root/images-export
 
 trigger:
   branch:
