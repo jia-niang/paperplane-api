@@ -27,6 +27,7 @@ steps:
       command_timeout: 5m
       script:
         - docker stop paperplane-api || true
+        - docker rm paperplane-api || true
         - docker image rm paperplanecc/paperplane-api:latest || true
         - docker image load < /root/images-export/paperplane-api.tar
 
