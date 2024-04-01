@@ -6,16 +6,12 @@ workspace:
 
 steps:
   - name: build
-    image: plugins/docker
-    settings:
-      username: jia-niang
-      password:
-        from_secret: PAPERPLANE_DOCKER_KEY
-      repo: docker.paperplane.cc/paperplanecc/paperplane-api
-      tags: latest
-      registry: docker.paperplane.cc
-      purge: false
-      mirror: https://docker.paperplane.cc
+    image: docker:dind
+    volumes:
+    - name: dockersock
+      path: /var/run/docker.sock
+    commands:
+      - docker build -t paperplanecc/paperplane-api:latest .
 
   - name: stop-service
     image: appleboy/drone-ssh
@@ -30,7 +26,7 @@ steps:
         - cd /root/project-config/paperplane-api
         - docker compose down || true
         - docker rm paperplane-api-prisma || true
-        - docker image rm docker.paperplane.cc/paperplanecc/paperplane-api:latest || true
+        - docker image rm paperplanecc/paperplane-api:latest || true
 
   - name: prisma-sync-db
     image: appleboy/drone-ssh
@@ -43,8 +39,8 @@ steps:
       command_timeout: 20m
       script:
         - cd /root/project-config/paperplane-api
-        - docker pull docker.paperplane.cc/paperplanecc/paperplane-api:latest
-        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro docker.paperplane.cc/paperplanecc/paperplane-api:latest yarn dbdeploy:prod
+        - docker pull paperplanecc/paperplane-api:latest
+        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh
@@ -56,9 +52,17 @@ steps:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 20m
       script:
-        - docker image rm docker.paperplane.cc/paperplanecc/paperplane-api:latest || true
+        - docker image rm paperplanecc/paperplane-api:latest || true
         - cd /root/project-config/paperplane-api
         - docker compose up -d
+
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
+  - name: dockerdir
+    host:
+      path: /var/lib/docker/
 
 trigger:
   branch:
