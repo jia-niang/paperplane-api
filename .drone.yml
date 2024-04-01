@@ -42,7 +42,7 @@ steps:
       command_timeout: 20m
       script:
         - cd /root/project-config/paperplane-api
-        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production --add-host=host.docker.internal:host-gateway -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
+        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production -v ./.env.production:/app/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh
