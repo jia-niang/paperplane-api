@@ -5,14 +5,6 @@ workspace:
   path: /source
 
 steps:
-  - name: install-yarn-deps
-    image: node:19
-    volumes:
-      - name: yarncache
-        path: /home/node/.cache/yarn
-    commands:
-      - yarn --registry=https://registry.yarnpkg.com
-
   - name: build-image
     image: docker:dind
     volumes:
@@ -71,9 +63,6 @@ volumes:
   - name: imagedir
     host:
       path: /root/images-export
-  - name: yarncache
-    host:
-      path: /root/.yarncache
 
 trigger:
   branch:
