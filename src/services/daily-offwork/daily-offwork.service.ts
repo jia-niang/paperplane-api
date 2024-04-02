@@ -25,7 +25,7 @@ export class DailyOffworkService {
       where: { disabled: false },
     })
 
-    this.logger.log(`发送今日 offwork 消息，共 ${allSetting} 条`)
+    this.logger.log(`发送今日 offwork 消息，共 ${allSetting.length} 条`)
 
     for (const item of allSetting) {
       await this.sendByRobot(item.companyId, item.cityId, item.messageRobotId)
@@ -71,7 +71,8 @@ export class DailyOffworkService {
       const md5 = hash.digest('hex')
 
       return { url, base64, md5, file }
-    } catch {
+    } catch (e) {
+      throw e
     } finally {
       browser?.close()
     }
