@@ -51,7 +51,7 @@ export class DailyOffworkService {
       )
       await page.setViewport({ width: 1500, height: 800 })
       await page.waitForFunction('window.mapOK === true')
-      const file = await page.screenshot()
+      const file = await page.screenshot({ type: 'jpeg', quality: 100 })
       await page.close()
       browser.close()
 
@@ -59,7 +59,7 @@ export class DailyOffworkService {
       const url = await uploadFile(
         `/offwork-image/img-${now.format(
           'YYYY-MM-DD'
-        )}-${companyId}-${cityId}-${now.valueOf()}.png`,
+        )}-${companyId}-${cityId}-${now.valueOf()}.jpg`,
         file,
         { usePaperplaneDomain: true }
       ).then(fileInfo => fileInfo.Location)
