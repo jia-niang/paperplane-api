@@ -43,12 +43,17 @@ export class DailyOffworkRecordService {
   /** 添加今日的工作日流水记录 */
   async addDailyRecord() {
     const date = dayjs().format('YYYY-MM-DD')
+
+    this.logger.log(` 准备 fetch 工作日 api`)
     const isWorkDay = await this.thirdParty.todayIsWorkdayApi()
 
+    this.logger.log(` 准备完成工作日 DB 记录`)
     await this.prisma.workdayRecord.deleteMany({ where: { date } })
     const result = await this.prisma.workdayRecord.create({
       data: { date, isWorkDay },
     })
+
+    this.logger.log(` 工作日流水记录完成`)
 
     return result
   }
