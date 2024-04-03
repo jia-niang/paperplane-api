@@ -13,7 +13,7 @@ steps:
       - name: imagedir
         path: /imagedir
     commands:
-      - docker build -t paperplanecc/paperplane-api:latest .
+      - docker build --progress plain --compress -t paperplanecc/paperplane-api:latest .
       - docker image save paperplanecc/paperplane-api:latest > /imagedir/paperplane-api.tar
 
   - name: prepare-docker
