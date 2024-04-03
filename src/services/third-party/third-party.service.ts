@@ -1,13 +1,24 @@
 import { Injectable } from '@nestjs/common'
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
+import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
 import { get, round, split } from 'lodash'
 
 @Injectable()
 export class ThirdPartyService {
+  juheClient: AxiosInstance
+
+  constructor() {
+    this.juheClient = axios.create()
+    axiosRetry(axios, {
+      retries: 5,
+      retryDelay: () => 500,
+    })
+  }
+
   /** 拉取油价 API */
   async fetchOilpriceByCityKey(cityKey: string): Promise<IOffworkOilpriceInfo> {
-    const res = await axios
+    const res = await this.juheClient
       .get(`https://apis.juhe.cn/gnyj/query?key=${process.env.JUHE_OIL_PRICE_API_KEY}`)
       .then(response => response.data)
 
@@ -20,7 +31,7 @@ export class ThirdPartyService {
   /** 拉取工作日 API 并计算发薪日 */
   async salaryDayApi(salaryDate: number = -1): Promise<IOffworkSalaryDayInfo> {
     const now = dayjs()
-    const currentMonthHoliday = await axios
+    const currentMonthHoliday = await this.juheClient
       .get(
         `https://v.juhe.cn/calendar/month?key=${
           process.env.JUHE_HOLIDAY_API_KEY
@@ -28,7 +39,7 @@ export class ThirdPartyService {
       )
       .then(response => response.data)
       .then(res => get(res, 'result.data.holiday_array', []))
-    const nextMonthHoliday = await axios
+    const nextMonthHoliday = await this.juheClient
       .get(
         `https://v.juhe.cn/calendar/month?key=${process.env.JUHE_HOLIDAY_API_KEY}&year-month=${now
           .add(1, 'month')
@@ -107,7 +118,7 @@ export class ThirdPartyService {
 
   /** 拉取天气 API */
   async fetchWeatherByCityCode(cityCode: string): Promise<IWeatherResponse> {
-    const res = await axios
+    const res = await this.juheClient
       .get(
         `https://apis.juhe.cn/simpleWeather/query?city=${cityCode}&key=${process.env.JUHE_WEATHER_API_KEY}`
       )
@@ -130,7 +141,7 @@ export class ThirdPartyService {
     const now = dayjs()
     const dateStr = now.format('YYYY-MM-DD')
     const isWeekWorkday = now.day() >= 1 && now.day() <= 5
-    const res = await axios
+    const res = await this.juheClient
       .get(
         `https://apis.juhe.cn/fapig/calendar/day.php?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
       )
