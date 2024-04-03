@@ -32,9 +32,13 @@ export class DailyOffworkRecordService {
     this.logger.log(`- 去重后需要检索 ${cityIds.length} 个城市`)
 
     this.logger.log(`下面开始依次完成公司记录、城市记录`)
+    this.logger.log(``)
+
     this.logger.log(`- 公司记录`)
+    this.logger.log(``)
     await Promise.all(companyIds.map(companyId => this.addDailyCompanyRecord(companyId)))
     this.logger.log(`- 城市记录`)
+    this.logger.log(``)
     await Promise.all(cityIds.map(cityId => this.addDailyCityRecord(cityId)))
 
     this.logger.log(`= 今日记录(completeTodayRecord) 完成`)
