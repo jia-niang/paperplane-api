@@ -9,11 +9,13 @@ export class ThirdPartyService {
   juheClient: AxiosInstance
 
   constructor() {
-    this.juheClient = axios.create()
-    axiosRetry(axios, {
+    const juheClient = axios.create()
+    axiosRetry(juheClient, {
       retries: 5,
       retryDelay: () => 500,
     })
+
+    this.juheClient = juheClient
   }
 
   /** 拉取油价 API */
