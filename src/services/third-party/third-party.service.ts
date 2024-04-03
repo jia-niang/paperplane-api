@@ -8,7 +8,7 @@ export class ThirdPartyService {
   /** 拉取油价 API */
   async fetchOilpriceByCityKey(cityKey: string): Promise<IOffworkOilpriceInfo> {
     const res = await axios
-      .get(`https://apis.juhe.cn/gnyj/query?key=${process.env.JUHE_OIL_PRICE_API_KEY}`)
+      .get(`http://apis.juhe.cn/gnyj/query?key=${process.env.JUHE_OIL_PRICE_API_KEY}`)
       .then(response => response.data)
 
     const result = get(res, 'result', [])
@@ -22,7 +22,7 @@ export class ThirdPartyService {
     const now = dayjs()
     const currentMonthHoliday = await axios
       .get(
-        `https://v.juhe.cn/calendar/month?key=${
+        `http://v.juhe.cn/calendar/month?key=${
           process.env.JUHE_HOLIDAY_API_KEY
         }&year-month=${now.format('YYYY-M')}`
       )
@@ -30,7 +30,7 @@ export class ThirdPartyService {
       .then(res => get(res, 'result.data.holiday_array', []))
     const nextMonthHoliday = await axios
       .get(
-        `https://v.juhe.cn/calendar/month?key=${process.env.JUHE_HOLIDAY_API_KEY}&year-month=${now
+        `http://v.juhe.cn/calendar/month?key=${process.env.JUHE_HOLIDAY_API_KEY}&year-month=${now
           .add(1, 'month')
           .format('YYYY-M')}`
       )
@@ -80,8 +80,8 @@ export class ThirdPartyService {
   /** 拉取股价 API */
   async fetchStockByCode(code: string): Promise<IOffworkStockInfo> {
     const res = await axios
-      .get(`https://hq.sinajs.cn/list=${code}`, {
-        headers: { Referer: 'https://finance.sina.com.cn' },
+      .get(`http://hq.sinajs.cn/list=${code}`, {
+        headers: { Referer: 'http://finance.sina.com.cn' },
       })
       .then(response => response.data)
     const dataArray = split(res.match(/"([^"]+)"/)[1] || '', ',')
@@ -109,7 +109,7 @@ export class ThirdPartyService {
   async fetchWeatherByCityCode(cityCode: string): Promise<IWeatherResponse> {
     const res = await axios
       .get(
-        `https://apis.juhe.cn/simpleWeather/query?city=${cityCode}&key=${process.env.JUHE_WEATHER_API_KEY}`
+        `http://apis.juhe.cn/simpleWeather/query?city=${cityCode}&key=${process.env.JUHE_WEATHER_API_KEY}`
       )
       .then(response => response.data)
     const weatherInfo = get(res, 'result')
@@ -132,7 +132,7 @@ export class ThirdPartyService {
     const isWeekWorkday = now.day() >= 1 && now.day() <= 5
     const res = await axios
       .get(
-        `https://apis.juhe.cn/fapig/calendar/day.php?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
+        `http://apis.juhe.cn/fapig/calendar/day.php?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
       )
       .then(response => response.data)
 
