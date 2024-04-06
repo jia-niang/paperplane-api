@@ -3,8 +3,6 @@ import axios, { AxiosInstance } from 'axios'
 import { buildMemoryStorage, setupCache } from 'axios-cache-interceptor'
 import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
-import http from 'http'
-import https from 'https'
 import { get, round, split } from 'lodash'
 
 @Injectable()
@@ -12,10 +10,7 @@ export class ThirdPartyService {
   juheClient: AxiosInstance
 
   constructor() {
-    const juheClient = axios.create({
-      httpAgent: new http.Agent({ keepAlive: true }),
-      httpsAgent: new https.Agent({ keepAlive: true }),
-    })
+    const juheClient = axios.create()
     axiosRetry(juheClient, {
       retries: 5,
       retryDelay: () => 500,
