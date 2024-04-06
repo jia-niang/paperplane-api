@@ -21,6 +21,22 @@ export class DailyOffworkService {
   private readonly logger = new Logger(DailyOffworkService.name)
 
   async sendTodayAll() {
+    const todayRecord = await this.prisma.workdayRecord.findFirst({
+      where: { date: dayjs().format('YYYY-MM-DD') },
+    })
+
+    if (!todayRecord) {
+      this.logger.error(`= 未找到本日记录。发送消息步骤已略去`)
+      return
+    }
+
+    if (!todayRecord.isWorkDay && process.env.NODE_ENV === 'production') {
+      this.logger.log(`= 今天不是工作日，跳过消息发送`)
+      return
+    } else if (!todayRecord.isWorkDay) {
+      this.logger.log(`= 今天不是工作日，但测试环境仍然发送`)
+    }
+
     const allSetting = await this.prisma.offworkNoticeSetting.findMany({
       where: { disabled: false },
     })
@@ -30,6 +46,8 @@ export class DailyOffworkService {
     for (const item of allSetting) {
       await this.sendByRobot(item.companyId, item.cityId, item.messageRobotId)
     }
+
+    this.logger.log(`= 今日 offwork 消息发送完成`)
   }
 
   async sendByRobot(companyId: string, cityId: string, robotId: string) {
