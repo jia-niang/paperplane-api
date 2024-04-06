@@ -10,8 +10,6 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
-      - name: imagedir
-        path: /imagedir
       - name: yarncache
         path: /usr/local/share/.cache/yarn
     commands:
@@ -59,9 +57,6 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
-  - name: imagedir
-    host:
-      path: /root/images-export
   - name: yarncache
     host:
       path: /root/.yarncache
