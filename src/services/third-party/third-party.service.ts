@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common'
 import axios, { AxiosInstance } from 'axios'
 import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
+import http from 'http'
+import https from 'https'
 import { get, round, split } from 'lodash'
 
 @Injectable()
@@ -9,7 +11,10 @@ export class ThirdPartyService {
   juheClient: AxiosInstance
 
   constructor() {
-    const juheClient = axios.create()
+    const juheClient = axios.create({
+      httpAgent: new http.Agent({ keepAlive: true }),
+      httpsAgent: new https.Agent({ keepAlive: true }),
+    })
     axiosRetry(juheClient, {
       retries: 5,
       retryDelay: () => 500,
