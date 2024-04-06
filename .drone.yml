@@ -12,24 +12,22 @@ steps:
         path: /var/run/docker.sock
       - name: imagedir
         path: /imagedir
+      - name: yarncache
+        path: /usr/local/share/.cache/yarn
     commands:
-      - docker build --progress plain --compress -t paperplanecc/paperplane-api:latest .
-      - docker image save paperplanecc/paperplane-api:latest > /imagedir/paperplane-api.tar
+      - docker build --progress plain --compress -t paperplanecc/paperplane-api:ci .
 
   - name: prepare-docker
-    image: appleboy/drone-ssh
-    settings:
-      host:
-        - 'paperplane.cc'
-      username: root
-      key:
-        from_secret: DEPLOY_SSH_PRIKEY
-      command_timeout: 5m
-      script:
-        - docker stop paperplane-api || true
-        - docker rm paperplane-api || true
-        - docker image rm paperplanecc/paperplane-api:latest || true
-        - docker image load < /root/images-export/paperplane-api.tar
+    image: docker:dind
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker stop paperplane-api || true
+      - docker rm paperplane-api || true
+      - docker image rm paperplanecc/paperplane-api:latest || true
+      - docker tag paperplanecc/paperplane-api:ci paperplanecc/paperplane-api:latest || true
+      - docker image rm paperplanecc/paperplane-api:ci || true
 
   - name: prisma-sync-db
     image: appleboy/drone-ssh
@@ -64,6 +62,9 @@ volumes:
   - name: imagedir
     host:
       path: /root/images-export
+  - name: yarncache
+    host:
+      path: /root/.yarncache
 
 trigger:
   branch:
