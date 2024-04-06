@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import axios, { AxiosInstance } from 'axios'
+import { buildMemoryStorage, setupCache } from 'axios-cache-interceptor'
 import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
 import http from 'http'
@@ -18,6 +19,9 @@ export class ThirdPartyService {
     axiosRetry(juheClient, {
       retries: 5,
       retryDelay: () => 500,
+    })
+    setupCache(juheClient, {
+      storage: buildMemoryStorage(false, false, 50),
     })
 
     this.juheClient = juheClient
