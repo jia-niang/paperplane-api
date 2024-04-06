@@ -9,7 +9,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger('系统 HttpExceptionFilter')
 
   catch(exception: CommonHttpException, host: ArgumentsHost) {
-    this.logger.error(exception, exception.cause)
+    this.logger.error(
+      exception.name,
+      exception.message,
+      exception.cause,
+      exception.data,
+      exception.stack
+    )
 
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
