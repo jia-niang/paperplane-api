@@ -154,7 +154,7 @@ export class ThirdPartyService {
     const isWeekWorkday = now.day() >= 1 && now.day() <= 5
     const res = await this.juheClient
       .get(
-        `http://apis.juhe.cn/fapig/calendar/day.php?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
+        `http://apis.juhe.cn/fapig/calendar/day?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
       )
       .then(response => response.data)
 
