@@ -11,7 +11,7 @@ export class ThirdPartyService {
 
   constructor() {
     const juheClient = axios.create({
-      proxy: JSON.parse(process.env.OPEN_AI_PROXY_CONFIG || 'null'),
+      proxy: JSON.parse(process.env.JUHE_CN_PROXY_CONFIG || 'null'),
     })
     axiosRetry(juheClient, {
       retries: 3,
