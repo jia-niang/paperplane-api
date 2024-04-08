@@ -17,8 +17,8 @@ export async function uploadFile(
   const s3 = new AWS.S3({
     accessKeyId: process.env.COS_SECRET_ID,
     secretAccessKey: process.env.COS_SECRET_KEY,
-    region: 'ap-shanghai',
-    endpoint: 'https://cos.ap-shanghai.myqcloud.com',
+    region: 'ap-hongkong',
+    endpoint: 'https://cos.ap-hongkong.myqcloud.com',
     apiVersion: '2006-03-01',
   })
 
@@ -26,7 +26,7 @@ export async function uploadFile(
 
   return new Promise((resolve, reject) => {
     s3.upload(
-      { Bucket: 'paperplane-1253277322', Key: trimStart(key, '/'), Body: fileBuffer },
+      { Bucket: 'paperplane-cdn-1253277322', Key: trimStart(key, '/'), Body: fileBuffer },
 
       function (err, data) {
         if (err) {
@@ -35,8 +35,8 @@ export async function uploadFile(
           let fileUrl = data.Location
           if (usePaperplaneDomain) {
             fileUrl = fileUrl.replace(
-              'paperplane-1253277322.cos.ap-shanghai.myqcloud.com',
-              'oss.paperplane.cc'
+              'paperplane-cdn-1253277322.cos.ap-hongkong.myqcloud.com',
+              'cdn.paperplane.cc'
             )
           }
 
