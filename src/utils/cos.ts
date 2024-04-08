@@ -4,8 +4,11 @@ import { trimStart } from 'lodash'
 export interface ICosFileUploadInfo extends AWS.S3.ManagedUpload.SendData {}
 
 export interface IUploadFileByPathOptions {
-  /** 是否使用 oss.paperplane.cc 域名  */
-  usePaperplaneDomain?: boolean
+  /** 文件 url 不使用 CDN 域名，直接使用原始存储桶对象 url */
+  withoutCDNDomain?: boolean
+
+  /** 文件 url 不带协议名前缀，会以 //: 开头 */
+  withoutProtocolPrefix?: boolean
 }
 
 /** 上传文件到存储桶，需指定存储桶中的路径和文件内容 Buffer */
@@ -22,7 +25,7 @@ export async function uploadFile(
     apiVersion: '2006-03-01',
   })
 
-  const { usePaperplaneDomain } = Object.assign({}, options)
+  const { withoutCDNDomain, withoutProtocolPrefix } = Object.assign({}, options)
 
   return new Promise((resolve, reject) => {
     s3.upload(
@@ -32,12 +35,13 @@ export async function uploadFile(
         if (err) {
           reject(err)
         } else {
-          let fileUrl = data.Location
-          if (usePaperplaneDomain) {
-            fileUrl = fileUrl.replace(
-              'paperplane-cdn-1253277322.cos.ap-hongkong.myqcloud.com',
-              'cdn.paperplane.cc'
-            )
+          let fileUrl = `https://cdn.paperplane.cc/${trimStart(key, '/')}`
+          if (withoutCDNDomain) {
+            fileUrl = data.Location
+          }
+          if (withoutProtocolPrefix) {
+            fileUrl = trimStart(fileUrl, 'https')
+            fileUrl = trimStart(fileUrl, 'http')
           }
 
           resolve({ ...data, Location: fileUrl })

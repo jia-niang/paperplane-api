@@ -78,8 +78,7 @@ export class DailyOffworkService {
         `/offwork-image/img-${now.format(
           'YYYY-MM-DD'
         )}-${companyId}-${cityId}-${now.valueOf()}.jpg`,
-        file,
-        { usePaperplaneDomain: true }
+        file
       ).then(fileInfo => fileInfo.Location)
 
       const base64 = file.toString('base64')
