@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import { PrismaService } from 'nestjs-prisma'
 import puppeteer, { Browser } from 'puppeteer'
 
-import { uploadFile } from '@/utils/cos'
+import { uploadFile } from '@/utils/s3'
 
 import { IMessageRobotImage, MessageRobotService } from '../message-robot/message-robot.service'
 
@@ -79,7 +79,7 @@ export class DailyOffworkService {
           'YYYY-MM-DD'
         )}-${companyId}-${cityId}-${now.valueOf()}.jpg`,
         file
-      ).then(fileInfo => fileInfo.Location)
+      ).then(fileInfo => fileInfo.fileUrl)
 
       const base64 = file.toString('base64')
 
