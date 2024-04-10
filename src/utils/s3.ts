@@ -3,9 +3,6 @@ import { trimStart } from 'lodash'
 import mime from 'mime'
 
 export interface IUploadFileByPathOptions {
-  /** 文件 url 不使用 CDN 域名，直接使用原始存储桶对象 url */
-  withoutCDNDomain?: boolean
-
   /** 文件 url 不带协议名前缀，会以 //: 开头 */
   withoutProtocolPrefix?: boolean
 }
