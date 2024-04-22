@@ -9,6 +9,7 @@ COPY yarn.lock /app/
 RUN yarn
 
 COPY . /app/
+RUN yarn dbgen
 RUN yarn build
 
 CMD [ "yarn", "start:prod" ]
