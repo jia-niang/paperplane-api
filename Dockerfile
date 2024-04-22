@@ -8,8 +8,10 @@ COPY package.json /app/
 COPY yarn.lock /app/
 RUN yarn
 
-COPY . /app/
+COPY ./prisma /app/prisma
 RUN yarn dbgen
+
+COPY . /app/
 RUN yarn build
 
 CMD [ "yarn", "start:prod" ]
