@@ -4,9 +4,6 @@ name: default
 workspace:
   path: /source
 
-clone:
-  depth: 1
-
 steps:
   - name: build-image
     image: docker:dind
