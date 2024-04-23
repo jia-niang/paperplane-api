@@ -1,3 +1,4 @@
+import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
@@ -24,9 +25,8 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
   imports: [
     ConfigModule.forRoot({
       envFilePath: [
-        ...(process.env.NODE_ENV === 'production'
-          ? ['.env.production.local', '.env.production']
-          : ['.env.development.local', '.env.development']),
+        process.env.NODE_ENV === 'production' ? '.env.production.local' : '.env.development.local',
+        process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development',
         '.env.local',
         '.env',
       ],
@@ -36,7 +36,11 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
       dbName: process.env.MONGODB_DBNAME,
       pluralize: null,
     }),
-    ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
+    RedisModule.forRoot({
+      type: 'single',
+      url: process.env.REDIS_URL,
+      options: { password: process.env.REDIS_PASSWORD },
+    }),
     PrismaModule.forRoot({
       prismaServiceOptions: {
         middlewares: [
@@ -50,6 +54,7 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
         ],
       },
     }),
+    ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
     GitModule,
   ],
   controllers: [

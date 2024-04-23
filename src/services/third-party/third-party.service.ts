@@ -1,15 +1,19 @@
+import { InjectRedis } from '@nestjs-modules/ioredis'
 import { Injectable } from '@nestjs/common'
 import axios, { AxiosInstance } from 'axios'
-import { buildMemoryStorage, setupCache } from 'axios-cache-interceptor'
+import { setupCache } from 'axios-cache-interceptor'
 import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
+import Redis from 'ioredis'
 import { get, round, split } from 'lodash'
+
+import { setupRedisCache } from './setup-redis-cache'
 
 @Injectable()
 export class ThirdPartyService {
   juheClient: AxiosInstance
 
-  constructor() {
+  constructor(@InjectRedis() private readonly redis: Redis) {
     const juheClient = axios.create({
       proxy: JSON.parse(process.env.JUHE_CN_PROXY_CONFIG || 'null'),
     })
@@ -18,7 +22,7 @@ export class ThirdPartyService {
       retryDelay: () => 500,
     })
     setupCache(juheClient, {
-      storage: buildMemoryStorage(false, false, 50),
+      storage: setupRedisCache(redis),
     })
 
     this.juheClient = juheClient
