@@ -1,16 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { last, uniqBy } from 'lodash'
-import { Model, Types } from 'mongoose'
-
-import {
-  DraftGitProject,
-  DraftGitRepo,
-  GitCommit,
-  GitDBInject,
-  GitProject,
-  GitRepo,
-  GitStaff,
-} from '@/schemas/git.schema'
+import { GitCommit, GitCommonStatus, GitProject, GitRepo, GitStaff } from '@prisma/client'
+import { uniqBy } from 'lodash'
+import { PrismaService } from 'nestjs-prisma'
 
 import { AiService } from '../ai/ai.service'
 import {
@@ -26,113 +17,113 @@ import {
 @Injectable()
 export class GitHelperService {
   constructor(
-    @GitDBInject() private readonly gitProjectModel: Model<GitProject>,
+    private readonly prisma: PrismaService,
     private readonly aiService: AiService
   ) {
     prepareGitRepoPath()
   }
 
-  async addProject(newProject: DraftGitProject) {
-    const project = new this.gitProjectModel(newProject)
-    await project.save()
+  async addProject(newProject: GitProject) {
+    newProject = await this.prisma.gitProject.create({ data: newProject })
+    newProject = await this.prisma.gitProject.update({
+      where: { id: newProject.id },
+      data: generateAndWriteRSAKeyPair(newProject.id),
+    })
 
-    Object.assign(project, generateAndWriteRSAKeyPair(String(project._id)))
-    await project.save()
-
-    return await this.selectProjectById(project._id)
+    return newProject
   }
 
   async listAllProject() {
-    const allProjects = await this.gitProjectModel.find()
-    const result = allProjects.map(item => ({ _id: item._id, name: item.name }))
+    return await this.prisma.gitProject.findMany({ select: { id: true, name: true } })
+  }
+
+  async selectProjectById(projectId: string) {
+    const result = await this.prisma.gitProject.findFirstOrThrow({ where: { id: projectId } })
+    result.privateKey = undefined
 
     return result
   }
 
-  async selectProjectById(projectId: string, hidePrivateKey?: boolean) {
-    const projection: Partial<Record<keyof GitProject, 1 | 0>> = {}
-    if (hidePrivateKey) {
-      projection.privateKey = 0
-    }
-
-    return await this.gitProjectModel.findById(new Types.ObjectId(projectId), projection)
+  async deleteProject(projectId: string) {
+    await this.prisma.gitProject.delete({ where: { id: projectId } })
   }
 
-  async addRepo(projectId: string, repo: DraftGitRepo) {
+  async addRepo(projectId: string, repo: GitRepo) {
     const { url } = repo
-    const project = await this.selectProjectById(projectId)
-    const name = getRepoNameByUrl(url)
+    await this.prisma.gitProject.findFirstOrThrow({ where: { id: projectId } })
 
-    if (project.repos.find(item => item.url === url)) {
-      throw new Error('此仓库已添加')
-    }
+    const result = await this.prisma.gitRepo.create({
+      data: { name: getRepoNameByUrl(url), url, gitProjectId: projectId },
+    })
 
-    project.repos.push({ url, name, recentBranches: [], recentCommits: [] })
-    await project.save()
-
-    return last(project.repos)
+    return result
   }
 
   async selectRepo(projectId: string, repoId: string) {
-    const project = await this.selectProjectById(projectId)
-    const repo = project.repos.find((repo: GitRepo & IWithId) => String(repo._id) === repoId)
-
-    return repo
+    return await this.prisma.gitRepo.findFirstOrThrow({
+      where: { id: repoId, gitProjectId: projectId },
+    })
   }
 
   async deleteRepo(projectId: string, repoId: string) {
-    await deleteRepo(projectId)
-    const project = await this.selectProjectById(projectId)
-
-    project.repos = project.repos.filter((repo: GitRepo & IWithId) => String(repo._id) !== repoId)
-    await project.save()
+    await deleteRepo(repoId)
+    await this.prisma.gitRepo.delete({ where: { id: repoId, gitProjectId: projectId } })
   }
 
   async syncRepo(projectId: string, repoId: string) {
-    const project = await this.selectProjectById(projectId)
-    const repo = project.repos.find((t: GitRepo & IWithId) => String(t._id) === repoId) as GitRepo &
-      IWithId
+    const repo = await this.prisma.gitRepo.findFirstOrThrow({
+      where: { id: repoId, gitProjectId: projectId },
+      include: { GitProject: true },
+    })
 
-    repo.status = 'pending'
-    await project.save()
+    const project = repo.GitProject
 
     const syncTask = async () => {
       const git = await cloneOrSyncRepo({
         url: repo.url,
-        projectId: String(project._id),
-        repoId: String(repo._id),
+        projectId,
+        repoId,
         privateKey: project.privateKey,
       })
+
       const branches = await listRecentCommitBranches(git, 10)
+      await this.prisma.gitRepo.update({
+        where: { id: repoId },
+        data: { recentBranches: branches },
+      })
 
-      repo.recentBranches = branches
-      repo.recentCommits = []
-      await project.save()
-
+      await this.prisma.gitCommit.deleteMany({ where: { gitRepoId: repoId } })
       let recentCommits = []
       for (const branch of branches) {
         const commits = await listRecentCommits(git, branch, 7)
         recentCommits = uniqBy(recentCommits.concat(commits), (item: GitCommit) => item.hash)
       }
+      this.prisma.gitCommit.createMany({
+        data: recentCommits.map(item => ({ ...item, gitRepoId: repoId })),
+      })
 
-      repo.recentCommits = recentCommits
-      repo.lastSyncTs = +new Date()
-      repo.status = 'ready'
-
-      await project.save()
+      this.prisma.gitRepo.update({
+        where: { id: repoId },
+        data: { status: GitCommonStatus.READY, lastSync: new Date() },
+      })
     }
 
     syncTask().catch(e => {
-      Logger.error(`同步仓库时出错：`, e)
+      Logger.error(`同步仓库 [${repo.name}] 时出错：`, e)
 
-      repo.status = 'error'
-      project.save()
+      this.prisma.gitRepo.update({
+        where: { id: repoId },
+        data: { status: GitCommonStatus.ERROR },
+      })
     })
   }
 
   async aggregateCommits(projectId: string, repoId: string) {
-    const project = await this.selectProjectById(projectId)
-    const repo = project.repos.find((t: GitRepo & IWithId) => String(t._id) === repoId)
+    const repo = await this.prisma.gitRepo.findFirstOrThrow({
+      where: { id: repoId, gitProjectId: projectId },
+      include: { GitProject: { include: { staffs: true } }, recentCommits: true },
+    })
+    const project = repo.GitProject
     const staffs = project.staffs
 
     function lowCaseInclude(target: string, keywords: string) {
@@ -143,9 +134,9 @@ export class GitHelperService {
     repo.recentCommits.forEach(commit => {
       staffs.forEach(staff => {
         if (
-          lowCaseInclude(commit.author_name, staff.name) ||
-          staff.alternativeNames.some(t => lowCaseInclude(commit.author_name, t)) ||
-          staff.emails.some(t => lowCaseInclude(commit.author_email, t))
+          lowCaseInclude(commit.authorName, staff.name) ||
+          staff.alternativeNames.some(t => lowCaseInclude(commit.authorName, t)) ||
+          staff.emails.some(t => lowCaseInclude(commit.authorEmail, t))
         ) {
           result[staff.name].push(commit)
         }
@@ -162,21 +153,26 @@ export class GitHelperService {
       }
 
       return (
-        lowCaseInclude(commit.author_name, staff.name) ||
-        staff.alternativeNames.some(t => lowCaseInclude(commit.author_name, t)) ||
-        staff.emails.some(t => lowCaseInclude(commit.author_email, t))
+        lowCaseInclude(commit.authorName, staff.name) ||
+        staff.alternativeNames.some(t => lowCaseInclude(commit.authorName, t)) ||
+        staff.emails.some(t => lowCaseInclude(commit.authorEmail, t))
       )
     }
 
-    const project = await this.selectProjectById(projectId)
+    const project = await this.prisma.gitProject.findFirstOrThrow({
+      where: { id: projectId },
+      include: { staffs: true, repos: { include: { recentCommits: true } } },
+    })
     const { staffs, repos } = project
 
     const staffList = staffId
-      ? staffs.filter((item: GitStaff & IWithId) => String(item._id) === staffId)
+      ? staffs.filter((item: GitStaff) => String(item.id) === staffId)
       : staffs
 
-    project.weeklyStatus = 'pending'
-    await project.save()
+    await this.prisma.gitProject.update({
+      where: { id: projectId },
+      data: { weeklyStatus: GitCommonStatus.PENDING },
+    })
 
     try {
       for (const staff of staffList) {
@@ -197,31 +193,30 @@ export class GitHelperService {
           .completions(aiText)
           .then(text => text.slice(text.indexOf('#')))
 
-        staff.weeklyText = weekly
-        await project.save()
+        await this.prisma.gitReport.create({
+          data: { content: weekly, gitProjectId: projectId, gitStaffId: staffId },
+        })
       }
 
-      project.weeklyStatus = 'ready'
-      project.save()
-    } catch {
-      project.weeklyStatus = 'error'
-      project.save()
+      await this.prisma.gitProject.update({
+        where: { id: projectId },
+        data: { weeklyStatus: GitCommonStatus.READY },
+      })
+    } catch (e) {
+      Logger.error(`为项目 [${project.name}] 生成周报时候出错：`, e)
+
+      await this.prisma.gitProject.update({
+        where: { id: projectId },
+        data: { weeklyStatus: GitCommonStatus.ERROR },
+      })
     }
   }
 
   async addStaff(projectId: string, gitStaff: GitStaff) {
-    const project = await this.selectProjectById(projectId)
-    project.staffs.push(gitStaff)
-    await project.save()
-
-    return last(project.staffs)
+    return await this.prisma.gitStaff.create({ data: { ...gitStaff, gitProjectId: projectId } })
   }
 
   async deleteStaff(projectId: string, staffId: string) {
-    const project = await this.selectProjectById(projectId)
-    project.staffs = project.staffs.filter(
-      (staff: GitStaff & IWithId) => String(staff._id) !== staffId
-    )
-    await project.save()
+    await this.prisma.gitStaff.delete({ where: { id: staffId, gitProjectId: projectId } })
   }
 }

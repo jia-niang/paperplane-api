@@ -7,6 +7,8 @@ datasource db {
   url      = env("POSTGRESQL_URL")
 }
 
+// ##################### 每日下班提醒 #####################
+
 // 工作日流水记录
 model WorkdayRecord {
   id        String  @id @default(cuid())
@@ -14,7 +16,7 @@ model WorkdayRecord {
   isWorkDay Boolean
 
   allCompanyRecords DailyCompanyRecord[]
-  DailyCityRecord DailyCityRecord[]
+  DailyCityRecord   DailyCityRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -141,6 +143,105 @@ model OffworkNoticeSetting {
   companyId       String
   belongToCity    City         @relation(fields: [cityId], references: [id])
   cityId          String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// ##################### Git 智能周报 #####################
+
+// Git 仓库状态
+enum GitCommonStatus {
+  INIT
+  READY
+  PENDING
+  ERROR
+}
+
+// Git 项目
+model GitProject {
+  id String @id @default(cuid())
+
+  name         String          @unique
+  weeklyStatus GitCommonStatus @default(INIT)
+  publicKey    String?
+  privateKey   String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  repos     GitRepo[]
+  staffs    GitStaff[]
+  GitReport GitReport[]
+}
+
+// Git 仓库
+model GitRepo {
+  id String @id @default(cuid())
+
+  name           String          @unique
+  url            String          @unique
+  status         GitCommonStatus @default(INIT)
+  lastSync       DateTime?
+  recentBranches String[]        @default([])
+  recentCommits  GitCommit[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  GitProject   GitProject? @relation(fields: [gitProjectId], references: [id])
+  gitProjectId String?
+}
+
+// Git 用户
+model GitStaff {
+  id String @id @default(cuid())
+
+  name             String   @unique
+  emails           String[] @default([])
+  alternativeNames String[] @default([])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  GitProject   GitProject? @relation(fields: [gitProjectId], references: [id])
+  gitProjectId String?
+  GitReport    GitReport[]
+}
+
+// Git 提交记录
+model GitCommit {
+  id String @id @default(cuid())
+
+  hash        String
+  dateString  String
+  message     String
+  authorName  String
+  authorEmail String
+  refs        String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  GitRepo   GitRepo? @relation(fields: [gitRepoId], references: [id])
+  gitRepoId String?
+}
+
+// Git 报告
+model GitReport {
+  id String @id @default(cuid())
+
+  content String?
+
+  gitProjectId    String
+  gitStaffId      String
+  beloneToProject GitProject @relation(fields: [gitProjectId], references: [id])
+  beloneToStaff   GitStaff   @relation(fields: [gitStaffId], references: [id])
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

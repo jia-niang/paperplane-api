@@ -1,13 +1,11 @@
 import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { MongooseModule } from '@nestjs/mongoose'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { PrismaModule } from 'nestjs-prisma'
 import { createSoftDeleteMiddleware } from 'prisma-soft-delete-middleware'
 
 import { ResponseInterceptorProvider } from './app/response.interceptor'
-import { GitModule } from './schemas/git.schema'
 import { AiController } from './services/ai/ai.controller'
 import { AiService } from './services/ai/ai.service'
 import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
@@ -32,10 +30,6 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
       ],
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URL, {
-      dbName: process.env.MONGODB_DBNAME,
-      pluralize: null,
-    }),
     RedisModule.forRoot({
       type: 'single',
       url: process.env.REDIS_URL,
@@ -55,7 +49,6 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
       },
     }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
-    GitModule,
   ],
   controllers: [
     DockerStatusController,

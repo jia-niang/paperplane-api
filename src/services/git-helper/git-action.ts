@@ -58,7 +58,12 @@ export async function listRecentCommits(git: SimpleGit, branchName: string, days
   const result = await git.log([`--since=${days}.days`])
   await git.checkout(currentBranchName)
 
-  return result.all
+  return result.all.map(item => ({
+    ...item,
+    authorName: item.author_name,
+    authorEmail: item.author_email,
+    dateString: item.date,
+  }))
 }
 
 /** 删除仓库和文件 */

@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common'
-
-import { DraftGitProject, DraftGitRepo, DraftGitStaff } from '@/schemas/git.schema'
+import { GitProject, GitRepo, GitStaff } from '@prisma/client'
 
 import { GitHelperService } from './git-helper.service'
 
@@ -9,7 +8,7 @@ export class GitHelperController {
   constructor(private readonly gitHelperService: GitHelperService) {}
 
   @Post('/project')
-  async addProject(@Body() body: { project: DraftGitProject }) {
+  async addProject(@Body() body: { project: GitProject }) {
     return this.gitHelperService.addProject(body.project)
   }
 
@@ -20,11 +19,16 @@ export class GitHelperController {
 
   @Get('/project/:projectId')
   async getProject(@Param('projectId') projectId: string) {
-    return this.gitHelperService.selectProjectById(projectId, true)
+    return this.gitHelperService.selectProjectById(projectId)
+  }
+
+  @Delete('/project/:projectId')
+  async deleteProject(@Param('projectId') projectId: string) {
+    return this.gitHelperService.deleteProject(projectId)
   }
 
   @Post('/project/:projectId/repo')
-  async addRepo(@Param('projectId') projectId: string, @Body() body: { repo: DraftGitRepo }) {
+  async addRepo(@Param('projectId') projectId: string, @Body() body: { repo: GitRepo }) {
     return this.gitHelperService.addRepo(projectId, body.repo)
   }
 
@@ -39,7 +43,7 @@ export class GitHelperController {
   }
 
   @Post('/project/:projectId/staff')
-  async addStaff(@Param('projectId') projectId: string, @Body() body: { staff: DraftGitStaff }) {
+  async addStaff(@Param('projectId') projectId: string, @Body() body: { staff: GitStaff }) {
     return this.gitHelperService.addStaff(projectId, body.staff)
   }
 
