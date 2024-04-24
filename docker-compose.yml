@@ -1,6 +1,4 @@
 # 本地运行专用 docker compose 文件
-version: '3'
-
 services:
   paperplane-api-local:
     image: paperplanecc/paperplane-api-base:latest
