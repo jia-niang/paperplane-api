@@ -6,7 +6,6 @@ services:
     image: paperplanecc/paperplane-api-base:latest
     container_name: paperplane-api-local
     working_dir: /app
-    user: node
     volumes:
       - ./:/app
     ports:
@@ -14,7 +13,6 @@ services:
     environment:
       - NODE_ENV=development
       - TZ=Asia/Shanghai
-      - HOST=host.docker.internal
     extra_hosts:
       - host.docker.internal:host-gateway
     command: 'sh -c "yarn && yarn dev"'

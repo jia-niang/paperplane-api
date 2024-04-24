@@ -187,7 +187,7 @@ export class GitHelperService {
         commitList = commitList.filter(item => !item.message.startsWith('refactor: lint'))
 
         const commitJoinText = commitList.map(t => t.message).join('\n')
-        const aiText = `一份周报分为5个章节：目标和进度、详细进展、复盘与思考、需要的帮助和支持、后续行动项，其中“目标与进度”章节内容固定为“待补充”，“复盘与思考”、“需要的帮助和支持”章节的内容固定为“暂无”，不需要大标题，请根据我上周的 Git 提交记录填充为一篇完整的周报，用 markdown 格式以分点叙述的形式输出：${commitJoinText}`
+        const aiText = `请根据我上周的 Git 提交记录生成一篇完整的工作周报，用 markdown 格式以分点叙述的形式输出，不需要大标题，提交记录：\n${commitJoinText}`
 
         const weekly = await this.aiService
           .completions(aiText)
