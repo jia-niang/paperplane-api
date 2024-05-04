@@ -152,18 +152,13 @@ export class ThirdPartyService {
   async todayIsWorkdayApi(): Promise<boolean> {
     const now = dayjs()
     const dateStr = now.format('YYYY-MM-DD')
-    const isWeekWorkday = now.day() >= 1 && now.day() <= 5
-    const res = await this.juheClient
+    const isWorkday = await this.juheClient
       .get(
         `http://apis.juhe.cn/fapig/calendar/day?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
       )
-      .then(response => response.data)
+      .then(response => response.data.statusDesc === '工作日')
 
-    if (res.result.status === null) {
-      return isWeekWorkday
-    }
-
-    return res.result.status === 2
+    return isWorkday
   }
 }
 
