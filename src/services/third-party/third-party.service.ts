@@ -156,7 +156,7 @@ export class ThirdPartyService {
       .get(
         `http://apis.juhe.cn/fapig/calendar/day?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`
       )
-      .then(response => response.data.statusDesc === '工作日')
+      .then(response => response.data.result.statusDesc === '工作日')
 
     return isWorkday
   }
