@@ -4,6 +4,7 @@ services:
     image: paperplanecc/paperplane-api-base:latest
     container_name: paperplane-api-local
     working_dir: /app
+    user: node
     volumes:
       - ./:/app
     ports:
