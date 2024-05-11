@@ -8,6 +8,8 @@ import { createSoftDeleteMiddleware } from 'prisma-soft-delete-middleware'
 import { ResponseInterceptorProvider } from './app/response.interceptor'
 import { AiController } from './services/ai/ai.controller'
 import { AiService } from './services/ai/ai.service'
+import { BusinessController } from './services/business/business.controller'
+import { BusinessService } from './services/business/business.service'
 import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
 import { DailyOffworkController } from './services/daily-offwork/daily-offwork.controller'
 import { DailyOffworkService } from './services/daily-offwork/daily-offwork.service'
@@ -56,6 +58,7 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
     GitHelperController,
     MessageRobotController,
     DailyOffworkController,
+    BusinessController,
   ],
   providers: [
     ResponseInterceptorProvider,
@@ -66,6 +69,7 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
     MessageRobotService,
     DailyOffworkService,
     DailyOffworkRecordService,
+    BusinessService,
   ],
 })
 export class AppModule {}
