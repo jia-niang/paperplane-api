@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { City, Company } from '@prisma/client'
 
 import { BusinessService } from './business.service'
@@ -52,5 +52,13 @@ export class BusinessController {
     @Body() city: City
   ) {
     return this.companyService.updateWorkCityOfCompany(companyId, cityId, city)
+  }
+
+  @Delete('/company/:companyId/city/:cityId')
+  async deleteWorkCityOfCompany(
+    @Param('companyId') companyId: string,
+    @Param('cityId') cityId: string
+  ) {
+    return this.companyService.deleteWorkCityOfCompany(companyId, cityId)
   }
 }
