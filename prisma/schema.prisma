@@ -247,24 +247,3 @@ model GitReport {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 }
-
-// ##################### 用户与身份 #####################
-
-// 身份
-enum Role {
-  ADMIN
-  STAFF
-  USER
-}
-
-// 用户
-model User {
-  id       String @id @default(cuid())
-  name     String @unique
-  password String
-  role     Role   @default(USER)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-}
