@@ -1,6 +1,8 @@
 import { Controller, Get, Param, Post, Res } from '@nestjs/common'
 import { Response } from 'express'
 
+import { Public } from '@/app/auth'
+
 import { DailyOffworkRecordService } from './daily-offwork-record.service'
 import { DailyOffworkService } from './daily-offwork.service'
 
@@ -11,16 +13,19 @@ export class DailyOffworkController {
     private readonly dailyOffworkRecordService: DailyOffworkRecordService
   ) {}
 
+  @Public()
   @Post('/today-record/all')
   async completeTodayRecord() {
     await this.dailyOffworkRecordService.completeTodayRecord()
   }
 
+  @Public()
   @Post('/send/today-all')
   async sendTodayAll() {
     return this.dailyOffworkService.sendTodayAll()
   }
 
+  @Public()
   @Post('/send/company/:companyId/city/:cityId/robot/:robotId')
   async sendByRobot(
     @Param('companyId') companyId: string,
@@ -30,6 +35,7 @@ export class DailyOffworkController {
     return this.dailyOffworkService.sendByRobot(companyId, cityId, robotId)
   }
 
+  @Public()
   @Get('/view/company/:companyId/city/:cityId')
   async offworkNoticeView(
     @Param('companyId') companyId: string,

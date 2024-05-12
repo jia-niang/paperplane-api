@@ -1,6 +1,8 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import { MessageRobotType } from '@prisma/client'
 
+import { Public } from '@/app/auth'
+
 import { IMessageRobotAuth, MessageRobotService } from './message-robot.service'
 
 export interface ICustomSendBody {
@@ -13,6 +15,7 @@ export interface ICustomSendBody {
 export class MessageRobotController {
   constructor(private readonly messageRobotService: MessageRobotService) {}
 
+  @Public()
   @Post('/custom-send')
   async customSend(@Body() formData: ICustomSendBody) {
     const { type, auth, body } = formData
