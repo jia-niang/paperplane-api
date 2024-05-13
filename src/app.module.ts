@@ -1,33 +1,20 @@
 import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_GUARD } from '@nestjs/core'
-import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { PrismaModule } from 'nestjs-prisma'
-import { createSoftDeleteMiddleware } from 'prisma-soft-delete-middleware'
 
+import { prismaSoftDeleteMiddleware } from './app/prisma-soft-delete.middleware'
 import { ResponseInterceptorProvider } from './app/response.interceptor'
-import { AiController } from './services/ai/ai.controller'
-import { AiService } from './services/ai/ai.service'
-import { AuthService } from './services/auth/auth.service'
-import { JwtAuthGuard } from './services/auth/jwt-auth-guard.service'
-import { JwtStrategy } from './services/auth/jwt.strategy'
-import { BusinessController } from './services/business/business.controller'
-import { BusinessService } from './services/business/business.service'
-import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
-import { DailyOffworkController } from './services/daily-offwork/daily-offwork.controller'
-import { DailyOffworkService } from './services/daily-offwork/daily-offwork.service'
-import { DockerStatusController } from './services/docker-status/docker-status.controller'
-import { DockerStatusService } from './services/docker-status/docker-status.service'
-import { GitHelperController } from './services/git-helper/git-helper.controller'
-import { GitHelperService } from './services/git-helper/git-helper.service'
-import { MessageRobotController } from './services/message-robot/message-robot.controller'
-import { MessageRobotService } from './services/message-robot/message-robot.service'
-import { ThirdPartyService } from './services/third-party/third-party.service'
-import { UserController } from './services/user/user.controller'
-import { UserService } from './services/user/user.service'
+import { AiModule } from './services/ai/ai.module'
+import { AuthModule } from './services/auth/auth.module'
+import { BusinessModule } from './services/business/business.module'
+import { DailyOffworkModule } from './services/daily-offwork/daily-offwork.module'
+import { DockerStatusModule } from './services/docker-status/docker-status.module'
+import { GitHelperModule } from './services/git-helper/git-helper.module'
+import { MessageRobotModule } from './services/message-robot/message-robot.module'
+import { ThirdPartyModule } from './services/third-party/third-party.module'
+import { UserModule } from './services/user/user.module'
 
 @Module({
   imports: [
@@ -46,51 +33,21 @@ import { UserService } from './services/user/user.service'
       options: { password: process.env.REDIS_PASSWORD },
     }),
     PrismaModule.forRoot({
-      prismaServiceOptions: {
-        middlewares: [
-          createSoftDeleteMiddleware({
-            models: {},
-            defaultConfig: {
-              field: 'deletedAt',
-              createValue: deleted => (deleted ? new Date() : null),
-            },
-          }),
-        ],
-      },
+      prismaServiceOptions: { middlewares: [prismaSoftDeleteMiddleware] },
+      isGlobal: true,
     }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60d' },
-      verifyOptions: {
-        issuer: process.env.NODE_ENV === 'development' ? 'local' : 'paperplane-api',
-      },
-    }),
+    ThirdPartyModule,
+    AiModule,
+    AuthModule,
+    BusinessModule,
+    DailyOffworkModule,
+    DockerStatusModule,
+    GitHelperModule,
+    MessageRobotModule,
+    UserModule,
   ],
-  controllers: [
-    DockerStatusController,
-    AiController,
-    GitHelperController,
-    MessageRobotController,
-    DailyOffworkController,
-    BusinessController,
-    UserController,
-  ],
-  providers: [
-    ResponseInterceptorProvider,
-    ThirdPartyService,
-    DockerStatusService,
-    AiService,
-    GitHelperService,
-    MessageRobotService,
-    DailyOffworkService,
-    DailyOffworkRecordService,
-    BusinessService,
-    UserService,
-    AuthService,
-    JwtStrategy,
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
-  ],
+  controllers: [],
+  providers: [ResponseInterceptorProvider],
 })
 export class AppModule {}
