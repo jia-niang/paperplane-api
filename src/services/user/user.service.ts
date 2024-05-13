@@ -28,8 +28,12 @@ export class UserService {
     return this.prisma.user.create({ data: newUser, select: userSelector })
   }
 
-  async getUserById(id: string) {
-    return this.prisma.user.findFirst({ where: { id }, select: userSelector })
+  async getUserById<T = User>(id: string) {
+    if (!id) {
+      throw new Error('当前用户信息无效')
+    }
+
+    return this.prisma.user.findFirst({ where: { id }, select: userSelector }) as Promise<T>
   }
 
   async loginCheck(username: string, password: string) {

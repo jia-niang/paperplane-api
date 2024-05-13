@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common'
 
 import { Public, UserId } from '@/app/auth.decorator'
+import { AdminRole } from '@/app/role.decorator'
 
 import { AuthService } from '../auth/auth.service'
 import { UserService } from './user.service'
@@ -23,6 +24,12 @@ export class UserController {
     return this.authService.current(id)
   }
 
+  @Get('/refresh')
+  async refresh(@UserId() id: string) {
+    return this.authService.refresh(id)
+  }
+
+  @AdminRole()
   @Post('/signup')
   async signUp(@Body() user) {
     return this.userService.addUser(user)

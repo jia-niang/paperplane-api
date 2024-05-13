@@ -1,8 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { User } from '@prisma/client'
+import { Role, User } from '@prisma/client'
+import { JwtPayload } from 'jsonwebtoken'
 
 import { UserService } from '../user/user.service'
+
+export interface IJwtPayloadUser extends JwtPayload {
+  sub: string
+  role: Role
+}
 
 @Injectable()
 export class AuthService {
@@ -17,23 +23,29 @@ export class AuthService {
       throw new UnauthorizedException('用户名或密码不正确，请检查后重试')
     }
 
-    const token = await this.signAccessToken(user)
-    const authResult = { user, token }
+    return this.loginSuccessResult(user)
+  }
 
-    return authResult
+  async refresh(id: string) {
+    const user = await this.userService.getUserById(id)
+    const result = await this.loginSuccessResult(user)
+
+    return result
   }
 
   async current(id: string) {
     return this.userService.getUserById(id)
   }
 
-  private async signAccessToken(user: User) {
-    const payload = {
+  private async loginSuccessResult(user: User) {
+    const payload: IJwtPayloadUser = {
       sub: user.id,
-      iss: process.env.NODE_ENV === 'development' ? 'local' : 'paperplane-api',
+      role: user.role,
+      iss: process.env.NODE_ENV === 'development' ? 'dev' : 'prod',
     }
-    const result = this.jwtService.sign(payload)
+    const token = this.jwtService.sign(payload)
+    const authResult = { user, token }
 
-    return result
+    return authResult
   }
 }
