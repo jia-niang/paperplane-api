@@ -24,7 +24,7 @@ export class UserController {
     return this.authService.current(id)
   }
 
-  @Get('/refresh')
+  @Post('/refresh')
   async refresh(@UserId() id: string) {
     return this.authService.refresh(id)
   }
