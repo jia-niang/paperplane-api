@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Res } from '@nestjs/common'
 import { Response } from 'express'
 
-import { Public } from '@/app/auth'
+import { Public } from '@/app/auth.decorator'
 
 import { DailyOffworkRecordService } from './daily-offwork-record.service'
 import { DailyOffworkService } from './daily-offwork.service'

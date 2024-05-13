@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import { MessageRobotType } from '@prisma/client'
 
-import { Public } from '@/app/auth'
+import { Public } from '@/app/auth.decorator'
 
 import { IMessageRobotAuth, MessageRobotService } from './message-robot.service'
 

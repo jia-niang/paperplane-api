@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common'
 
-import { Public } from '@/app/auth'
+import { Public } from '@/app/auth.decorator'
 
 import { AiService } from './ai.service'
 
