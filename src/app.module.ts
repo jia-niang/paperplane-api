@@ -63,6 +63,9 @@ import { UserService } from './services/user/user.service'
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60d' },
+      verifyOptions: {
+        issuer: process.env.NODE_ENV === 'development' ? 'local' : 'paperplane-api',
+      },
     }),
   ],
   controllers: [

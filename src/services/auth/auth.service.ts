@@ -28,7 +28,10 @@ export class AuthService {
   }
 
   private async signAccessToken(user: User) {
-    const payload = { username: user.name, sub: user.id }
+    const payload = {
+      sub: user.id,
+      iss: process.env.NODE_ENV === 'development' ? 'local' : 'paperplane-api',
+    }
     const result = this.jwtService.sign(payload)
 
     return result
