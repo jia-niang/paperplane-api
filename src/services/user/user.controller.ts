@@ -34,4 +34,9 @@ export class UserController {
   async signUp(@Body() user) {
     return this.userService.addUser(user)
   }
+
+  @Post('/logout')
+  async logout() {
+    return this.authService.logout()
+  }
 }

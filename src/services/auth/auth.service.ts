@@ -37,6 +37,10 @@ export class AuthService {
     return this.userService.getUserById(id)
   }
 
+  async logout() {
+    return
+  }
+
   private async loginSuccessResult(user: User) {
     const payload: IJwtPayloadUser = {
       sub: user.id,
