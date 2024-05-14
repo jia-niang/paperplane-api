@@ -29,11 +29,10 @@ export class UserService {
   }
 
   async getUserById<T = User>(id: string) {
-    if (!id) {
-      throw new Error('当前用户信息无效')
-    }
-
-    return this.prisma.user.findFirst({ where: { id }, select: userSelector }) as Promise<T>
+    return this.prisma.user.findFirstOrThrow({
+      where: { id },
+      select: userSelector,
+    }) as unknown as Promise<T>
   }
 
   async loginCheck(username: string, password: string) {
