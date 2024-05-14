@@ -163,7 +163,7 @@ enum GitCommonStatus {
 model GitProject {
   id String @id @default(cuid())
 
-  name         String          @unique
+  name         String
   weeklyStatus GitCommonStatus @default(INIT)
   publicKey    String?
   privateKey   String?
@@ -181,8 +181,8 @@ model GitProject {
 model GitRepo {
   id String @id @default(cuid())
 
-  name           String          @unique
-  url            String          @unique
+  name           String
+  url            String
   status         GitCommonStatus @default(INIT)
   lastSync       DateTime?
   recentBranches String[]        @default([])
@@ -200,7 +200,7 @@ model GitRepo {
 model GitStaff {
   id String @id @default(cuid())
 
-  name             String   @unique
+  name             String
   emails           String[] @default([])
   alternativeNames String[] @default([])
 
@@ -260,7 +260,7 @@ enum Role {
 // 用户
 model User {
   id       String @id @default(cuid())
-  name     String @unique
+  name     String
   password String
   role     Role   @default(USER)
 
