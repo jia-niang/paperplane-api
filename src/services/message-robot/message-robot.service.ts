@@ -65,6 +65,12 @@ export class MessageRobotService {
     return this.sendTextByRobotId(id, text)
   }
 
+  async sendJSONByUserRobotId(userId: string, id: string, json: object) {
+    const robotConfig = await this.prisma.messageRobot.findFirstOrThrow({ where: { id, userId } })
+
+    return this.sendJSONByRobotConfig(robotConfig, json)
+  }
+
   async addCompanyRobot(companyId: string, robot: MessageRobot) {
     robot.userId = null
     robot.companyId = companyId
@@ -96,6 +102,14 @@ export class MessageRobotService {
     await this.prisma.messageRobot.findFirstOrThrow({ where: { id, companyId } })
 
     return this.sendTextByRobotId(id, text)
+  }
+
+  async sendJSONByCompanyRobotId(companyId: string, id: string, json: object) {
+    const robotConfig = await this.prisma.messageRobot.findFirstOrThrow({
+      where: { id, companyId },
+    })
+
+    return this.sendJSONByRobotConfig(robotConfig, json)
   }
 
   /** 提供机器人 ID，发送纯文本 */

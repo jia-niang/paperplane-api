@@ -44,6 +44,24 @@ export class MessageRobotController {
     return this.messageRobotService.deleteUserRobot(userId, id)
   }
 
+  @Post('/current/:id/send-text')
+  async sendTextByUserRobotId(
+    @UserId() userId: string,
+    @Param('id') id: string,
+    @Body() body: { text: string }
+  ) {
+    return this.messageRobotService.sendTextByUserRobotId(userId, id, body.text)
+  }
+
+  @Post('/current/:id/send')
+  async sendMessageByUserRobotId(
+    @UserId() userId: string,
+    @Param('id') id: string,
+    @Body() body: object
+  ) {
+    return this.messageRobotService.sendJSONByUserRobotId(userId, id, body)
+  }
+
   @Post('/company/:companyId/robot')
   async addCompanyRobot(@Param('companyId') companyId: string, @Body() robot: MessageRobot) {
     return this.messageRobotService.addCompanyRobot(companyId, robot)
@@ -71,6 +89,24 @@ export class MessageRobotController {
   @Delete('/company/:companyId/robot/:id')
   async deleteCompanyRobot(@Param('companyId') companyId: string, @Param('id') id: string) {
     return this.messageRobotService.deleteUserRobot(companyId, id)
+  }
+
+  @Post('/company/:companyId/robot/:id/send-text')
+  async sendTextByCompanyRobotId(
+    @UserId() userId: string,
+    @Param('id') id: string,
+    @Body() body: { text: string }
+  ) {
+    return this.messageRobotService.sendTextByCompanyRobotId(userId, id, body.text)
+  }
+
+  @Post('/company/:companyId/robot/:id/send')
+  async sendMessageByCompanyRobotId(
+    @UserId() userId: string,
+    @Param('id') id: string,
+    @Body() body: object
+  ) {
+    return this.messageRobotService.sendJSONByCompanyRobotId(userId, id, body)
   }
 
   @Public()
