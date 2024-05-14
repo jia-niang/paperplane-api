@@ -125,6 +125,9 @@ model MessageRobot {
   belongToCompany Company? @relation(fields: [companyId], references: [id])
   companyId       String?
 
+  belongToUser User?   @relation(fields: [userId], references: [id])
+  userId       String?
+
   OffworkNoticeSetting OffworkNoticeSetting[]
 
   createdAt DateTime  @default(now())
@@ -263,6 +266,8 @@ model User {
   name     String
   password String
   role     Role   @default(USER)
+
+  MessageRobot MessageRobot[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
