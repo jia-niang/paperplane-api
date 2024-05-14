@@ -93,20 +93,20 @@ export class MessageRobotController {
 
   @Post('/company/:companyId/robot/:id/send-text')
   async sendTextByCompanyRobotId(
-    @UserId() userId: string,
+    @Param('companyId') companyId: string,
     @Param('id') id: string,
     @Body() body: { text: string }
   ) {
-    return this.messageRobotService.sendTextByCompanyRobotId(userId, id, body.text)
+    return this.messageRobotService.sendTextByCompanyRobotId(companyId, id, body.text)
   }
 
   @Post('/company/:companyId/robot/:id/send')
   async sendMessageByCompanyRobotId(
-    @UserId() userId: string,
+    @Param('companyId') companyId: string,
     @Param('id') id: string,
     @Body() body: object
   ) {
-    return this.messageRobotService.sendJSONByCompanyRobotId(userId, id, body)
+    return this.messageRobotService.sendJSONByCompanyRobotId(companyId, id, body)
   }
 
   @Public()
