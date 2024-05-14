@@ -32,7 +32,7 @@ const feishuRobotUrl = `https://open.feishu.cn/open-apis/bot/v2/hook/`
 export class MessageRobotService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async addUserRobot(robot: MessageRobot, userId: string) {
+  async addUserRobot(userId: string, robot: MessageRobot) {
     robot.userId = userId
     robot.companyId = null
 
@@ -43,20 +43,57 @@ export class MessageRobotService {
     return this.prisma.messageRobot.findMany({ where: { userId } })
   }
 
-  async getUserRobotById(id: string, userId: string) {
-    return this.prisma.messageRobot.findFirst({ where: { id, userId } })
+  async getUserRobotById(userId: string, id: string) {
+    return this.prisma.messageRobot.findFirstOrThrow({ where: { id, userId } })
   }
 
-  async updateUserRobot(id: string, robot: MessageRobot, userId: string) {
+  async updateUserRobot(userId: string, id: string, robot: MessageRobot) {
+    await this.prisma.messageRobot.findFirstOrThrow({ where: { id, userId } })
+
     return this.prisma.messageRobot.update({ where: { id, userId }, data: robot })
   }
 
-  async deleteUserRobot(id: string, userId: string) {
+  async deleteUserRobot(userId: string, id: string) {
+    await this.prisma.messageRobot.findFirstOrThrow({ where: { id, userId } })
+
     return this.prisma.messageRobot.delete({ where: { id, userId } })
   }
 
-  async sendTextByUserRobotId(id: string, text: string, userId: string) {
+  async sendTextByUserRobotId(userId: string, id: string, text: string) {
     await this.prisma.messageRobot.findFirstOrThrow({ where: { id, userId } })
+
+    return this.sendTextByRobotId(id, text)
+  }
+
+  async addCompanyRobot(companyId: string, robot: MessageRobot) {
+    robot.userId = null
+    robot.companyId = companyId
+
+    return
+  }
+
+  async listCompanyRobots(companyId: string) {
+    return this.prisma.messageRobot.findMany({ where: { companyId } })
+  }
+
+  async getCompanyRobotById(companyId: string, id: string) {
+    return this.prisma.messageRobot.findFirstOrThrow({ where: { id, companyId } })
+  }
+
+  async updateCompanyRobot(companyId: string, id: string, robot: MessageRobot) {
+    await this.prisma.messageRobot.findFirstOrThrow({ where: { id, companyId } })
+
+    return this.prisma.messageRobot.update({ where: { id, companyId }, data: robot })
+  }
+
+  async deleteCompanyRobot(companyId: string, id: string) {
+    await this.prisma.messageRobot.findFirstOrThrow({ where: { id, companyId } })
+
+    return this.prisma.messageRobot.delete({ where: { id, companyId } })
+  }
+
+  async sendTextByCompanyRobotId(companyId: string, id: string, text: string) {
+    await this.prisma.messageRobot.findFirstOrThrow({ where: { id, companyId } })
 
     return this.sendTextByRobotId(id, text)
   }
