@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { GitCommit, GitCommonStatus, GitProject, GitRepo, GitStaff } from '@prisma/client'
-import { uniqBy } from 'lodash'
+import { pick, uniqBy } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
 
 import { AiService } from '../ai/ai.service'
@@ -42,6 +42,13 @@ export class GitHelperService {
     result.privateKey = undefined
 
     return result
+  }
+
+  async updateProject(projectId: string, newProject: GitProject) {
+    return await this.prisma.gitProject.update({
+      where: { id: projectId },
+      data: pick(newProject, ['name']),
+    })
   }
 
   async deleteProject(projectId: string) {
@@ -116,6 +123,14 @@ export class GitHelperService {
         data: { status: GitCommonStatus.ERROR },
       })
     })
+  }
+
+  async syncAllRepos(projectId: string) {
+    const repos = await this.prisma.gitRepo.findMany({ where: { gitProjectId: projectId } })
+
+    for (const repo of repos) {
+      await this.syncRepo(projectId, repo.id)
+    }
   }
 
   async aggregateCommits(projectId: string, repoId: string) {
@@ -214,6 +229,13 @@ export class GitHelperService {
 
   async addStaff(projectId: string, gitStaff: GitStaff) {
     return await this.prisma.gitStaff.create({ data: { ...gitStaff, gitProjectId: projectId } })
+  }
+
+  async updateStaff(projectId: string, staffId: string, gitStaff: GitStaff) {
+    return await this.prisma.gitStaff.update({
+      where: { id: staffId, gitProjectId: projectId },
+      data: gitStaff,
+    })
   }
 
   async deleteStaff(projectId: string, staffId: string) {
