@@ -122,8 +122,8 @@ model MessageRobot {
   extraAuthentication Json?
   desc                String?
 
-  belongToCompany Company @relation(fields: [companyId], references: [id])
-  companyId       String
+  belongToCompany Company? @relation(fields: [companyId], references: [id])
+  companyId       String?
 
   OffworkNoticeSetting OffworkNoticeSetting[]
 
