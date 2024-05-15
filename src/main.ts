@@ -6,7 +6,6 @@ import duration from 'dayjs/plugin/duration'
 import { resolve } from 'path'
 
 import { AppModule } from './app.module'
-import { HttpExceptionFilter } from './app/http-exception.filter'
 
 dayjs.extend(dayOfYear)
 dayjs.extend(duration)
@@ -14,9 +13,8 @@ dayjs.extend(duration)
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
-  app.useGlobalFilters(new HttpExceptionFilter())
-  app.setBaseViewsDir(resolve(__dirname, './views'))
   app.setViewEngine('ejs')
+  app.setBaseViewsDir(resolve(__dirname, './views'))
 
   await app.listen(6100)
 }
