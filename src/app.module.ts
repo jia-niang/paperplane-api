@@ -74,6 +74,10 @@ import { UserService } from './services/user/user.service'
     ResponseInterceptorProvider,
     providePrismaClientExceptionFilter(),
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_GUARD, useClass: JwtAuthGuardService },
+    { provide: APP_GUARD, useClass: RolesGuardService },
+    JwtStrategyService,
+    AuthService,
     AiService,
     BusinessService,
     GitHelperService,
@@ -83,10 +87,6 @@ import { UserService } from './services/user/user.service'
     MessageRobotService,
     DockerStatusService,
     UserService,
-    AuthService,
-    JwtStrategyService,
-    { provide: APP_GUARD, useClass: JwtAuthGuardService },
-    { provide: APP_GUARD, useClass: RolesGuardService },
   ],
 })
 export class AppModule {}
