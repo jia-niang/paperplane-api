@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common'
+import { User } from '@prisma/client'
 
 import { Public, UserId } from '@/app/auth.decorator'
 import { AdminRole } from '@/app/role.decorator'
@@ -31,7 +32,7 @@ export class UserController {
 
   @AdminRole()
   @Post('/signup')
-  async signUp(@Body() user) {
+  async signUp(@Body() user: User) {
     return this.userService.addUser(user)
   }
 
