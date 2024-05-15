@@ -12,7 +12,7 @@ interface IResponse<T> {
   data: T
 }
 
-interface IError<T> extends IResponse<T> {
+interface IError<T = undefined> extends IResponse<T> {
   success: false
 }
 

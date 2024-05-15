@@ -5,7 +5,7 @@ import { APP_GUARD } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { ServeStaticModule } from '@nestjs/serve-static'
-import { PrismaModule } from 'nestjs-prisma'
+import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma'
 
 import { prismaSoftDeleteMiddleware } from './app/prisma-soft-delete.middleware'
 import { ResponseInterceptorProvider } from './app/response.interceptor'
@@ -71,6 +71,7 @@ import { UserService } from './services/user/user.service'
   ],
   providers: [
     ResponseInterceptorProvider,
+    providePrismaClientExceptionFilter(),
     AiService,
     BusinessService,
     GitHelperService,
