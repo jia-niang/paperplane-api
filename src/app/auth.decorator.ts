@@ -2,6 +2,7 @@ import { ExecutionContext, SetMetadata, createParamDecorator } from '@nestjs/com
 
 import { IS_PUBLIC_KEY } from '@/services/auth/jwt-auth-guard.service'
 
+/** 标记一个接口为公开，不需登录即可访问 */
 export function Public() {
   return SetMetadata(IS_PUBLIC_KEY, true)
 }

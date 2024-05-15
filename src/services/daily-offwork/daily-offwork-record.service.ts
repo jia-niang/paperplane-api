@@ -17,27 +17,29 @@ export class DailyOffworkRecordService {
 
   /** 根据 offwork 配置表完成今日的记录 */
   async completeTodayRecord() {
-    await this.addDailyRecord()
+    await this.addTodayDailyRecord()
 
     const allSettings = await this.prisma.offworkNoticeSetting.findMany({
       where: { disabled: false },
     })
     const companyIds = uniq(allSettings.map(t => t.companyId))
-    const cityIds = uniq(allSettings.map(t => t.cityId))
+    const workplaceIds = uniq(allSettings.map(t => t.workplaceId))
 
     this.logger.log(
-      `今日 Offwork 记录，[${allSettings.length}] 条已开启的设置，去重后需检索 [${companyIds.length}] 家公司和 [${cityIds.length}] 个城市`
+      `今日 Offwork 采集，[${allSettings.length}] 条配置，[${companyIds.length}] 家公司，[${workplaceIds.length}] 个工作地点`
     )
     this.logger.log(`公司记录合计[${companyIds.length}]条：`)
-    await Promise.all(companyIds.map(companyId => this.addDailyCompanyRecord(companyId)))
-    this.logger.log(`城市记录合计[${cityIds.length}]条：`)
-    await Promise.all(cityIds.map(cityId => this.addDailyCityRecord(cityId)))
+    await Promise.all(companyIds.map(companyId => this.addTodayDailyCompanyRecord(companyId)))
+    this.logger.log(`工作地点记录合计[${workplaceIds.length}]条：`)
+    await Promise.all(
+      workplaceIds.map(workplaceId => this.addTodayDailyWorkplaceRecord(workplaceId))
+    )
 
-    this.logger.log(`今日 Offwork 记录完成`)
+    this.logger.log(`今日 Offwork 采集完成`)
   }
 
   /** 添加今日的工作日流水记录 */
-  async addDailyRecord() {
+  async addTodayDailyRecord() {
     const date = dayjs().format('YYYY-MM-DD')
 
     const isWorkDay = await this.thirdParty.todayIsWorkdayApi()
@@ -52,11 +54,19 @@ export class DailyOffworkRecordService {
     return result
   }
 
-  /** 根据公司 ID 添加今日的公司记录 */
-  async addDailyCompanyRecord(companyId: string) {
+  /** 根据公司 ID 和工作地点 ID 添加今日的记录 */
+  async addTodayRecordByCompanyWorkplace(companyId: string, workplaceId: string) {
+    await this.prisma.workplace.findFirstOrThrow({ where: { id: workplaceId, companyId } })
+
+    await this.addTodayDailyCompanyRecord(companyId)
+    await this.addTodayDailyWorkplaceRecord(workplaceId)
+  }
+
+  /** 根据公司 ID 添加今日公司记录 */
+  async addTodayDailyCompanyRecord(companyId: string) {
     const date = dayjs().format('YYYY-MM-DD')
-    const dailyRecord = await this.prisma.workdayRecord.findFirst({ where: { date } })
-    const company = await this.prisma.company.findFirst({ where: { id: companyId } })
+    const dailyRecord = await this.prisma.workdayRecord.findFirstOrThrow({ where: { date } })
+    const company = await this.prisma.company.findFirstOrThrow({ where: { id: companyId } })
 
     const data: Prisma.DailyCompanyRecordUncheckedCreateInput = {
       workdayRecordId: dailyRecord.id,
@@ -86,19 +96,19 @@ export class DailyOffworkRecordService {
     return result
   }
 
-  /** 根据城市 ID 添加今日的城市记录 */
-  async addDailyCityRecord(cityId: string) {
+  /** 根据 ID 添加今日的工作地点记录 */
+  async addTodayDailyWorkplaceRecord(workplaceId: string) {
     const date = dayjs().format('YYYY-MM-DD')
-    const dailyRecord = await this.prisma.workdayRecord.findFirst({ where: { date } })
-    const city = await this.prisma.city.findFirst({ where: { id: cityId } })
+    const dailyRecord = await this.prisma.workdayRecord.findFirstOrThrow({ where: { date } })
+    const workplace = await this.prisma.workplace.findFirstOrThrow({ where: { id: workplaceId } })
 
-    const data: Prisma.DailyCityRecordUncheckedCreateInput = {
+    const data: Prisma.DailyWorkplaceRecordUncheckedCreateInput = {
       workdayRecordId: dailyRecord.id,
-      cityId: city.id,
+      workplaceId: workplace.id,
     }
 
-    if (city.weatherCode) {
-      const weatherInfo = await this.thirdParty.fetchWeatherByCityCode(city.weatherCode)
+    if (workplace.weatherCode) {
+      const weatherInfo = await this.thirdParty.fetchWeatherByCityCode(workplace.weatherCode)
       data.todayWeather = weatherInfo.today.weather
       data.todayTemperature = weatherInfo.today.temperature
       data.todayWid = weatherInfo.today.wid
@@ -107,27 +117,27 @@ export class DailyOffworkRecordService {
       data.tomorrowWid = weatherInfo.tomorrow.wid
     }
 
-    if (city.oilpriceCode) {
-      const oilpriceInfo = await this.thirdParty.fetchOilpriceByCityKey(city.oilpriceCode)
+    if (workplace.oilpriceCode) {
+      const oilpriceInfo = await this.thirdParty.fetchOilpriceByCityKey(workplace.oilpriceCode)
       data.h92 = Number(oilpriceInfo['92h'])
       data.h95 = Number(oilpriceInfo['95h'])
       data.h98 = Number(oilpriceInfo['98h'])
     }
 
-    if (city.mapLatitude && city.mapLongitude) {
+    if (workplace.mapLatitude && workplace.mapLongitude) {
       const trafficInfo = await this.thirdParty.fetchTrafficByPos(
-        city.mapLatitude,
-        city.mapLongitude
+        workplace.mapLatitude,
+        workplace.mapLongitude
       )
       data.traffic = trafficInfo
     }
 
-    await this.prisma.dailyCityRecord.deleteMany({
-      where: { workdayRecordId: dailyRecord.id, cityId: city.id },
+    await this.prisma.dailyWorkplaceRecord.deleteMany({
+      where: { workdayRecordId: dailyRecord.id, workplaceId: workplace.id },
     })
-    const result = await this.prisma.dailyCityRecord.create({ data })
+    const result = await this.prisma.dailyWorkplaceRecord.create({ data })
 
-    this.logger.log(`添加城市记录 [${cityId}] 完成`)
+    this.logger.log(`添加工作地点记录 [${workplaceId}] 完成`)
 
     return result
   }

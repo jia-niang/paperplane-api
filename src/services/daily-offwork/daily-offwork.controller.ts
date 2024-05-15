@@ -14,34 +14,43 @@ export class DailyOffworkController {
   ) {}
 
   @Public()
-  @Post('/today-record/all')
+  @Post('/today/all/record')
   async completeTodayRecord() {
     await this.dailyOffworkRecordService.completeTodayRecord()
   }
 
   @Public()
-  @Post('/send/today-all')
+  @Post('/today/all/send')
   async sendTodayAll() {
     return this.dailyOffworkService.sendTodayAll()
   }
 
   @Public()
-  @Post('/send/company/:companyId/city/:cityId/robot/:robotId')
-  async sendByRobot(
+  @Post(`/today/company/:companyId/workplace/:workplaceId/record`)
+  async todayOffworkNoticeViewRecord(
     @Param('companyId') companyId: string,
-    @Param('cityId') cityId: string,
-    @Param('robotId') robotId: string
+    @Param('workplaceId') workplaceId: string
   ) {
-    return this.dailyOffworkService.sendByRobot(companyId, cityId, robotId)
+    return this.dailyOffworkRecordService.addTodayRecordByCompanyWorkplace(companyId, workplaceId)
   }
 
   @Public()
-  @Get('/view/company/:companyId/city/:cityId')
-  async offworkNoticeView(
+  @Post('/today/company/:companyId/workplace/:workplaceId/robot/:robotId/send')
+  async sendTodayByFullLayerId(
     @Param('companyId') companyId: string,
-    @Param('cityId') cityId: string,
+    @Param('workplaceId') workplaceId: string,
+    @Param('robotId') robotId: string
+  ) {
+    return this.dailyOffworkService.sendTodayByFullLayerId(companyId, workplaceId, robotId)
+  }
+
+  @Public()
+  @Get('/today/company/:companyId/workplace/:workplaceId/view')
+  async todayOffworkNoticeView(
+    @Param('companyId') companyId: string,
+    @Param('workplaceId') workplaceId: string,
     @Res() res: Response
   ) {
-    return res.render('offwork-view', await this.dailyOffworkService.view(companyId, cityId))
+    return res.render('offwork-view', await this.dailyOffworkService.view(companyId, workplaceId))
   }
 }

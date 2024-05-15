@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
-import { City, Company } from '@prisma/client'
+import { Workplace, Company } from '@prisma/client'
 
 import { BusinessService } from './business.service'
 
@@ -27,38 +27,38 @@ export class BusinessController {
     return this.businessService.updateCompany(id, company)
   }
 
-  @Post('/company/:companyId/city')
-  async addWorkCityToCompany(@Param('companyId') companyId: string, city: City) {
-    return this.businessService.addWorkCityToCompany(companyId, city)
+  @Post('/company/:companyId/workplace')
+  async addWorkplaceToCompany(@Param('companyId') companyId: string, workplace: Workplace) {
+    return this.businessService.addWorkplaceToCompany(companyId, workplace)
   }
 
-  @Get('/company/:companyId/city')
+  @Get('/company/:companyId/workplace')
   async listWorkCitiesOfCompany(@Param('companyId') companyId: string) {
     return this.businessService.listWorkCitiesOfCompany(companyId)
   }
 
-  @Get('/company/:companyId/city/:cityId')
-  async getWorkCityOfCompanyById(
+  @Get('/company/:companyId/workplace/:workplaceId')
+  async getWorkplaceOfCompanyById(
     @Param('companyId') companyId: string,
-    @Param('cityId') cityId: string
+    @Param('workplaceId') workplaceId: string
   ) {
-    return this.businessService.getWorkCityOfCompany(companyId, cityId)
+    return this.businessService.getWorkplaceOfCompany(companyId, workplaceId)
   }
 
-  @Put('/company/:companyId/city/:cityId')
-  async updateWorkCityOfCompany(
+  @Put('/company/:companyId/workplace/:workplaceId')
+  async updateWorkplaceOfCompany(
     @Param('companyId') companyId: string,
-    @Param('cityId') cityId: string,
-    @Body() city: City
+    @Param('workplaceId') workplaceId: string,
+    @Body() workplace: Workplace
   ) {
-    return this.businessService.updateWorkCityOfCompany(companyId, cityId, city)
+    return this.businessService.updateWorkplaceOfCompany(companyId, workplaceId, workplace)
   }
 
-  @Delete('/company/:companyId/city/:cityId')
-  async deleteWorkCityOfCompany(
+  @Delete('/company/:companyId/workplace/:workplaceId')
+  async deleteWorkplaceOfCompany(
     @Param('companyId') companyId: string,
-    @Param('cityId') cityId: string
+    @Param('workplaceId') workplaceId: string
   ) {
-    return this.businessService.deleteWorkCityOfCompany(companyId, cityId)
+    return this.businessService.deleteWorkplaceOfCompany(companyId, workplaceId)
   }
 }

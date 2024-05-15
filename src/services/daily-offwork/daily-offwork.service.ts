@@ -44,14 +44,14 @@ export class DailyOffworkService {
     this.logger.log(`发送今日 offwork 消息，共 [${allSetting.length}] 条`)
 
     for (const item of allSetting) {
-      await this.sendByRobot(item.companyId, item.cityId, item.messageRobotId)
+      await this.sendTodayByFullLayerId(item.companyId, item.workplaceId, item.messageRobotId)
     }
 
     this.logger.log(`今日 offwork 消息发送完成`)
   }
 
-  async sendByRobot(companyId: string, cityId: string, robotId: string) {
-    const image = await this.viewToImage(companyId, cityId)
+  async sendTodayByFullLayerId(companyId: string, workplaceId: string, robotId: string) {
+    const image = await this.viewToImage(companyId, workplaceId)
 
     await this.messageRobot.sendImageByRobotId(robotId, image, {
       atAll: true,
@@ -59,13 +59,13 @@ export class DailyOffworkService {
     })
   }
 
-  async viewToImage(companyId: string, cityId: string): Promise<IMessageRobotImage> {
+  async viewToImage(companyId: string, workplaceId: string): Promise<IMessageRobotImage> {
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
       const page = await browser.newPage()
       await page.goto(
-        `http://localhost:6100/daily-offwork/view/company/${companyId}/city/${cityId}`
+        `http://localhost:6100/today/company/${companyId}/workplace/${workplaceId}/view`
       )
       await page.setViewport({ width: 1500, height: 800 })
       await page.waitForFunction('window.mapOK === true')
@@ -77,7 +77,7 @@ export class DailyOffworkService {
       const url = await uploadFile(
         `/offwork-image/img-${now.format(
           'YYYY-MM-DD'
-        )}-${companyId}-${cityId}-${now.valueOf()}.jpg`,
+        )}-${companyId}-${workplaceId}-${now.valueOf()}.jpg`,
         file
       ).then(fileInfo => fileInfo.fileUrl)
 
@@ -95,7 +95,7 @@ export class DailyOffworkService {
     }
   }
 
-  async view(companyId: string, cityId: string) {
+  async view(companyId: string, workplaceId: string) {
     const now = dayjs()
     const date = now.format('YYYY-MM-DD')
 
@@ -113,15 +113,16 @@ export class DailyOffworkService {
       )
     }
 
-    const cityRecord = await this.prisma.dailyCityRecord.findFirst({
-      where: { workdayRecordId: workdayRecord.id, cityId },
-      include: { belongToCity: true },
+    const workplaceRecord = await this.prisma.dailyWorkplaceRecord.findFirst({
+      where: { workdayRecordId: workdayRecord.id, workplaceId: workplaceId },
+      include: { belongToWorkplace: true },
     })
-    const city = cityRecord?.belongToCity
+    const workplace = workplaceRecord?.belongToWorkplace
 
-    if (!city) {
+    if (!workplace) {
       throw new Error(
-        `未找到 ID 为 "${cityId}" 的城市记录，请检查提供的 ID 是否正确以及此城市是否正确归属于公司 "${company.company}"。如果 ID 无误，请确保当日生成记录时此城市已存在。`
+        `未找到 ID 为 "${workplaceId}" 的工作地点记录，请检查提供的 ID 是否正确以及此工作地点是否正确归属于公司 "${company.company}"。` +
+          `如果 ID 无误，请确保当日生成记录时此工作地点已存在。`
       )
     }
 
@@ -129,19 +130,22 @@ export class DailyOffworkService {
     const darkTheme = darkThemeImages.includes(bgNumber)
     const bgUrl = `//localhost:6100/res/offwork-bg/${bgNumber}.jpg`
 
-    const todayWeatherUrl = this.getWeatherImageUrl(cityRecord.todayWid, cityRecord.todayWeather)
+    const todayWeatherUrl = this.getWeatherImageUrl(
+      workplaceRecord.todayWid,
+      workplaceRecord.todayWeather
+    )
     const tomorrowWeatherUrl = this.getWeatherImageUrl(
-      cityRecord.tomorrowWid,
-      cityRecord.tomorrowWeather
+      workplaceRecord.tomorrowWid,
+      workplaceRecord.tomorrowWeather
     )
 
     const signText = companyRecord.delta > 0 ? '+' : ''
     const stockText = `${companyRecord.todayStock} (${signText}${companyRecord.delta})`
 
     const viewData = {
-      ...city,
+      ...workplace,
       ...company,
-      ...cityRecord,
+      ...workplaceRecord,
       ...companyRecord,
       baiduMapAK: process.env.BAIDU_MAP_WEBSDK_AK,
       bgUrl,

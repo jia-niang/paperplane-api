@@ -15,8 +15,8 @@ model WorkdayRecord {
   date      String
   isWorkDay Boolean
 
-  allCompanyRecords DailyCompanyRecord[]
-  DailyCityRecord   DailyCityRecord[]
+  allCompanyRecords   DailyCompanyRecord[]
+  allWorkplaceRecords DailyWorkplaceRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -31,7 +31,7 @@ model Company {
   salaryDate Int?
 
   allDailyRecords  DailyCompanyRecord[]
-  allCities        City[]
+  allWorkplaces    Workplace[]
   allMessageRobots MessageRobot[]
 
   OffworkNoticeSetting OffworkNoticeSetting[]
@@ -60,8 +60,8 @@ model DailyCompanyRecord {
   deletedAt DateTime?
 }
 
-// 城市
-model City {
+// 工作地点
+model Workplace {
   id           String  @id @default(cuid())
   city         String
   weatherCode  String?
@@ -72,16 +72,18 @@ model City {
   belongToCompany Company @relation(fields: [companyId], references: [id])
   companyId       String
 
-  allDailyRecords DailyCityRecord[]
-
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  deletedAt            DateTime?
+  allDailyRecords      DailyWorkplaceRecord[]
   OffworkNoticeSetting OffworkNoticeSetting[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("City")
 }
 
-// 每日城市状况记录
-model DailyCityRecord {
+// 每日工作地点状况记录
+model DailyWorkplaceRecord {
   id                  String  @id @default(cuid())
   todayWeather        String?
   todayTemperature    String?
@@ -95,14 +97,16 @@ model DailyCityRecord {
   h98     Float?
   traffic String?
 
-  belongToWorkday WorkdayRecord @relation(fields: [workdayRecordId], references: [id], onDelete: Cascade)
-  workdayRecordId String
-  belongToCity    City          @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  cityId          String
+  belongToWorkday   WorkdayRecord @relation(fields: [workdayRecordId], references: [id], onDelete: Cascade)
+  workdayRecordId   String
+  belongToWorkplace Workplace     @relation(fields: [workplaceId], references: [id], onDelete: Cascade)
+  workplaceId       String        @map("cityId")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+
+  @@map("DailyCityRecord")
 }
 
 // 消息机器人类型
@@ -140,12 +144,12 @@ model OffworkNoticeSetting {
   id       String  @id @default(cuid())
   disabled Boolean @default(false)
 
-  belongToRobot   MessageRobot @relation(fields: [messageRobotId], references: [id])
-  messageRobotId  String
-  belongToCompany Company      @relation(fields: [companyId], references: [id])
-  companyId       String
-  belongToCity    City         @relation(fields: [cityId], references: [id])
-  cityId          String
+  belongToRobot     MessageRobot @relation(fields: [messageRobotId], references: [id])
+  messageRobotId    String
+  belongToCompany   Company      @relation(fields: [companyId], references: [id])
+  companyId         String
+  belongToWorkplace Workplace    @relation(fields: [workplaceId], references: [id])
+  workplaceId       String       @map("cityId")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
