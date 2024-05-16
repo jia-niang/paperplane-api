@@ -51,6 +51,9 @@ export class DailyOffworkController {
     @Param('workplaceId') workplaceId: string,
     @Res() res: Response
   ) {
-    return res.render('offwork-view', await this.dailyOffworkService.view(companyId, workplaceId))
+    return res.render(
+      'offwork-view',
+      await this.dailyOffworkService.todayViewByCompanyWorkplace(companyId, workplaceId)
+    )
   }
 }

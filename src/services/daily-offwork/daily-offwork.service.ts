@@ -95,7 +95,7 @@ export class DailyOffworkService {
     }
   }
 
-  async view(companyId: string, workplaceId: string) {
+  async todayViewByCompanyWorkplace(companyId: string, workplaceId: string) {
     const now = dayjs()
     const date = now.format('YYYY-MM-DD')
 
@@ -128,7 +128,7 @@ export class DailyOffworkService {
 
     const bgNumber = 1 + (now.dayOfYear() % imageCount)
     const darkTheme = darkThemeImages.includes(bgNumber)
-    const bgUrl = `//localhost:6100/res/offwork-bg/${bgNumber}.jpg`
+    const bgUrl = `${process.env.SERVICE_URL}/res/offwork-bg/${bgNumber}.jpg`
 
     const todayWeatherUrl = this.getWeatherImageUrl(
       workplaceRecord.todayWid,
@@ -147,6 +147,7 @@ export class DailyOffworkService {
       ...company,
       ...workplaceRecord,
       ...companyRecord,
+      serviceUrl: process.env.SERVICE_URL,
       baiduMapAK: process.env.BAIDU_MAP_WEBSDK_AK,
       bgUrl,
       darkTheme,
@@ -195,6 +196,6 @@ export class DailyOffworkService {
       return 'unknown'
     })()
 
-    return `//localhost:6100/res/weather/${fileName}.png`
+    return `${process.env.SERVICE_URL}/res/weather/${fileName}.png`
   }
 }
