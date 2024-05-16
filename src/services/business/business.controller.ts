@@ -27,6 +27,11 @@ export class BusinessController {
     return this.businessService.updateCompany(id, company)
   }
 
+  @Delete('/company/:id')
+  async deleteCompany(@Param('id') id: string) {
+    return this.businessService.deleteCompany(id)
+  }
+
   @Post('/company/:companyId/workplace')
   async addWorkplaceToCompany(@Param('companyId') companyId: string, workplace: Workplace) {
     return this.businessService.addWorkplaceToCompany(companyId, workplace)
