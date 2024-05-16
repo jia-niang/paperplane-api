@@ -27,6 +27,7 @@ import { GitHelperController } from './services/git-helper/git-helper.controller
 import { GitHelperService } from './services/git-helper/git-helper.service'
 import { MessageRobotController } from './services/message-robot/message-robot.controller'
 import { MessageRobotService } from './services/message-robot/message-robot.service'
+import { RedisService } from './services/redis/redis.service'
 import { ThirdPartyService } from './services/third-party/third-party.service'
 import { UserController } from './services/user/user.controller'
 import { UserService } from './services/user/user.service'
@@ -78,6 +79,7 @@ import { UserService } from './services/user/user.service'
     { provide: APP_GUARD, useClass: RolesGuardService },
     JwtStrategyService,
     AuthService,
+    RedisService,
     AiService,
     BusinessService,
     GitHelperService,

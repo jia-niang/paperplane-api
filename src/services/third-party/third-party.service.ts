@@ -1,12 +1,11 @@
-import { InjectRedis } from '@nestjs-modules/ioredis'
 import { Injectable } from '@nestjs/common'
 import axios, { AxiosInstance } from 'axios'
 import { setupCache } from 'axios-cache-interceptor'
 import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
-import Redis from 'ioredis'
 import { get, round, split } from 'lodash'
 
+import { RedisService } from '../redis/redis.service'
 import { redisCache, redisCacheMonth, redisCacheToday, setupRedisCache } from './setup-redis-cache'
 
 /** 下班提醒油价信息 */
@@ -36,12 +35,15 @@ export class ThirdPartyService {
   juheClient: AxiosInstance
   defaultClient: AxiosInstance
 
-  constructor(@InjectRedis() private readonly redis: Redis) {
+  constructor(private readonly redis: RedisService) {
     const juheClient = axios.create({
       proxy: JSON.parse(process.env.JUHE_CN_PROXY_CONFIG || 'null'),
     })
     axiosRetry(juheClient, { retries: 3, retryDelay: () => 500 })
-    setupCache(juheClient, { storage: setupRedisCache(redis) })
+    setupCache(juheClient, {
+      storage: setupRedisCache(redis),
+      headerInterpreter: () => 1000 * 3600 * 24 * 365,
+    })
     this.juheClient = juheClient
 
     const defaultClient = axios.create()
