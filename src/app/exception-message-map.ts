@@ -11,5 +11,5 @@ export function getExceptionMessage(exception: HttpException): string {
     return '数据操作失败，请检查输入数据和格式并重试。'
   }
 
-  return '数据有误，请检查输入并重试。'
+  return exception.message
 }
