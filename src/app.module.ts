@@ -1,7 +1,7 @@
 import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_FILTER, APP_GUARD } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { ServeStaticModule } from '@nestjs/serve-static'
@@ -9,7 +9,7 @@ import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma'
 
 import { HttpExceptionFilter } from './app/http-exception.filter'
 import { prismaSoftDeleteMiddleware } from './app/prisma-soft-delete.middleware'
-import { ResponseInterceptorProvider } from './app/response.interceptor'
+import { ResponseInterceptor } from './app/response.interceptor'
 import { AiController } from './services/ai/ai.controller'
 import { AiService } from './services/ai/ai.service'
 import { AuthService } from './services/auth/auth.service'
@@ -72,8 +72,8 @@ import { UserService } from './services/user/user.service'
     UserController,
   ],
   providers: [
-    ResponseInterceptorProvider,
     providePrismaClientExceptionFilter(),
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_GUARD, useClass: JwtAuthGuardService },
     { provide: APP_GUARD, useClass: RolesGuardService },

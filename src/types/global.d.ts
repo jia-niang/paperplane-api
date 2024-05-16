@@ -8,12 +8,12 @@ declare namespace NodeJS {
 interface IResponse<T> {
   success: boolean
   code: number
-  message: string
   data: T
 }
 
 interface IError<T = undefined> extends IResponse<T> {
   success: false
+  message: string
 }
 
 /** 获取数组的类型 */
