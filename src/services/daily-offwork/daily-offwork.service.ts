@@ -65,7 +65,7 @@ export class DailyOffworkService {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
       const page = await browser.newPage()
       await page.goto(
-        `http://localhost:6100/today/company/${companyId}/workplace/${workplaceId}/view`
+        `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
       )
       await page.setViewport({ width: 1500, height: 800 })
       await page.waitForFunction('window.mapOK === true')

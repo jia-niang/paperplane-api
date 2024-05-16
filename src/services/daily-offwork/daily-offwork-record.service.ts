@@ -60,6 +60,8 @@ export class DailyOffworkRecordService {
 
     await this.addTodayDailyCompanyRecord(companyId)
     await this.addTodayDailyWorkplaceRecord(workplaceId)
+
+    return `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
   }
 
   /** 根据公司 ID 添加今日公司记录 */
