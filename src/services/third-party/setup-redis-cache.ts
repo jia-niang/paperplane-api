@@ -12,7 +12,7 @@ export interface IRedisCacheAxiosOptions extends AxiosRequestConfig {
   redisCache?: IRedisCacheOptions
 }
 
-const AXIOS_REDIS_CACHE_PREFIX = 'axios-cache-'
+const AXIOS_REDIS_CACHE_PREFIX = 'axios-cache:'
 
 export function setupRedisCache(redis: Redis) {
   return buildStorage({
