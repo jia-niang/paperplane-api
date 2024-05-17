@@ -266,12 +266,41 @@ enum Role {
 
 // 用户
 model User {
-  id       String @id @default(cuid())
+  id String @id @default(cuid())
+
   name     String
   password String
   role     Role   @default(USER)
 
   MessageRobot MessageRobot[]
+  Shorts       Shorts[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// ##################### 短网址 #####################
+
+// 短网址类型
+enum ShortsType {
+  SYSTEM
+  BLOG
+  OFFWORK
+  USER
+}
+
+// 短网址记录
+model Shorts {
+  id String @id @default(cuid())
+
+  url       String
+  key       String
+  expiredAt DateTime?
+  type      ShortsType?
+
+  author User?   @relation(fields: [userId], references: [id])
+  userId String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
