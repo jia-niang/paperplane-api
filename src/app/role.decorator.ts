@@ -23,6 +23,11 @@ export function UserRole() {
   return SetMetadata(ROLES_KEY, [Role.ADMIN, Role.STAFF, Role.USER])
 }
 
+/** 去除身份限制 */
+export function AnyRole() {
+  return SetMetadata(ROLES_KEY, null)
+}
+
 /** 获取用户的身份 */
 export const CurrentRole = createParamDecorator((_data, req: ExecutionContext) => {
   return req.switchToHttp().getRequest().user?.role as Role

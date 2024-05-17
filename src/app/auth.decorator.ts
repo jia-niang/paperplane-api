@@ -7,6 +7,11 @@ export function Public() {
   return SetMetadata(IS_PUBLIC_KEY, true)
 }
 
+/** 解除接口的公开状态，需要登录才能访问 */
+export function NeedLogin() {
+  return SetMetadata(IS_PUBLIC_KEY, false)
+}
+
 /** 获取 JWT 中的用户对象 */
 export const UserInfo = createParamDecorator((_data, req: ExecutionContext) => {
   return req.switchToHttp().getRequest().user
