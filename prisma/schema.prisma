@@ -285,7 +285,6 @@ model User {
 // 短网址类型
 enum ShortsType {
   SYSTEM
-  BLOG
   OFFWORK
   USER
 }

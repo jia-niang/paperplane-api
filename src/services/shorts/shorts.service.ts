@@ -6,7 +6,7 @@ import { PrismaService } from 'nestjs-prisma'
 
 import { RedisService } from '../redis/redis.service'
 import { ICreateShortsBody, IShortsResult } from './shorts.controller'
-import { internalGenerateShortsKey } from './shortsKey'
+import { blogUrlHexToKey, internalGenerateShortsKey } from './shortsKey'
 
 const SHORTS_ROUTE_PREFIX = 's'
 const SHORTS_REDIS_PREFIX = 'shorts:'
@@ -69,6 +69,13 @@ export class ShortsService {
     })
 
     return dbRecord
+  }
+
+  async blogRecordByKey(key: string) {
+    const hex = blogUrlHexToKey(key)
+    const url = `https://paperplane.cc/p/${hex}`
+
+    return url
   }
 
   private formatResult(id: string, key: string): IShortsResult {

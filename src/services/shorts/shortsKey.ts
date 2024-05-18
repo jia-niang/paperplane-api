@@ -18,6 +18,32 @@ export function userGenerateShortsKey(url: string, offset: number = 0): string {
   return result
 }
 
+const base64UrlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+
+export function blogUrlHexToKey(urlHex: string): string {
+  let num = Number('0x' + urlHex)
+  let result = ''
+  do {
+    result = base64UrlAlphabet[num % 64] + result
+    num = Math.floor(num / 64)
+  } while (num > 0)
+
+  return result
+}
+
+export function blogKeyToUrlHex(key: string): string {
+  let resultNum = 0
+  for (let i = 0; i < key.length; i++) {
+    const char = key.charAt(i)
+    const index = base64UrlAlphabet.indexOf(char)
+    const power = key.length - i - 1
+    resultNum += index * Math.pow(64, power)
+  }
+  const result = resultNum.toString(16)
+
+  return result
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function hexToBinaryString(hex: number, offset?: number): string {
   offset = offset || 0
