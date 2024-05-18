@@ -43,8 +43,6 @@ export class ShortsController {
   @AnyRole()
   @Get('/blog/:key')
   async blogRedirect(@Param('key') key: string, @Res() res: Response) {
-    console.log('input key:', key)
-
     const url = await this.shortsService.blogRecordByKey(key)
 
     return res.redirect(HttpStatus.MOVED_PERMANENTLY, url)
