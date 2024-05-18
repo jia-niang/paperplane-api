@@ -44,9 +44,6 @@ export class ShortsController {
   @Get('/blog/:key')
   async blogRedirect(@Param('key') key: string, @Res() res: Response) {
     const url = await this.shortsService.blogRecordByKey(key)
-    if (!url) {
-      throw new HttpException('未找到此博客文章短链', 404)
-    }
 
     return res.redirect(HttpStatus.MOVED_PERMANENTLY, url)
   }

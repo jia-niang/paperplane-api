@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 import { Shorts } from '@prisma/client'
 import dayjs from 'dayjs'
 import { random, trimStart } from 'lodash'
@@ -6,7 +6,7 @@ import { PrismaService } from 'nestjs-prisma'
 
 import { RedisService } from '../redis/redis.service'
 import { ICreateShortsBody, IShortsResult } from './shorts.controller'
-import { blogUrlHexToKey, internalGenerateShortsKey } from './shortsKey'
+import { blogKeyToUrlHex, internalGenerateShortsKey } from './shortsKey'
 
 const SHORTS_ROUTE_PREFIX = 's'
 const SHORTS_REDIS_PREFIX = 'shorts:'
@@ -72,8 +72,12 @@ export class ShortsService {
   }
 
   async blogRecordByKey(key: string) {
-    const hex = blogUrlHexToKey(key)
+    const hex = blogKeyToUrlHex(key)
     const url = `https://paperplane.cc/p/${hex}`
+
+    if (!hex) {
+      throw new HttpException('此博客文章短链无效', 404)
+    }
 
     return url
   }
