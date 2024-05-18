@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import { padStart } from 'lodash'
 
 export function internalGenerateShortsKey(url: string, offset: number = 0): string {
   const hash = createHash('sha256')
@@ -44,7 +45,7 @@ export function blogKeyToUrlHex(key: string): string {
       const power = key.length - i - 1
       resultNum += index * Math.pow(64, power)
     }
-    const result = resultNum.toString(16)
+    const result = padStart(resultNum.toString(16), 12, '0')
 
     return result
   } catch {
