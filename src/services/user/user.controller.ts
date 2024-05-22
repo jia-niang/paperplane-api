@@ -19,7 +19,6 @@ export class UserController {
   async login(@Body() user: { name: string; password: string }, @Session() session: IAppSession) {
     const userInfo = await this.authService.login(user.name, user.password)
     session.currentUser = await this.authService.makeSession(userInfo)
-    session.save()
 
     return user
   }
@@ -38,7 +37,6 @@ export class UserController {
   @Post('/logout')
   async logout(@Session() session: IAppSession) {
     session.currentUser = null
-    session.save()
 
     return this.authService.logout()
   }
