@@ -1,6 +1,7 @@
 import { ExecutionContext, SetMetadata, createParamDecorator } from '@nestjs/common'
 import { Role } from '@prisma/client'
 
+import { IAppSession } from '@/services/auth/auth.service'
 import { ROLES_KEY } from '@/services/auth/roles-guard.service'
 
 /** 指定一组身份，用户需具备此身份才可访问 */
@@ -30,5 +31,7 @@ export function AnyRole() {
 
 /** 获取用户的身份 */
 export const CurrentRole = createParamDecorator((_data, req: ExecutionContext) => {
-  return req.switchToHttp().getRequest().user?.role as Role
+  const session: IAppSession = req.switchToHttp().getRequest().session
+
+  return session.currentUser?.role
 })
