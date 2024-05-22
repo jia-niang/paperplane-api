@@ -24,7 +24,5 @@ export const UserInfo = createParamDecorator((_data, req: ExecutionContext) => {
 export const UserId = createParamDecorator((_data, req: ExecutionContext) => {
   const session: IAppSession = req.switchToHttp().getRequest().session
 
-  console.log('UserId = ', session.currentUser?.id)
-
   return session.currentUser?.id
 })
