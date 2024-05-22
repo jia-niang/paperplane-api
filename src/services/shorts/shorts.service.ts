@@ -1,12 +1,12 @@
 import { HttpException, Injectable } from '@nestjs/common'
-import { Shorts } from '@prisma/client'
+import { Shorts, ShortsType } from '@prisma/client'
 import dayjs from 'dayjs'
 import { random, trimStart } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
 
 import { RedisService } from '../redis/redis.service'
 import { ICreateShortsBody, IShortsResult } from './shorts.controller'
-import { blogKeyToUrlHex, internalGenerateShortsKey } from './shortsKey'
+import { blogKeyToUrlHex, internalGenerateShortsKey, userGenerateShortsKey } from './shortsKey'
 
 const SHORTS_ROUTE_PREFIX = 's'
 const SHORTS_REDIS_PREFIX = 'shorts:'
@@ -18,7 +18,18 @@ export class ShortsService {
     private readonly redis: RedisService
   ) {}
 
-  async internalGenerateShortUrl(shorts: ICreateShortsBody, specifyKey?: string) {
+  async listMyShorts(userId: string, type?: ShortsType) {
+    return this.prisma.shorts.findMany({ where: { userId, type } })
+  }
+
+  async deleteShorts(userId: string, shortsKey: string) {
+    const shorts = await this.prisma.shorts.findFirstOrThrow({ where: { userId, key: shortsKey } })
+    await this.prisma.shorts.delete({ where: { id: shorts.id } })
+    await this.redis.del(SHORTS_REDIS_PREFIX + shortsKey)
+  }
+
+  async generateShorts(shorts: ICreateShortsBody) {
+    const specifyKey = shorts.type === ShortsType.ALIAS ? shorts.key : undefined
     let key = specifyKey ? trimStart(specifyKey, '/') : null
 
     // 如果指定了 Key，那么必须使用此 Key，不能使用则直接报错
@@ -40,7 +51,10 @@ export class ShortsService {
       let offset = 0
       while (true) {
         offset += random(0, 16)
-        key = internalGenerateShortsKey(shorts.url, offset)
+        key =
+          shorts.type === ShortsType.SYSTEM
+            ? internalGenerateShortsKey(shorts.url, offset)
+            : userGenerateShortsKey(shorts.url, offset)
 
         const isRepeat = await this.queryRecordByKey(key)
         if (!isRepeat) {

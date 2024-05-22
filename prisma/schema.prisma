@@ -284,9 +284,10 @@ model User {
 
 // 短网址类型
 enum ShortsType {
-  SYSTEM
-  OFFWORK
-  USER
+  SYSTEM // 系统级短链，为 4 位 HEX
+  OFFWORK // 系统级下班提醒短链
+  ALIAS // 别名短链，用户自行指定
+  USER // 用户级短链，8 位 HEX
 }
 
 // 短网址记录

@@ -1,14 +1,27 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res } from '@nestjs/common'
-import { Shorts } from '@prisma/client'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common'
+import { Role, Shorts, ShortsType } from '@prisma/client'
 import dayjs from 'dayjs'
 import type { Response } from 'express'
 
-import { Public } from '@/app/auth.decorator'
-import { AdminRole, AnyRole, StaffRole } from '@/app/role.decorator'
+import { Public, UserId } from '@/app/auth.decorator'
+import { AnyRole, CurrentRole } from '@/app/role.decorator'
 
 import { ShortsService } from './shorts.service'
 
-export interface ICreateShortsBody extends Pick<Shorts, 'url' | 'type' | 'expiredAt'> {}
+export interface ICreateShortsBody extends Pick<Shorts, 'url' | 'type' | 'expiredAt' | 'userId'> {
+  key?: string
+}
 
 export interface IShortsResult {
   id: string
@@ -20,23 +33,41 @@ export interface IShortsResult {
   paperplaneFullUrl: string
 }
 
-@StaffRole()
 @Controller('/shorts')
 export class ShortsController {
   constructor(private readonly shortsService: ShortsService) {}
 
-  @AdminRole()
   @Post('/')
-  async createShorts(@Body() shorts: ICreateShortsBody): Promise<IShortsResult> {
+  async createShorts(
+    @Body() shorts: ICreateShortsBody,
+    @CurrentRole() userRole: Role,
+    @UserId() userId: string
+  ): Promise<IShortsResult> {
     if (shorts.expiredAt && dayjs(shorts.expiredAt).isBefore(dayjs())) {
       throw new HttpException('过期时间不能早于当前时间', 400)
+    } else if (shorts.type === ShortsType.OFFWORK) {
+      throw new HttpException('无法创建此类型的短网址', 400)
+    } else if (shorts.type === ShortsType.ALIAS && !shorts.key && userRole !== Role.ADMIN) {
+      throw new HttpException('此类型的短网址必须指定别名，且必须具有 Admin 权限', 400)
+    } else if (shorts.type === ShortsType.SYSTEM && userRole !== Role.ADMIN) {
+      throw new HttpException('此类型的短网址必须具有 Admin 权限才能创建', 400)
     }
 
-    if (shorts.type === 'SYSTEM') {
-      return this.shortsService.internalGenerateShortUrl(shorts)
+    if (shorts.type !== ShortsType.SYSTEM) {
+      shorts.userId = userId
     }
 
-    throw new HttpException('无法创建此类型的短网址', 400)
+    return this.shortsService.generateShorts(shorts)
+  }
+
+  @Get('/manager')
+  async listMyShorts(@Query('type') type: ShortsType, @UserId() userId: string) {
+    return this.shortsService.listMyShorts(userId, type || undefined)
+  }
+
+  @Delete('/manager/:shortsKey')
+  async deleteShorts(@UserId() userId: string, @Param('shortsKey') shortsKey: string) {
+    return this.shortsService.deleteShorts(userId, shortsKey)
   }
 
   @Public()

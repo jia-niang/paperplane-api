@@ -53,20 +53,6 @@ export function blogKeyToUrlHex(key: string): string {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function hexToBinaryString(hex: number, offset?: number): string {
-  offset = offset || 0
-
-  const hexString = (hex + offset).toString(16)
-
-  // 将十六进制字符串转换为字节数组
-  const byteArray = hexString.match(/.{2}/g).map(byte => parseInt(byte, 16))
-  // 将每个字节转换为 8 位二进制字符串，并连接起来
-  const binaryString = byteArray.reduce((acc, byte) => acc + byte.toString(2).padStart(8, '0'), '')
-
-  return binaryString
-}
-
 function numberToCrockford(number: number, offset?: number): string {
   offset = offset || 0
 
