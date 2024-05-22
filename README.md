@@ -84,6 +84,7 @@ yarn build && yarn start:prod
 
 特性：
 - 开发调试时，通过 `/prisma/schema.prisma` 来修改数据库表结构，修改后通过执行 `yarn dbgen` 生成新的 TypeScript 类型；
+- 如果使用 VSCode，建议在执行 `yarn dbgen` 后使用快捷键 `Ctrl/Command` + `Shift` + `P`，选择 “重启 TS 服务器” 加载新类型；
 - 在全新的环境开发时，执行一次 `yarn dbpush` 来把定义好的数据结构应用于当前数据库；后续请勿再执行此命令，否则必须丢弃全部数据才能执行 `yarn dbmi`；
 - 每次发布新版本，如果涉及到数据库表结构的修改，需要在开发环境运行 `yarn dbmi` 生成迁移所需的 SQL 文件且自动存储于 `/prisma/..` 目录，然后一同提交代码；CI/CD 会在部署前通过 `yarn dbdeploy:prod` 运行这些迁移。
 

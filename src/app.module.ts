@@ -2,19 +2,19 @@ import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
-import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
 import { ServeStaticModule } from '@nestjs/serve-static'
+import RedisStore from 'connect-redis'
+import { Redis } from 'ioredis'
 import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma'
+import { NestSessionOptions, SessionModule } from 'nestjs-session'
 
 import { HttpExceptionFilter } from './app/http-exception.filter'
 import { prismaSoftDeleteMiddleware } from './app/prisma-soft-delete.middleware'
 import { ResponseInterceptor } from './app/response.interceptor'
 import { AiController } from './services/ai/ai.controller'
 import { AiService } from './services/ai/ai.service'
+import { AuthGuardService } from './services/auth/auth-guard.service'
 import { AuthService } from './services/auth/auth.service'
-import { JwtAuthGuardService } from './services/auth/jwt-auth-guard.service'
-import { JwtStrategyService } from './services/auth/jwt-strategy.service'
 import { RolesGuardService } from './services/auth/roles-guard.service'
 import { BusinessController } from './services/business/business.controller'
 import { BusinessService } from './services/business/business.service'
@@ -51,12 +51,29 @@ import { UserService } from './services/user/user.service'
       isGlobal: true,
     }),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60d' },
-      verifyOptions: {
-        issuer: process.env.NODE_ENV === 'development' ? 'paperplane-api-local' : 'paperplane-api',
+    SessionModule.forRootAsync({
+      useFactory(): NestSessionOptions {
+        const maxAgeInSecond = 180 * 24 * 3600
+
+        return {
+          session: {
+            name: process.env.COOKIES_NAME,
+            secret: process.env.COOKIES_SECRET,
+            store: new RedisStore({
+              client: new Redis(process.env.REDIS_URL),
+              prefix: 'session:',
+              ttl: maxAgeInSecond,
+            }),
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+              secure: process.env.NODE_ENV === 'production',
+              maxAge: maxAgeInSecond * 1000,
+              sameSite: 'lax',
+            },
+          },
+          retries: 2,
+        }
       },
     }),
   ],
@@ -74,9 +91,8 @@ import { UserService } from './services/user/user.service'
     providePrismaClientExceptionFilter(),
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
-    { provide: APP_GUARD, useClass: JwtAuthGuardService },
+    { provide: APP_GUARD, useClass: AuthGuardService },
     { provide: APP_GUARD, useClass: RolesGuardService },
-    JwtStrategyService,
     AuthService,
     RedisService,
     AiService,

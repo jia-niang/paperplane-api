@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post, Session } from '@nestjs/common'
 import { User } from '@prisma/client'
 
 import { Public, UserId } from '@/app/auth.decorator'
 import { AdminRole } from '@/app/role.decorator'
 
-import { AuthService } from '../auth/auth.service'
+import { AuthService, IAppSession } from '../auth/auth.service'
 import { UserService } from './user.service'
 
 @Controller('/user')
@@ -16,18 +16,17 @@ export class UserController {
 
   @Public()
   @Post('/login')
-  async login(@Body() user: { name: string; password: string }) {
-    return this.authService.login(user.name, user.password)
+  async login(@Body() user: { name: string; password: string }, @Session() session: IAppSession) {
+    const userInfo = await this.authService.login(user.name, user.password)
+    session.currentUser = await this.authService.makeSession(userInfo)
+    session.save()
+
+    return user
   }
 
   @Get('/current')
   async current(@UserId() id: string) {
     return this.authService.current(id)
-  }
-
-  @Post('/refresh')
-  async refresh(@UserId() id: string) {
-    return this.authService.refresh(id)
   }
 
   @AdminRole()
@@ -37,7 +36,10 @@ export class UserController {
   }
 
   @Post('/logout')
-  async logout() {
+  async logout(@Session() session: IAppSession) {
+    session.currentUser = null
+    session.save()
+
     return this.authService.logout()
   }
 }

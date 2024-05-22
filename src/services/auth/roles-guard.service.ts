@@ -1,8 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common'
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Role } from '@prisma/client'
 
-import { IJwtParsedUser } from './jwt-strategy.service'
+import { IAppSession } from './auth.service'
 
 export const ROLES_KEY = 'ROLES'
 
@@ -20,9 +20,13 @@ export class RolesGuardService implements CanActivate {
       return true
     }
 
-    const { user } = context.switchToHttp().getRequest<{ user: IJwtParsedUser }>()
-    const role = user.role
+    const session: IAppSession = context.switchToHttp().getRequest().session
+    const role = session?.currentUser?.role
     const isOK = requiredRoles.includes(role)
+
+    if (!isOK) {
+      throw new ForbiddenException('权限不足')
+    }
 
     return isOK
   }
