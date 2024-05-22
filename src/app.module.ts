@@ -45,11 +45,7 @@ import { UserService } from './services/user/user.service'
       ],
       isGlobal: true,
     }),
-    RedisModule.forRoot({
-      type: 'single',
-      url: process.env.REDIS_URL,
-      options: { password: process.env.REDIS_PASSWORD },
-    }),
+    RedisModule.forRoot({ type: 'single', url: process.env.REDIS_URL }),
     PrismaModule.forRoot({
       prismaServiceOptions: { middlewares: [prismaSoftDeleteMiddleware] },
       isGlobal: true,
