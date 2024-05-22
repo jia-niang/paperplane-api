@@ -1,26 +1,23 @@
-import { createHash } from 'crypto'
-import { padStart } from 'lodash'
+import { padStart, sample } from 'lodash'
 
-export function internalGenerateShortsKey(url: string, offset: number = 0): string {
-  const hash = createHash('sha256')
-  hash.update(url)
-  const urlHashResult = hash.digest('hex').slice(-6)
-  const result = numberToBase64Url(Number('0x' + urlHashResult), offset)
-    .slice(-4)
-    .padStart(4, '0')
+const shortsKeyAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-  return result
+export function internalGenerateShortsKey(): string {
+  let randomString = ''
+  for (let i = 0; i < 4; i++) {
+    randomString += sample(shortsKeyAlphabet)
+  }
+
+  return randomString
 }
 
-export function userGenerateShortsKey(url: string, offset: number = 0): string {
-  const hash = createHash('sha256')
-  hash.update(url)
-  const urlHashResult = hash.digest('hex').slice(-9)
-  const result = numberToBase64Url(Number('0x' + urlHashResult), offset)
-    .slice(-6)
-    .padStart(6, '0')
+export function userGenerateShortsKey(): string {
+  let randomString = ''
+  for (let i = 0; i < 6; i++) {
+    randomString += sample(shortsKeyAlphabet)
+  }
 
-  return result
+  return randomString
 }
 
 const base64UrlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
@@ -40,15 +37,4 @@ export function blogKeyToUrlHex(key: string): string {
   } catch {
     return null
   }
-}
-
-function numberToBase64Url(number: number, offset?: number): string {
-  let num = number + (offset || 0)
-  let result = ''
-  do {
-    result = base64UrlAlphabet[num % 64] + result
-    num = Math.floor(num / 64)
-  } while (num > 0)
-
-  return result
 }

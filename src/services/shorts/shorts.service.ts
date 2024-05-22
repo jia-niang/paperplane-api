@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common'
 import { Shorts, ShortsType } from '@prisma/client'
 import dayjs from 'dayjs'
-import { random, trimStart } from 'lodash'
+import { trimStart } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
 
 import { RedisService } from '../redis/redis.service'
@@ -47,14 +47,10 @@ export class ShortsService {
         return this.formatResult(existRecord.id, existRecord.key)
       }
 
-      // 生成 url，如果已重复，添加偏移量重新生成
-      let offset = 0
+      // 生成 url，如果已重复，则重新生成
       while (true) {
-        offset += random(0, 16)
         key =
-          shorts.type === ShortsType.SYSTEM
-            ? internalGenerateShortsKey(shorts.url, offset)
-            : userGenerateShortsKey(shorts.url, offset)
+          shorts.type === ShortsType.SYSTEM ? internalGenerateShortsKey() : userGenerateShortsKey()
 
         const isRepeat = await this.queryRecordByKey(key)
         if (!isRepeat) {
