@@ -39,9 +39,9 @@ export class ShortsService {
         throw new Error(`此短网址已被使用`)
       }
     } else {
-      // 如果有已存在的记录，且过期时间相同，直接复用即可
+      // 如果有已存在 url、过期时间、类别相同的记录，直接复用即可
       const existRecord = await this.prisma.shorts.findFirst({
-        where: { url: shorts.url, expiredAt: shorts.expiredAt },
+        where: { url: shorts.url, expiredAt: shorts.expiredAt, type: shorts.type },
       })
       if (existRecord) {
         return this.formatResult(existRecord.id, existRecord.key)

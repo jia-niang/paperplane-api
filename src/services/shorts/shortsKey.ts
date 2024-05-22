@@ -4,8 +4,10 @@ import { padStart } from 'lodash'
 export function internalGenerateShortsKey(url: string, offset: number = 0): string {
   const hash = createHash('sha256')
   hash.update(url)
-  const urlHashResult = hash.digest('hex').slice(-8)
-  const result = numberToCrockford(Number('0x' + urlHashResult), offset).slice(-4)
+  const urlHashResult = hash.digest('hex').slice(-6)
+  const result = numberToBase64Url(Number('0x' + urlHashResult), offset)
+    .slice(-4)
+    .padStart(4, '0')
 
   return result
 }
@@ -13,28 +15,15 @@ export function internalGenerateShortsKey(url: string, offset: number = 0): stri
 export function userGenerateShortsKey(url: string, offset: number = 0): string {
   const hash = createHash('sha256')
   hash.update(url)
-  const urlHashResult = hash.digest('hex').slice(-16)
-  const result = numberToCrockford(Number('0x' + urlHashResult), offset).slice(-8)
+  const urlHashResult = hash.digest('hex').slice(-9)
+  const result = numberToBase64Url(Number('0x' + urlHashResult), offset)
+    .slice(-6)
+    .padStart(6, '0')
 
   return result
 }
 
 const base64UrlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-
-export function blogUrlHexToKey(urlHex: string): string {
-  try {
-    let num = Number('0x' + urlHex)
-    let result = ''
-    do {
-      result = base64UrlAlphabet[num % 64] + result
-      num = Math.floor(num / 64)
-    } while (num > 0)
-
-    return result
-  } catch {
-    return null
-  }
-}
 
 export function blogKeyToUrlHex(key: string): string {
   try {
@@ -53,24 +42,13 @@ export function blogKeyToUrlHex(key: string): string {
   }
 }
 
-function numberToCrockford(number: number, offset?: number): string {
-  offset = offset || 0
-
-  let binaryString = (number + offset).toString(2)
-  const alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'.toLowerCase()
-
-  // 补齐到能被 5 整除，因为 5 个比特位正好是一个 Base32 字符
-  while (binaryString.length % 5 !== 0) {
-    binaryString = '0' + binaryString
-  }
-
-  // 按照 5 位一组分组，将它转为 32 进制表示形式
+function numberToBase64Url(number: number, offset?: number): string {
+  let num = number + (offset || 0)
   let result = ''
-  for (let i = 0; i < binaryString.length; i += 5) {
-    const chunk = binaryString.slice(i, i + 5)
-    const index = parseInt(chunk, 2)
-    result += alphabet[index]
-  }
+  do {
+    result = base64UrlAlphabet[num % 64] + result
+    num = Math.floor(num / 64)
+  } while (num > 0)
 
   return result
 }
