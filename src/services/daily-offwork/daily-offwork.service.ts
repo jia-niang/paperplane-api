@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import crypto from 'crypto'
 import dayjs from 'dayjs'
+import { omit } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
 import puppeteer, { Browser } from 'puppeteer'
 
@@ -95,7 +96,7 @@ export class DailyOffworkService {
     }
   }
 
-  async todayViewByCompanyWorkplace(companyId: string, workplaceId: string) {
+  async todayOffworkDataByCompanyWorkplace(companyId: string, workplaceId: string) {
     const now = dayjs()
     const date = now.format('YYYY-MM-DD')
 
@@ -126,9 +127,25 @@ export class DailyOffworkService {
       )
     }
 
+    return {
+      company,
+      workplace,
+      companyRecord: omit(companyRecord, ['belongToCompany']),
+      workplaceRecord: omit(workplaceRecord, ['belongToWorkplace']),
+    }
+  }
+
+  async todayViewByCompanyWorkplace(companyId: string, workplaceId: string) {
+    const { company, workplace, companyRecord, workplaceRecord } =
+      await this.todayOffworkDataByCompanyWorkplace(companyId, workplaceId)
+
+    const now = dayjs()
     const bgNumber = 1 + (now.dayOfYear() % imageCount)
     const darkTheme = darkThemeImages.includes(bgNumber)
     const bgUrl = `${process.env.SERVICE_URL}/res/offwork-bg/${bgNumber}.jpg`
+
+    const signText = companyRecord.delta > 0 ? '+' : ''
+    const stockText = `${companyRecord.todayStock} (${signText}${companyRecord.delta})`
 
     const todayWeatherUrl = this.getWeatherImageUrl(
       workplaceRecord.todayWid,
@@ -138,9 +155,6 @@ export class DailyOffworkService {
       workplaceRecord.tomorrowWid,
       workplaceRecord.tomorrowWeather
     )
-
-    const signText = companyRecord.delta > 0 ? '+' : ''
-    const stockText = `${companyRecord.todayStock} (${signText}${companyRecord.delta})`
 
     const viewData = {
       ...workplace,

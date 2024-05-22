@@ -35,6 +35,15 @@ export class DailyOffworkController {
   }
 
   @Public()
+  @Get(`/today/company/:companyId/workplace/:workplaceId`)
+  async todayOffworkDataByCompanyWorkplace(
+    @Param('companyId') companyId,
+    @Param('workplaceId') workplaceId
+  ) {
+    return this.dailyOffworkService.todayOffworkDataByCompanyWorkplace(companyId, workplaceId)
+  }
+
+  @Public()
   @Post('/today/company/:companyId/workplace/:workplaceId/robot/:robotId/send')
   async sendTodayByFullLayerId(
     @Param('companyId') companyId: string,
