@@ -11,7 +11,7 @@ import { IMessageRobotImage, MessageRobotService } from '../message-robot/messag
 import { ShortsService } from '../shorts/shorts.service'
 
 const imageCount = 31
-const darkThemeImages = [9, 15, 26]
+const darkThemeImages = [9, 26]
 
 @Injectable()
 export class DailyOffworkService {
