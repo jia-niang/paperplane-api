@@ -8,6 +8,7 @@ import puppeteer, { Browser } from 'puppeteer'
 import { uploadFile } from '@/utils/s3'
 
 import { IMessageRobotImage, MessageRobotService } from '../message-robot/message-robot.service'
+import { ShortsService } from '../shorts/shorts.service'
 
 const imageCount = 31
 const darkThemeImages = [9, 15, 26]
@@ -16,7 +17,8 @@ const darkThemeImages = [9, 15, 26]
 export class DailyOffworkService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly messageRobot: MessageRobotService
+    private readonly messageRobot: MessageRobotService,
+    private readonly shortsService: ShortsService
   ) {}
 
   private readonly logger = new Logger(DailyOffworkService.name)
@@ -127,7 +129,13 @@ export class DailyOffworkService {
       )
     }
 
+    const url = `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
+    const shortUrl = await this.shortsService.generateDailyOffworkShorts(url)
+
     return {
+      url,
+      date,
+      shortUrl,
       company,
       workplace,
       companyRecord: omit(companyRecord, ['belongToCompany']),
@@ -136,16 +144,19 @@ export class DailyOffworkService {
   }
 
   async todayViewByCompanyWorkplace(companyId: string, workplaceId: string) {
-    const { company, workplace, companyRecord, workplaceRecord } =
+    const { company, workplace, companyRecord, workplaceRecord, shortUrl, date } =
       await this.todayOffworkDataByCompanyWorkplace(companyId, workplaceId)
 
-    const now = dayjs()
+    const now = dayjs(date)
     const bgNumber = 1 + (now.dayOfYear() % imageCount)
     const darkTheme = darkThemeImages.includes(bgNumber)
     const bgUrl = `${process.env.SERVICE_URL}/res/offwork-bg/${bgNumber}.jpg`
 
     const signText = companyRecord.delta > 0 ? '+' : ''
-    const stockText = `${companyRecord.todayStock} (${signText}${companyRecord.delta})`
+    const stockText =
+      companyRecord.todayStock && companyRecord.delta
+        ? `${companyRecord.todayStock} (${signText}${companyRecord.delta})`
+        : undefined
 
     const todayWeatherUrl = this.getWeatherImageUrl(
       workplaceRecord.todayWid,
@@ -161,6 +172,8 @@ export class DailyOffworkService {
       ...company,
       ...workplaceRecord,
       ...companyRecord,
+      shortUrl,
+      date,
       serviceUrl: process.env.SERVICE_URL,
       baiduMapAK: process.env.BAIDU_MAP_WEBSDK_AK,
       bgUrl,

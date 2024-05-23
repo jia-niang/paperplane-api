@@ -67,7 +67,7 @@
         font-size: 60px;
       }
       .weathers {
-        margin-top: 80px;
+        margin-top: 70px;
       }
       .weather {
         display: inline-flex;
@@ -117,6 +117,11 @@
         font-size: 50px;
         margin-left: 20px;
       }
+      .shorts {
+        font-weight: 300;
+        font-size: 30px;
+        margin-top: 20px;
+      }
       .stock {
         position: absolute;
         font-size: 50px;
@@ -135,7 +140,7 @@
       }
       .map-desc {
         position: absolute;
-        padding: 10px 20px 8px;
+        padding: 10px 20px 4px;
         background-color: rgba(0, 0, 0, 0.3);
         border-radius: 10px;
         display: inline-block;
@@ -192,12 +197,21 @@
             </div>
           </div>
         </div>
+
+        <div class="shorts">
+          <%= date %> · <%= shortUrl %>
+        </div>
       </div>
 
       <div id="map"></div>
       <div class="map-desc">交通拥堵状况</div>
 
-      <div class="stock"><%= company %>股价：<%= stockText %></div>
+      <div class="stock">
+        <%= company %>
+        <% if(stockText) { %>
+           / 股价：<%= stockText %>
+        <% } %>
+      </div>
     </div>
 
     <script src="https://api.map.baidu.com/api?type=webgl&v=3.0&ak=<%= baiduMapAK %>"></script>

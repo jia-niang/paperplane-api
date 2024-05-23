@@ -50,7 +50,7 @@ export class ShortsService {
       // 生成 url，如果已重复，则重新生成
       while (true) {
         key =
-          shorts.type === ShortsType.SYSTEM ? internalGenerateShortsKey() : userGenerateShortsKey()
+          shorts.type === ShortsType.USER ? userGenerateShortsKey() : internalGenerateShortsKey()
 
         const isRepeat = await this.queryRecordByKey(key)
         if (!isRepeat) {
@@ -64,6 +64,17 @@ export class ShortsService {
     const result = this.formatResult(dbResult.id, dbResult.key)
 
     return result
+  }
+
+  async generateDailyOffworkShorts(url: string): Promise<string> {
+    return this.generateShorts({
+      type: ShortsType.OFFWORK,
+      url,
+      expiredAt: undefined,
+      userId: undefined,
+    }).then(result => {
+      return result.p01ShortUrl
+    })
   }
 
   async queryRecordByKey(key: string): Promise<Shorts | null> {
