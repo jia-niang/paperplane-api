@@ -14,6 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   app.getHttpAdapter().getInstance().disable('x-powered-by')
+  app.getHttpAdapter().getInstance().set('trust proxy', 1)
 
   app.setViewEngine('ejs')
   app.setBaseViewsDir(resolve(__dirname, './views'))
