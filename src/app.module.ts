@@ -67,7 +67,6 @@ import { UserService } from './services/user/user.service'
             resave: false,
             saveUninitialized: false,
             cookie: {
-              secure: process.env.NODE_ENV === 'production',
               maxAge: maxAgeInSecond * 1000,
             },
           },
