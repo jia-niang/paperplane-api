@@ -13,6 +13,8 @@ dayjs.extend(duration)
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
+  app.getHttpAdapter().getInstance().disable('x-powered-by')
+
   app.setViewEngine('ejs')
   app.setBaseViewsDir(resolve(__dirname, './views'))
 
