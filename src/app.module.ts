@@ -69,7 +69,6 @@ import { UserService } from './services/user/user.service'
             cookie: {
               secure: process.env.NODE_ENV === 'production',
               maxAge: maxAgeInSecond * 1000,
-              sameSite: 'lax',
             },
           },
           retries: 2,
