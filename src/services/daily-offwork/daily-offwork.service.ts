@@ -54,6 +54,7 @@ export class DailyOffworkService {
   }
 
   async sendTodayByFullLayerId(companyId: string, workplaceId: string, robotId: string) {
+    await this.todayViewByCompanyWorkplace(companyId, workplaceId)
     const image = await this.viewToImage(companyId, workplaceId)
 
     await this.messageRobot.sendImageByRobotId(robotId, image, {
