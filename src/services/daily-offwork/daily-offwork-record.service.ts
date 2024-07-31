@@ -129,7 +129,8 @@ export class DailyOffworkRecordService {
     if (workplace.mapLatitude && workplace.mapLongitude) {
       const trafficInfo = await this.thirdParty.fetchTrafficByPos(
         workplace.mapLatitude,
-        workplace.mapLongitude
+        workplace.mapLongitude,
+        500
       )
       data.traffic = trafficInfo
     }
