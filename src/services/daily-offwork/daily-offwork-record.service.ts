@@ -110,6 +110,7 @@ export class DailyOffworkRecordService {
     }
 
     if (workplace.weatherCode) {
+      this.logger.log(` 开始记录工作地点 [${workplace.id}] 天气信息`)
       const weatherInfo = await this.thirdParty.fetchWeatherByCityCode(workplace.weatherCode)
       data.todayWeather = weatherInfo.today.weather
       data.todayTemperature = weatherInfo.today.temperature
@@ -120,6 +121,7 @@ export class DailyOffworkRecordService {
     }
 
     if (workplace.oilpriceCode) {
+      this.logger.log(` 开始记录工作地点 [${workplace.id}] 油价信息`)
       const oilpriceInfo = await this.thirdParty.fetchOilpriceByCityKey(workplace.oilpriceCode)
       data.h92 = Number(oilpriceInfo['92h'])
       data.h95 = Number(oilpriceInfo['95h'])
@@ -127,6 +129,7 @@ export class DailyOffworkRecordService {
     }
 
     if (workplace.mapLatitude && workplace.mapLongitude) {
+      this.logger.log(` 开始记录工作地点 [${workplace.id}] 交通信息`)
       const trafficInfo = await this.thirdParty.fetchTrafficByPos(
         workplace.mapLatitude,
         workplace.mapLongitude,
