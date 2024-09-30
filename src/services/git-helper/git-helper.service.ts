@@ -204,9 +204,7 @@ export class GitHelperService {
         const commitJoinText = commitList.map(t => t.message).join('\n')
         const aiText = `请根据我上周的 Git 提交记录生成一篇完整的工作周报，用 markdown 格式以分点叙述的形式输出，不需要大标题，提交记录：\n${commitJoinText}`
 
-        const weekly = await this.aiService
-          .completions(aiText)
-          .then(text => text.slice(text.indexOf('#')))
+        const weekly = await this.aiService.chat(aiText).then(text => text.slice(text.indexOf('#')))
 
         await this.prisma.gitReport.create({
           data: { content: weekly, gitProjectId: projectId, gitStaffId: staffId },

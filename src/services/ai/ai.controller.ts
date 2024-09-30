@@ -19,11 +19,6 @@ export class AiController {
     return this.aiService.listAllModels()
   }
 
-  @Post('/completions')
-  async completions(@Body() body: IAiCompletionsBody) {
-    return this.aiService.completions(body.text).then(res => ({ answer: res?.trimStart() }))
-  }
-
   @Post('/chat')
   async chat(@Body() body: IAiCompletionsBody) {
     return this.aiService.chat(body.text).then(res => ({ answer: res?.trimStart() }))
