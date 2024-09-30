@@ -76,6 +76,7 @@ export class DailyOffworkRecordService {
     }
 
     if (company.stockCode) {
+      this.logger.log(` 开始记录公司 [${company.id}] 股价信息`)
       const stockInfo = await this.thirdParty.fetchStockByCode(company.stockCode)
       data.todayStock = stockInfo.today
       data.yesterdayStock = stockInfo.yesterday
@@ -83,6 +84,7 @@ export class DailyOffworkRecordService {
     }
 
     if (company.salaryDate) {
+      this.logger.log(` 开始记录公司 [${company.id}] 发薪日`)
       const salaryDateInfo = await this.thirdParty.salaryDayApi(company.salaryDate)
       data.salaryDate = salaryDateInfo.salaryDate
       data.restDays = salaryDateInfo.restDays
