@@ -3,6 +3,7 @@ import axios, { AxiosInstance } from 'axios'
 import { setupCache } from 'axios-cache-interceptor'
 import axiosRetry from 'axios-retry'
 import dayjs from 'dayjs'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 import { get, round, split } from 'lodash'
 
 import { RedisService } from '../redis/redis.service'
@@ -37,7 +38,9 @@ export class ThirdPartyService {
 
   constructor(private readonly redis: RedisService) {
     const juheClient = axios.create({
-      proxy: JSON.parse(process.env.JUHE_CN_PROXY_CONFIG || 'null'),
+      httpsAgent: process.env.THIRD_PARTY_CN_PROXY_URL
+        ? new HttpsProxyAgent(process.env.THIRD_PARTY_CN_PROXY_URL)
+        : undefined,
     })
     axiosRetry(juheClient, { retries: 3, retryDelay: () => 500 })
     setupCache(juheClient, {
@@ -46,7 +49,11 @@ export class ThirdPartyService {
     })
     this.juheClient = juheClient
 
-    const defaultClient = axios.create()
+    const defaultClient = axios.create({
+      httpsAgent: process.env.THIRD_PARTY_CN_PROXY_URL
+        ? new HttpsProxyAgent(process.env.THIRD_PARTY_CN_PROXY_URL)
+        : undefined,
+    })
     axiosRetry(defaultClient, { retries: 3, retryDelay: () => 500 })
     setupCache(defaultClient, {
       storage: setupRedisCache(redis),
@@ -59,7 +66,7 @@ export class ThirdPartyService {
   async fetchOilpriceByCityKey(cityKey: string): Promise<IOffworkOilpriceInfo> {
     const res = await this.juheClient
       .get(
-        `http://apis.juhe.cn/gnyj/query?key=${process.env.JUHE_OIL_PRICE_API_KEY}`,
+        `https://apis.juhe.cn/gnyj/query?key=${process.env.JUHE_OIL_PRICE_API_KEY}`,
         redisCacheToday()
       )
       .then(response => response.data)
@@ -75,7 +82,7 @@ export class ThirdPartyService {
     const now = dayjs()
     const currentMonthHoliday = await this.juheClient
       .get(
-        `http://v.juhe.cn/calendar/month?key=${
+        `https://v.juhe.cn/calendar/month?key=${
           process.env.JUHE_HOLIDAY_API_KEY
         }&year-month=${now.format('YYYY-M')}`,
         redisCacheMonth()
@@ -84,7 +91,7 @@ export class ThirdPartyService {
       .then(res => get(res, 'result.data.holiday_array', []))
     const nextMonthHoliday = await this.juheClient
       .get(
-        `http://v.juhe.cn/calendar/month?key=${process.env.JUHE_HOLIDAY_API_KEY}&year-month=${now
+        `https://v.juhe.cn/calendar/month?key=${process.env.JUHE_HOLIDAY_API_KEY}&year-month=${now
           .add(1, 'month')
           .format('YYYY-M')}`,
         redisCacheMonth()
@@ -165,7 +172,7 @@ export class ThirdPartyService {
   async fetchWeatherByCityCode(cityCode: string): Promise<IWeatherResponse> {
     const res = await this.juheClient
       .get(
-        `http://apis.juhe.cn/simpleWeather/query?city=${cityCode}&key=${process.env.JUHE_WEATHER_API_KEY}`,
+        `https://apis.juhe.cn/simpleWeather/query?city=${cityCode}&key=${process.env.JUHE_WEATHER_API_KEY}`,
         redisCache({ type: 'PX', value: 2 * 3600 * 1000 })
       )
       .then(response => response.data)
@@ -188,7 +195,7 @@ export class ThirdPartyService {
     const dateStr = now.format('YYYY-MM-DD')
     const isWorkday = await this.juheClient
       .get(
-        `http://apis.juhe.cn/fapig/calendar/day?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`,
+        `https://apis.juhe.cn/fapig/calendar/day?key=${process.env.JUHE_WORKDAY_API_KEY}&date=${dateStr}`,
         redisCacheMonth()
       )
       .then(response => response.data.result.statusDesc === '工作日')
