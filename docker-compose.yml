@@ -14,4 +14,4 @@ services:
       - TZ=Asia/Shanghai
     extra_hosts:
       - host.docker.internal:host-gateway
-    command: 'sh -c "yarn && yarn dev"'
+    command: 'bash -c "yarn && yarn dev"'

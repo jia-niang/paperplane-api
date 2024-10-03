@@ -18,29 +18,14 @@
 本项目对外部服务有要求：
 
 - 必须能正常连接 PostgreSQL、Redis，否则无法启动；
+- 必须配置 OpenAI 或 Azure OpenAI 的令牌不为空，否则会导致 SDK 初始化失败报错；
 - 如果用到文件存储相关功能（例如每日下班提醒生成图片），则需求正确配置兼容 S3 规范的存储服务；
-- 如果用到 AI 相关功能（例如 Git 周报助手），则需求正确配置 OpenAI 或 Azure OpenAI 服务；
 - 如果用到第三方数据接口（例如每日下班提醒生成图片），则需求正确配置百度地图和聚合数据等第三方数据 API 令牌；
 - 如果用到本机运行状态相关功能，则需求能连接到 Docker Engine API。
 
 这些配置均写在 `.env`、`.env.example` 中，可以参照其中的注释来设置。
 
-# 开发指南
-
-本项目首选在 Docker 中运行，且自带基础镜像和配置，非常简单快捷。不推荐在开发设备上直接运行。  
-
-## 使用 VSCode 的 “开发容器” 在 Docker 中运行
-
-此方法会使用 `.devcontainer` 目录以及其中的配置文件，请确保已安装 Docker 以及 VSCode [远程开发扩展](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)。
-
-步骤：
-
-- 点击 VSCode 左侧边栏的 “远程资源管理器”；
-- 下拉菜单选择 “开发容器”，此处会列出当前运行的 Docker 容器；
-- 点击 “+” 图标，在弹出的菜单中选择 “在容器中打开当前文件夹”，此时 VSCode 会自动创建一个 Docker 容器，将拷贝项目文件放入并连接到容器内的文件系统和终端，此时请稍作等待，因为 VSCode 需要在容器中安装扩展以及 Git 等工具；
-- 这种方式不会自动安装依赖，请打开终端并运行 `yarn`，依赖安装完成后，可以运行 `yarn dev` 启动项目。
-
-这种运行方式由 VSCode 连接到容器并管理文件系统和终端，在 Windows 和 macOS 上操作方式较为统一，且配置文件中可以包含扩展列表，是首选的运行方式。
+# 运行指南
 
 ## macOS 在 Docker 中运行
 
@@ -91,6 +76,21 @@ docker exec -it paperplane-api-local bash
 
 此时就可以执行 `yarn add` 等命令了。
 
+## 使用 VSCode 的 “开发容器” 在 Docker 中运行
+
+此方式可利用隔离环境测试某个代码分支、某次提交或某次拉取请求，这些场合首选此方式运行项目。
+
+此方法会使用 `.devcontainer` 目录以及其中的配置文件，请确保已安装 Docker 以及 VSCode [远程开发扩展](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)。
+
+步骤：
+
+- 点击 VSCode 左侧边栏的 “远程资源管理器”；
+- 下拉菜单选择 “开发容器”，此处会列出当前运行的 Docker 容器；
+- 点击 “+” 图标，在弹出的菜单中选择 “在容器中打开当前文件夹”，此时 VSCode 会自动创建一个 Docker 容器，将拷贝项目文件放入并连接到容器内的文件系统和终端，此时请稍作等待，因为 VSCode 需要在容器中安装扩展以及 Git 等工具；
+- 这种方式不会自动安装依赖，请打开终端并运行 `yarn`，依赖安装完成后，可以运行 `yarn dev` 启动项目。
+
+注意 Windows 系统下直接启动开发容器，修改文件仍然无法及时反馈到容器中。如果有实时调试的需求，请在 wsl 环境中克隆项目并从中启动开发容器。
+
 ## 本机直接运行
 
 需求 Node.js 的 20 及以上版本，[点此下载最新版](https://nodejs.org/) 或者 [点此选择一个版本下载](https://nodejs.org/en/download/releases)；安装完 Node.js 后，请运行 `npm i -g yarn --registry=https://registry.npmmirror.com` 来安装 `yarn`，这也是一个必备的依赖项。
@@ -111,14 +111,17 @@ yarn dev
 yarn build && yarn start:prod
 ```
 
+需要注意的是，puppeteer 调用 Chrome 时，可能会有窗口闪过；同时 Chrome 会使用的默认字体在 Windows、macOS、Linux 系统上均不同，显示效果也会存在差异，因此不建议在开发设备上直接运行项目。 
+
 # 关于 Prisma
 
 项目使用 `prisma` 来持久化存储数据库表结构关系。
 
 特性：
+
 - 开发调试时，通过 `/prisma/schema.prisma` 来修改数据库表结构，修改后通过执行 `yarn dbgen` 生成新的 TypeScript 类型；
 - 如果使用 VSCode，建议在执行 `yarn dbgen` 后使用快捷键 `Ctrl/Command` + `Shift` + `P`，选择 “重启 TS 服务器” 加载新类型；
-- 在全新的环境开发时，执行一次 `yarn dbpush` 来把定义好的数据结构应用于当前数据库；后续请勿再执行此命令，否则必须丢弃全部数据才能执行 `yarn dbmi`；
+- 在全新的环境开发时，请先手动执行一次 `yarn dbpush` 来把定义好的数据结构应用于当前数据库；后续请勿再执行此命令，否则必须丢弃全部数据才能执行 `yarn dbmi`；
 - 每次发布新版本，如果涉及到数据库表结构的修改，需要在开发环境运行 `yarn dbmi` 生成迁移所需的 SQL 文件且自动存储于 `/prisma/..` 目录，然后一同提交代码；CI/CD 会在部署前通过 `yarn dbdeploy:prod` 运行这些迁移。
 
 # 疑难解答
