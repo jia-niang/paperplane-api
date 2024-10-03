@@ -2,16 +2,16 @@ FROM paperplanecc/paperplane-api-base:latest
 
 EXPOSE 6100
 
-WORKDIR /app
+WORKDIR /paperplane-api
 
-COPY package.json /app/
-COPY yarn.lock /app/
+COPY package.json /paperplane-api/
+COPY yarn.lock /paperplane-api/
 RUN yarn
 
-COPY ./prisma /app/prisma
+COPY ./prisma /paperplane-api/prisma
 RUN yarn dbgen
 
-COPY . /app/
+COPY . /paperplane-api/
 RUN yarn build
 
 CMD [ "yarn", "start:prod" ]

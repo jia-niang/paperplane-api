@@ -3,10 +3,10 @@ services:
   paperplane-api-local:
     image: paperplanecc/paperplane-api-base:latest
     container_name: paperplane-api-local
-    working_dir: /app
-    user: node
+    working_dir: /paperplane-api
+    init: true
     volumes:
-      - ./:/app
+      - ./:/paperplane-api
     ports:
       - '6100:6100'
     environment:
@@ -14,4 +14,4 @@ services:
       - TZ=Asia/Shanghai
     extra_hosts:
       - host.docker.internal:host-gateway
-    command: 'sh -c "yarn && yarn dbgen && yarn dev"'
+    command: 'sh -c "yarn && yarn dev"'
