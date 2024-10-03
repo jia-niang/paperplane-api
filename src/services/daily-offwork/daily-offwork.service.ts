@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import crypto from 'crypto'
 import dayjs from 'dayjs'
-import { omit } from 'lodash'
+import { noop, omit } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
 import puppeteer, { Browser } from 'puppeteer'
 
@@ -72,7 +72,7 @@ export class DailyOffworkService {
         `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
       )
       await page.setViewport({ width: 1500, height: 800 })
-      await page.waitForFunction('window.mapOK === true')
+      await page.waitForFunction('window.mapOK === true', { timeout: 15000 }).catch(noop)
       const file = await page.screenshot({ type: 'jpeg', quality: 100 })
       await page.close()
       browser.close()
