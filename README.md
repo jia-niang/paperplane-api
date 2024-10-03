@@ -1,9 +1,9 @@
 # PaperPlane API [![Build Status](https://drone.paperplane.cc/api/badges/jia-niang/paperplane-api/status.svg)](https://drone.paperplane.cc/jia-niang/paperplane-api)
 
-为 https://app.paperplane.cc 提供 API 支持。  
+网站后台，同时也为 https://app.paperplane.cc 提供 API 支持。  
 [原始代码仓库](https://git.paperplane.cc/jia-niang/paperplane-api) · [Github 代码镜像](https://github.com/PaperplaneJS/webapi) · [CI/CD](https://drone.paperplane.cc/jia-niang/paperplane-api)
 
-## 本地调试开发
+# 运行需求
 
 本项目对系统内已安装的应用有要求：
 
@@ -11,9 +11,38 @@
 - 如果有用到 `puppeteer` 相关功能（例如每日下班提醒生成图片），则需求已安装 Chrome；
 - 如果有用到 `simple-git` 相关功能（例如 Git 周报助手），则需求已安装 Git。
 
-为了让本地和云端环境一致，建议使用 Docker 镜像运行。
+为了让本地和云端环境一致，建议使用 Docker 来运行，项目中随附有相关配置，见下文。
 
-## macOS 在 Docker 中运行（推荐）
+-----
+
+本项目对外部服务有要求：
+
+- 必须能正常连接 PostgreSQL、Redis，否则无法启动；
+- 如果用到文件存储相关功能（例如每日下班提醒生成图片），则需求正确配置兼容 S3 规范的存储服务；
+- 如果用到 AI 相关功能（例如 Git 周报助手），则需求正确配置 OpenAI 或 Azure OpenAI 服务；
+- 如果用到第三方数据接口（例如每日下班提醒生成图片），则需求正确配置百度地图和聚合数据等第三方数据 API 令牌；
+- 如果用到本机运行状态相关功能，则需求能连接到 Docker Engine API。
+
+这些配置均写在 `.env`、`.env.example` 中，可以参照其中的注释来设置。
+
+# 开发指南
+
+本项目首选在 Docker 中运行，且自带基础镜像和配置，非常简单快捷。不推荐在开发设备上直接运行。  
+
+## 使用 VSCode 的 “开发容器” 在 Docker 中运行
+
+此方法会使用 `.devcontainer` 目录以及其中的配置文件，请确保已安装 Docker 以及 VSCode [远程开发扩展](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)。
+
+步骤：
+
+- 点击 VSCode 左侧边栏的 “远程资源管理器”；
+- 下拉菜单选择 “开发容器”，此处会列出当前运行的 Docker 容器；
+- 点击 “+” 图标，在弹出的菜单中选择 “在容器中打开当前文件夹”，此时 VSCode 会自动创建一个 Docker 容器，将拷贝项目文件放入并连接到容器内的文件系统和终端，此时请稍作等待，因为 VSCode 需要在容器中安装扩展以及 Git 等工具；
+- 这种方式不会自动安装依赖，请打开终端并运行 `yarn`，依赖安装完成后，可以运行 `yarn dev` 启动项目。
+
+这种运行方式由 VSCode 连接到容器并管理文件系统和终端，在 Windows 和 macOS 上操作方式较为统一，且配置文件中可以包含扩展列表，是首选的运行方式。
+
+## macOS 在 Docker 中运行
 
 此运行方式需要已安装 Docker。
 此运行方式对环境依赖较小，且可以做到和部署后的服务端环境保持一致，推荐使用此方式来运行。
@@ -26,19 +55,23 @@ docker compose up
 docker exec -it paperplane-api-local bash
 ```
 
-## Windows 在 Docker 中运行（Windows 环境推荐）
+如果遇到启动问题以及 puppeteer 报错，可以参考文末的疑难解答部分。
 
-请注意：在 Windows 系统下，Docker 的挂载目录可能无法即时监听文件更改，表现为启动项目极慢、更改了代码后不能重新编译等问题。
-因此推荐使用 wsl2 配合 VSCode 的 [WSL 扩展](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) 来进行开发。
+## Windows 通过 wsl2 在 Docker 中运行
 
-Windows 使用 wsl2 运行本项目的准备工作：
+不推荐直接在 Windows 中启动 Docker 进行开发，因为 Windows 系统和 Docker 容器之间的文件交互性能较差，挂载目录可能无法即时监听文件更改，表现为启动项目极慢、更改了代码后不能马上重新编译等问题。
+
+推荐使用 wsl2 创建一个 Ubuntu 子系统，在其中使用 Docker 并配合 VSCode 的远程开发能力来进行开发。
+
+步骤：
 
 - 本机已安装 [wsl2](https://learn.microsoft.com/zh-cn/windows/wsl/install)；
-- 本机已安装 Docker，并在安装时选择 “使用 wsl2 引擎”，或是在 wsl2 中已安装 Docker；
-- 在 VSCode 中安装 WSL 扩展，[点此链接安装](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)，如果你使用了其他的编辑器 / IDE，请自行寻找对应的插件；
-- 在 wsl 子系统中，可能需要安装 Git，可以这样做：`sudo apt-get update && sudo apt-get install git`。
+- 本机已安装 Docker，并在安装时选择 “使用 wsl2 引擎”，或是在 wsl2 中自行安装 Docker；
+- 在 VSCode 中安装远程开发套件，[点此链接安装](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)，它包含了 SSH 远程开发、容器远程开发等多个工具，可以直接连接 wsl，且连接后会自动初始化远程环境；如果你使用了其他的编辑器 / IDE，请自行寻找对应的插件。
 
-安装 WSL 扩展后，VSCode 左侧边栏会出现 “远程资源管理器”，此时便可以在 wsl 子系统中克隆仓库并打开。
+> 你也可以只安装 [WSL 扩展](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)，此时也可以连接到 wsl，但 Git 等工具还需要手动安装一遍（指令 `sudo apt-get update && sudo apt-get install git`），所以不推荐单独使用这个扩展。
+
+安装扩展后，VSCode 左侧边栏会出现 “远程资源管理器”，此时便可以在 wsl 子系统中克隆仓库并打开。  
 建议转到 VSCode “扩展” 页面，部分扩展需要在子系统中重新安装一遍。
 
 运行项目：
@@ -58,7 +91,7 @@ docker exec -it paperplane-api-local bash
 
 此时就可以执行 `yarn add` 等命令了。
 
-## 本机运行
+## 本机直接运行
 
 需求 Node.js 的 20 及以上版本，[点此下载最新版](https://nodejs.org/) 或者 [点此选择一个版本下载](https://nodejs.org/en/download/releases)；安装完 Node.js 后，请运行 `npm i -g yarn --registry=https://registry.npmmirror.com` 来安装 `yarn`，这也是一个必备的依赖项。
 
@@ -78,7 +111,7 @@ yarn dev
 yarn build && yarn start:prod
 ```
 
-## 关于 Prisma
+# 关于 Prisma
 
 项目使用 `prisma` 来持久化存储数据库表结构关系。
 
@@ -88,7 +121,9 @@ yarn build && yarn start:prod
 - 在全新的环境开发时，执行一次 `yarn dbpush` 来把定义好的数据结构应用于当前数据库；后续请勿再执行此命令，否则必须丢弃全部数据才能执行 `yarn dbmi`；
 - 每次发布新版本，如果涉及到数据库表结构的修改，需要在开发环境运行 `yarn dbmi` 生成迁移所需的 SQL 文件且自动存储于 `/prisma/..` 目录，然后一同提交代码；CI/CD 会在部署前通过 `yarn dbdeploy:prod` 运行这些迁移。
 
-## 基础镜像
+# 疑难解答
+
+## 关于基础镜像
 
 因为使用到 `puppeteer`、`git` 等工具，对运行环境有要求，Node.js 基础镜像无法满足需求，需要使用特定的基础镜像来运行。
 注意，请不要使用 `-slim`、`-alpine` 类型的镜像，它们缺少一些指令（例如 `ps`）会导致某些功能运行时报错。
@@ -124,12 +159,15 @@ CMD ["google-chrome-stable"]
 
 注意构建的步骤中需要访问 Google，请确保具备国际互联网访问能力。
 
-## 问题排查
+## macOS 的 Docker 问题
 
-在 Apple Silicon 设备上运行失败时（一般发生于调用 `puppeteer` 的场景），可按照以下步骤解决问题：
+在 Apple Silicon 芯片的设备上运行失败时（一般发生于调用 `puppeteer` 的场景），可按照以下步骤解决问题：
 
 - 打开 Docker Desktop；
 - 使用快捷键 `Commend` + `,` 打开设置；
 - 选择 “Features in development” 选项卡；
+- 确保 “Use Virtualization framework” 已勾选，如果没有此选项，建议更新到最新版本；
 - 勾选 “Use Rosetta for x86/amd64 emulation on Apple Silicon”；
 - 点击右下角 “Apply & restart”，使设置生效。
+
+注意：请确保 Docker 处在最新版本，目前已知特定版本会出现 “Rosetta is only intended to run on Apple Silicon with a macOS host using Virtualization.framework with Rosetta mode enabled” 提示，更新最新版本可解决此问题。
