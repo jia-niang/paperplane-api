@@ -100,9 +100,16 @@ export class DailyOffworkService {
   }
 
   async todayOffworkDataByCompanyWorkplace(companyId: string, workplaceId: string) {
-    const now = dayjs()
-    const date = now.format('YYYY-MM-DD')
+    const today = dayjs().format('YYYY-MM-DD')
 
+    return this.getOffworkDataByCompanyWorkplaceAndDate(today, companyId, workplaceId)
+  }
+
+  async getOffworkDataByCompanyWorkplaceAndDate(
+    date: string,
+    companyId: string,
+    workplaceId: string
+  ) {
     const workdayRecord = await this.prisma.workdayRecord.findFirst({ where: { date } })
 
     const companyRecord = await this.prisma.dailyCompanyRecord.findFirst({
@@ -130,7 +137,7 @@ export class DailyOffworkService {
       )
     }
 
-    const url = `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
+    const url = `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
     const shortUrl = await this.shortsService.generateDailyOffworkShorts(url)
 
     return {
@@ -145,8 +152,14 @@ export class DailyOffworkService {
   }
 
   async todayViewByCompanyWorkplace(companyId: string, workplaceId: string) {
-    const { company, workplace, companyRecord, workplaceRecord, shortUrl, date } =
-      await this.todayOffworkDataByCompanyWorkplace(companyId, workplaceId)
+    const today = dayjs().format('YYYY-MM-DD')
+
+    return this.getViewByCompanyWorkplaceAndDate(today, companyId, workplaceId)
+  }
+
+  async getViewByCompanyWorkplaceAndDate(date: string, companyId: string, workplaceId: string) {
+    const { company, workplace, companyRecord, workplaceRecord, shortUrl } =
+      await this.getOffworkDataByCompanyWorkplaceAndDate(date, companyId, workplaceId)
 
     const now = dayjs(date)
     const bgNumber = 1 + (now.dayOfYear() % imageCount)

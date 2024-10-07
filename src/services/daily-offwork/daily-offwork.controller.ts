@@ -44,6 +44,20 @@ export class DailyOffworkController {
   }
 
   @Public()
+  @Get(`/date/:date/company/:companyId/workplace/:workplaceId`)
+  async getOffworkDataByCompanyWorkplaceAndDate(
+    @Param('date') date,
+    @Param('companyId') companyId,
+    @Param('workplaceId') workplaceId
+  ) {
+    return this.dailyOffworkService.getOffworkDataByCompanyWorkplaceAndDate(
+      date,
+      companyId,
+      workplaceId
+    )
+  }
+
+  @Public()
   @Post('/today/company/:companyId/workplace/:workplaceId/robot/:robotId/send')
   async sendTodayByFullLayerId(
     @Param('companyId') companyId: string,
@@ -63,6 +77,20 @@ export class DailyOffworkController {
     return res.render(
       'offwork-view',
       await this.dailyOffworkService.todayViewByCompanyWorkplace(companyId, workplaceId)
+    )
+  }
+
+  @Public()
+  @Get('/date/:date/company/:companyId/workplace/:workplaceId/view')
+  async getOffworkNoticeViewByDate(
+    @Param('date') date,
+    @Param('companyId') companyId: string,
+    @Param('workplaceId') workplaceId: string,
+    @Res() res: Response
+  ) {
+    return res.render(
+      'offwork-view',
+      await this.dailyOffworkService.getViewByCompanyWorkplaceAndDate(date, companyId, workplaceId)
     )
   }
 
