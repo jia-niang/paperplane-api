@@ -24,38 +24,60 @@ export class DailyOffworkService {
   private readonly logger = new Logger(DailyOffworkService.name)
 
   async sendTodayAll() {
+    const today = dayjs().format('YYYY-MM-DD')
+
+    return this.sendAllByDate(today)
+  }
+
+  async sendAllByDate(date: string) {
     const todayRecord = await this.prisma.workdayRecord.findFirst({
-      where: { date: dayjs().format('YYYY-MM-DD') },
+      where: { date },
     })
 
     if (!todayRecord) {
-      this.logger.error(`未找到本日记录。发送消息步骤已略去`)
+      this.logger.error(`未找到 [${date}] 日记录，发送消息步骤已略去`)
       return
     }
 
     if (!todayRecord.isWorkDay && process.env.NODE_ENV === 'production') {
-      this.logger.log(`今天不是工作日，跳过消息发送`)
+      this.logger.log(`[${date}] 不是工作日，跳过消息发送`)
       return
     } else if (!todayRecord.isWorkDay) {
-      this.logger.log(`今天不是工作日，但测试环境仍然发送`)
+      this.logger.log(`[${date}] 不是工作日，但测试环境仍然发送`)
     }
 
     const allSetting = await this.prisma.offworkNoticeSetting.findMany({
       where: { disabled: false },
     })
 
-    this.logger.log(`发送今日 offwork 消息，共 [${allSetting.length}] 条`)
+    this.logger.log(`发送 [${date}] 日期的 offwork 消息，共 [${allSetting.length}] 条`)
 
     for (const item of allSetting) {
-      await this.sendTodayByFullLayerId(item.companyId, item.workplaceId, item.messageRobotId)
+      await this.sendByDateAndFullLayerId(
+        date,
+        item.companyId,
+        item.workplaceId,
+        item.messageRobotId
+      )
     }
 
-    this.logger.log(`今日 offwork 消息发送完成`)
+    this.logger.log(`日期 [${date}] 的 offwork 消息发送完成`)
   }
 
   async sendTodayByFullLayerId(companyId: string, workplaceId: string, robotId: string) {
-    await this.todayViewByCompanyWorkplace(companyId, workplaceId)
-    const image = await this.viewToImage(companyId, workplaceId)
+    const today = dayjs().format('YYYY-MM-DD')
+
+    return this.sendByDateAndFullLayerId(today, companyId, workplaceId, robotId)
+  }
+
+  async sendByDateAndFullLayerId(
+    date: string,
+    companyId: string,
+    workplaceId: string,
+    robotId: string
+  ) {
+    await this.getViewByCompanyWorkplaceAndDate(date, companyId, workplaceId)
+    const image = await this.viewToImage(date, companyId, workplaceId)
 
     await this.messageRobot.sendImageByRobotId(robotId, image, {
       atAll: true,
@@ -63,13 +85,17 @@ export class DailyOffworkService {
     })
   }
 
-  async viewToImage(companyId: string, workplaceId: string): Promise<IMessageRobotImage> {
+  async viewToImage(
+    date: string,
+    companyId: string,
+    workplaceId: string
+  ): Promise<IMessageRobotImage> {
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
       const page = await browser.newPage()
       await page.goto(
-        `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
+        `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
       )
       await page.setViewport({ width: 1500, height: 800 })
       await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
@@ -77,11 +103,9 @@ export class DailyOffworkService {
       await page.close()
       browser.close()
 
-      const now = dayjs()
+      const nowTimestamp = dayjs().valueOf()
       const url = await uploadFile(
-        `/offwork-image/img-${now.format(
-          'YYYY-MM-DD'
-        )}-${companyId}-${workplaceId}-${now.valueOf()}.jpg`,
+        `/offwork-image/img-${date}-${companyId}-${workplaceId}-${nowTimestamp}.jpg`,
         file
       ).then(fileInfo => fileInfo.fileUrl)
 
@@ -120,7 +144,7 @@ export class DailyOffworkService {
 
     if (!company) {
       throw new Error(
-        `未找到 ID 为 "${companyId}" 的公司记录，请检查提供的 ID 是否正确。如果 ID 无误，请确保生成当日生成记录时此公司已存在。`
+        `未找到 ID 为 "${companyId}" 的公司记录，请检查提供的 ID 是否正确。如果 ID 无误，请确保 [${date}] 日期生成记录时此公司已存在。`
       )
     }
 
@@ -133,7 +157,7 @@ export class DailyOffworkService {
     if (!workplace) {
       throw new Error(
         `未找到 ID 为 "${workplaceId}" 的工作地点记录，请检查提供的 ID 是否正确以及此工作地点是否正确归属于公司 "${company.company}"。` +
-          `如果 ID 无误，请确保当日生成记录时此工作地点已存在。`
+          `如果 ID 无误，请确保 [${date}] 日期生成记录时此工作地点已存在。`
       )
     }
 

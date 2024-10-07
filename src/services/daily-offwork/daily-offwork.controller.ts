@@ -68,6 +68,17 @@ export class DailyOffworkController {
   }
 
   @Public()
+  @Post('/date/:date/company/:companyId/workplace/:workplaceId/robot/:robotId/send')
+  async sendByDateAndFullLayerId(
+    @Param('date') date,
+    @Param('companyId') companyId: string,
+    @Param('workplaceId') workplaceId: string,
+    @Param('robotId') robotId: string
+  ) {
+    return this.dailyOffworkService.sendByDateAndFullLayerId(date, companyId, workplaceId, robotId)
+  }
+
+  @Public()
   @Get('/today/company/:companyId/workplace/:workplaceId/view')
   async todayOffworkNoticeView(
     @Param('companyId') companyId: string,
