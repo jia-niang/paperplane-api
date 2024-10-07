@@ -164,13 +164,15 @@ CMD ["google-chrome-stable"]
 
 ## macOS 的 Docker 问题
 
-在 Apple Silicon 芯片的设备上运行失败时（一般发生于调用 `puppeteer` 的场景），可按照以下步骤解决问题：
+在 Apple Silicon 芯片的设备上运行出现问题时，可参考以下步骤解决问题：
 
-- 打开 Docker Desktop；
+出现 “Rosetta is only intended to run on Apple Silicon with a macOS host using Virtualization.framework with Rosetta mode enabled” 问题时：
+
+- 请将 Docker Desktop 更新到最新版，这一步很重要；
 - 使用快捷键 `Commend` + `,` 打开设置；
-- 选择 “Features in development” 选项卡；
-- 确保 “Use Virtualization framework” 已勾选，如果没有此选项，建议更新到最新版本；
-- 勾选 “Use Rosetta for x86/amd64 emulation on Apple Silicon”；
+- 确保 “Use Virtualization framework” 已勾选；
 - 点击右下角 “Apply & restart”，使设置生效。
 
-注意：请确保 Docker 处在最新版本，目前已知特定版本会出现 “Rosetta is only intended to run on Apple Silicon with a macOS host using Virtualization.framework with Rosetta mode enabled” 提示，更新最新版本可解决此问题。
+调用 prisma 时出现 “assertion failed [block != nullptr]: BasicBlock requested for unrecognized address” 等问题时：
+
+选项 “Use Rosetta for x86/amd64 emulation on Apple Silicon” 会使用 Rosetta2 对非 ARM 的容器进行转译运行，这可以解决本项目旧版本的 puppeteer 无法运行的问题；但最新版本的 Docker 只需勾选 “Use Virtualization framework” 即可，它会使用 QEMU 进行 x86_64 环境的模拟而不是转译，兼容性更好，请取消 “Use Rosetta ...” 项的勾选。
