@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import dayjs from 'dayjs'
-import { uniq } from 'lodash'
+import { noop, uniq } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
+import puppeteer, { Browser } from 'puppeteer'
+
+import { uploadFile } from '@/utils/s3'
 
 import { ThirdPartyService } from '../third-party/third-party.service'
 
@@ -138,6 +141,12 @@ export class DailyOffworkRecordService {
         500
       )
       data.traffic = trafficInfo
+
+      this.logger.log(` 开始记录工作地点 [${workplace.id}] 交通拥堵热力图`)
+      const trafficImage = await this.trafficViewImageToUrl(workplaceId)
+      data.trafficImage = trafficImage
+
+      console.log('trafficImage = ', trafficImage)
     }
 
     await this.prisma.dailyWorkplaceRecord.deleteMany({
@@ -148,5 +157,35 @@ export class DailyOffworkRecordService {
     this.logger.log(`添加工作地点记录 [${workplaceId}] 完成`)
 
     return result
+  }
+
+  async trafficViewImageToUrl(workplaceId: string): Promise<string> {
+    let browser: Browser
+    try {
+      browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
+      const page = await browser.newPage()
+      await page.goto(
+        `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplaceId}/view`
+      )
+      await page.setViewport({ width: 650, height: 650 })
+      await page.waitForFunction('window.mapOK === true', { timeout: 15000 }).catch(noop)
+      const file = await page.screenshot()
+      await page.close()
+      browser.close()
+
+      const now = dayjs()
+      const url = await uploadFile(
+        `/offwork-traffic-image/img-${now.format(
+          'YYYY-MM-DD'
+        )}-${workplaceId}-${now.valueOf()}.png`,
+        file
+      ).then(fileInfo => fileInfo.fileUrl)
+
+      return url
+    } catch (e) {
+      throw e
+    } finally {
+      browser?.close()
+    }
   }
 }

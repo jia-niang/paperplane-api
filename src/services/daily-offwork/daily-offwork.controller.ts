@@ -65,4 +65,13 @@ export class DailyOffworkController {
       await this.dailyOffworkService.todayViewByCompanyWorkplace(companyId, workplaceId)
     )
   }
+
+  @Public()
+  @Get('/today/traffic/workplace/:workplaceId/view')
+  async todayOffworkTrafficView(@Param('workplaceId') workplaceId: string, @Res() res: Response) {
+    return res.render(
+      'offwork-traffic-view',
+      await this.dailyOffworkService.todayTrafficViewByWorkplace(workplaceId)
+    )
+  }
 }

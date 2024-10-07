@@ -72,7 +72,7 @@ export class DailyOffworkService {
         `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
       )
       await page.setViewport({ width: 1500, height: 800 })
-      await page.waitForFunction('window.mapOK === true', { timeout: 15000 }).catch(noop)
+      await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
       const file = await page.screenshot({ type: 'jpeg', quality: 100 })
       await page.close()
       browser.close()
@@ -182,6 +182,20 @@ export class DailyOffworkService {
       todayWeatherUrl,
       tomorrowWeatherUrl,
       stockText,
+    }
+
+    return viewData
+  }
+
+  async todayTrafficViewByWorkplace(workplaceId: string) {
+    const workplace = await this.prisma.workplace.findFirst({
+      where: { id: workplaceId },
+    })
+
+    const viewData = {
+      ...workplace,
+      serviceUrl: process.env.SERVICE_URL,
+      baiduMapAK: process.env.BAIDU_MAP_WEBSDK_AK,
     }
 
     return viewData

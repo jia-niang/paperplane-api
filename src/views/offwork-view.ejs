@@ -118,6 +118,7 @@
         margin-left: 20px;
       }
       .shorts {
+        font-family: pingfang;
         font-weight: 300;
         font-size: 30px;
         margin-top: 20px;
@@ -129,7 +130,7 @@
         right: 40px;
         text-align: right;
       }
-      #map {
+      .map {
         position: absolute;
         border-radius: 20px;
         bottom: 40px;
@@ -203,7 +204,7 @@
         </div>
       </div>
 
-      <div id="map"></div>
+      <img class="map" onload="window.mapOK = true" src="<%= trafficImage %>" />
       <div class="map-desc">交通拥堵状况</div>
 
       <div class="stock">
@@ -213,31 +214,5 @@
         <% } %>
       </div>
     </div>
-
-    <script src="https://api.map.baidu.com/api?type=webgl&v=3.0&ak=<%= baiduMapAK %>"></script>
-    <script>
-      var map = new BMapGL.Map('map')
-      map.centerAndZoom(
-        new BMapGL.Point(Number('<%= mapLongitude %>'), Number('<%= mapLatitude %>')),
-        17
-      )
-      map.enableScrollWheelZoom(true)
-      map.setMapStyleV2({ styleId: '975d24a1bf601154fa5f759cac0ff9a5' })
-      map.setTrafficOn()
-
-      const companyMark = new BMapGL.Marker(
-        new BMapGL.Point(Number('<%= mapLongitude %>'), Number('<%= mapLatitude %>'))
-      )
-      map.addOverlay(companyMark)
-
-      map.addEventListener('tilesloaded', function () {
-        setTimeout(() => {
-          window.mapOK = true
-        }, 5000)
-      })
-      setTimeout(() => {
-        window.mapOK = true
-      }, 10000)
-    </script>
   </body>
 </html>
