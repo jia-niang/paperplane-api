@@ -18,7 +18,7 @@ const LOGIN_USERS_PREFIX = 'login-users:'
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private readonly redisService: RedisService
+    private readonly redis: RedisService
   ) {}
 
   async login(username: string, password: string) {
@@ -43,28 +43,28 @@ export class AuthService {
   }
 
   async registerLoginSession(sessionId: string, user: ISessionUser) {
-    await this.redisService.sadd(LOGIN_USERS_PREFIX + user.id, sessionId)
+    await this.redis.sadd(LOGIN_USERS_PREFIX + user.id, sessionId)
   }
 
   async unregisterLoginSession(sessionId: string, user: ISessionUser) {
-    await this.redisService.srem(LOGIN_USERS_PREFIX + user.id, sessionId)
+    await this.redis.srem(LOGIN_USERS_PREFIX + user.id, sessionId)
   }
 
   async updateLoginSession(userId: string, newUser: ISessionUser) {
-    const sessionIds = await this.redisService.smembers(LOGIN_USERS_PREFIX + userId)
+    const sessionIds = await this.redis.smembers(LOGIN_USERS_PREFIX + userId)
     await Promise.allSettled(
       sessionIds.map(
         sessionId =>
           new Promise<void>(async resolve => {
-            const sessionRecord = await this.redisService.get(sessionId)
+            const sessionRecord = await this.redis.get(sessionId)
             if (!sessionRecord) {
-              this.redisService.srem(LOGIN_USERS_PREFIX + userId, sessionId)
+              this.redis.srem(LOGIN_USERS_PREFIX + userId, sessionId)
               resolve()
             }
 
             const session = JSON.parse(sessionRecord) as IAppSession
             session.currentUser = newUser
-            await this.redisService.set(sessionId, JSON.stringify(session))
+            await this.redis.set(sessionId, JSON.stringify(session))
             resolve()
           })
       )
