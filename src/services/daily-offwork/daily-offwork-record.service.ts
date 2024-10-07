@@ -145,8 +145,6 @@ export class DailyOffworkRecordService {
       this.logger.log(` 开始记录工作地点 [${workplace.id}] 交通拥堵热力图`)
       const trafficImage = await this.trafficViewImageToUrl(workplaceId)
       data.trafficImage = trafficImage
-
-      console.log('trafficImage = ', trafficImage)
     }
 
     await this.prisma.dailyWorkplaceRecord.deleteMany({
