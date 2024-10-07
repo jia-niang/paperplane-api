@@ -157,6 +157,7 @@ export class DailyOffworkRecordService {
     return result
   }
 
+  /** 生成交通图 */
   async trafficViewImageToUrl(workplaceId: string): Promise<string> {
     let browser: Browser
     try {
