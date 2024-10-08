@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, Res } from '@nestjs/common'
 import { Response } from 'express'
 
 import { Public } from '@/app/auth.decorator'
+import { AdminRole } from '@/app/role.decorator'
 
 import { DailyOffworkRecordService } from './daily-offwork-record.service'
 import { DailyOffworkService } from './daily-offwork.service'
@@ -13,13 +14,13 @@ export class DailyOffworkController {
     private readonly dailyOffworkRecordService: DailyOffworkRecordService
   ) {}
 
-  @Public()
+  @AdminRole()
   @Post('/today/all/record')
   async completeTodayRecord() {
     await this.dailyOffworkRecordService.completeTodayRecord()
   }
 
-  @Public()
+  @AdminRole()
   @Post('/today/all/send')
   async sendTodayAll() {
     return this.dailyOffworkService.sendTodayAll()

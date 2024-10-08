@@ -1,8 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Role } from '@prisma/client'
+import { Request } from 'express'
 
 import { IAppSession } from './auth.service'
+import { checkPreconfigAdmin } from './preconfig-admin'
 
 export const ROLES_KEY = 'ROLES'
 
@@ -11,6 +13,11 @@ export class RolesGuardService implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<Request>()
+    if (checkPreconfigAdmin(request)) {
+      return true
+    }
+
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -20,7 +27,7 @@ export class RolesGuardService implements CanActivate {
       return true
     }
 
-    const session: IAppSession = context.switchToHttp().getRequest().session
+    const session: IAppSession = request.session
     const role = session?.currentUser?.role
     const isOK = requiredRoles.includes(role)
 
