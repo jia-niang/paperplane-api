@@ -25,6 +25,10 @@
 
 这些配置均写在 `.env`、`.env.example` 中，可以参照其中的注释来设置。
 
+-----
+
+注意：现在不再使用 `@nestjs/config` 来配置环境变量，因为其他工具（例如 `prisma`）并不能通过它来读取变量，所以现在统一使用 `dotenv` 配置，这导致环境变量文件更改后，必须重新运行项目。
+
 # 运行指南
 
 ## macOS 在 Docker 中运行
@@ -160,7 +164,8 @@ ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/google-chrome-stable
 CMD ["google-chrome-stable"]
 ```
 
-注意构建的步骤中需要访问 Google，请确保具备国际互联网访问能力。
+构建的步骤中需要访问 Google，请确保具备国际互联网访问能力。  
+目前 Chrome 在非 macOS 的 arm64 平台没有提供二进制包，因此无法以 arm64 作为构建目标进行构建镜像。
 
 ## macOS 的 Docker 问题
 
@@ -168,11 +173,16 @@ CMD ["google-chrome-stable"]
 
 出现 “Rosetta is only intended to run on Apple Silicon with a macOS host using Virtualization.framework with Rosetta mode enabled” 问题时：
 
-- 请将 Docker Desktop 更新到最新版，这一步很重要；
+- 请将 Docker Desktop 更新到最新版，这是关键步骤；
 - 使用快捷键 `Commend` + `,` 打开设置；
 - 确保 “Use Virtualization framework” 已勾选；
 - 点击右下角 “Apply & restart”，使设置生效。
 
 调用 prisma 时出现 “assertion failed [block != nullptr]: BasicBlock requested for unrecognized address” 等问题时：
 
-选项 “Use Rosetta for x86/amd64 emulation on Apple Silicon” 会使用 Rosetta2 对非 ARM 的容器进行转译运行，这可以解决本项目旧版本的 puppeteer 无法运行的问题；但最新版本的 Docker 只需勾选 “Use Virtualization framework” 即可，它会使用 QEMU 进行 x86_64 环境的模拟而不是转译，兼容性更好，请取消 “Use Rosetta ...” 项的勾选。
+- 建议将 Docker Desktop 更新到最新版；
+- 使用快捷键 `Commend` + `,` 打开设置；
+- 确保 “Use Virtualization framework” 已勾选；
+- 建议勾选 “Use containerd for pulling and storing images”，注意勾选此选项并接受后，Docker 将清空所有镜像和容器，就像被重新安装了一样；
+- 如果勾选 “Use Rosetta for x86/amd64 emulation on Apple Silicon”，则会使用 Rosetta2 对非 arm 的容器进行转译运行，这可以解决本项目曾遇到的 puppeteer 无法运行的问题，不勾选则使用 QEMU 来模拟 x86_64 环境，此处推荐勾选，并结合上一条步骤一同使用；
+- 点击右下角 “Apply & restart”，使设置生效。
