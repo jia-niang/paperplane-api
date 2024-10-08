@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Post, Session } from '@nestjs/common'
+import { Body, Controller, Get, Post, Res, Session } from '@nestjs/common'
 import { User } from '@prisma/client'
+import { Response } from 'express'
+import { noop } from 'lodash'
 
 import { Public, UserId, UserInfo } from '@/app/auth.decorator'
 import { AdminRole } from '@/app/role.decorator'
@@ -18,11 +20,12 @@ export class UserController {
   @Post('/login')
   async login(@Body() user: { name: string; password: string }, @Session() session: IAppSession) {
     const userInfo = await this.authService.login(user.name, user.password)
-    const sessionUser = await this.authService.makeSessionUser(userInfo)
+    const sessionUser = await this.authService.createUserSessionData(userInfo)
     session.currentUser = sessionUser
-    await this.authService.registerLoginSession(session.id, sessionUser)
+    session.save(noop)
+    await this.authService.registerUserSessions(session.id, sessionUser)
 
-    return user
+    return userInfo
   }
 
   @Get('/current')
@@ -37,9 +40,18 @@ export class UserController {
   }
 
   @Post('/logout')
-  async logout(@UserInfo() user: ISessionUser, @Session() session: IAppSession) {
-    session.currentUser = null
-    await this.authService.unregisterLoginSession(session.id, user)
+  async logout(
+    @UserInfo() user: ISessionUser,
+    @Session() session: IAppSession,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    await this.authService.unregisterUserSessions(session.id, user)
+    session.destroy(noop)
     await this.authService.logout()
+    res.clearCookie(process.env.COOKIES_NAME, {
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    })
   }
 }

@@ -1,6 +1,5 @@
 import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import RedisStore from 'connect-redis'
@@ -36,15 +35,6 @@ import { UserService } from './services/user/user.service'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      envFilePath: [
-        process.env.NODE_ENV === 'production' ? '.env.production.local' : '.env.development.local',
-        process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development',
-        '.env.local',
-        '.env',
-      ],
-      isGlobal: true,
-    }),
     RedisModule.forRoot({ type: 'single', url: process.env.REDIS_URL }),
     PrismaModule.forRoot({
       prismaServiceOptions: { middlewares: [prismaSoftDeleteMiddleware] },
@@ -64,6 +54,7 @@ import { UserService } from './services/user/user.service'
               prefix: 'session:',
               ttl: maxAgeInSecond,
             }),
+            unset: 'destroy',
             resave: false,
             saveUninitialized: false,
             cookie: {

@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { User } from '@prisma/client'
+import dayjs from 'dayjs'
 import { Session } from 'express-session'
 import { pick } from 'lodash'
 
@@ -12,7 +13,7 @@ export interface IAppSession extends Session {
 
 export interface ISessionUser extends Pick<User, 'id' | 'role'> {}
 
-const LOGIN_USERS_PREFIX = 'login-users:'
+const USER_SESSIONS_PREFIX = 'user-sessions:'
 
 @Injectable()
 export class AuthService {
@@ -38,33 +39,54 @@ export class AuthService {
     return
   }
 
-  async makeSessionUser(user: User): Promise<ISessionUser> {
+  async createUserSessionData(user: User): Promise<ISessionUser> {
     return pick(user, ['id', 'role'])
   }
 
-  async registerLoginSession(sessionId: string, user: ISessionUser) {
-    await this.redis.sadd(LOGIN_USERS_PREFIX + user.id, sessionId)
+  async logoutExceededSessions(userId: string) {
+    const maxSessionPerUser = Number(process.env.MAX_SESSION_PER_USER || 1)
+    if (maxSessionPerUser <= 0) {
+      return
+    }
+
+    const exceededSessionIds = await this.redis.zrevrange(
+      USER_SESSIONS_PREFIX + userId,
+      maxSessionPerUser,
+      -1
+    )
+    if (exceededSessionIds.length > 0) {
+      this.redis.zrem(USER_SESSIONS_PREFIX + userId, ...exceededSessionIds)
+      exceededSessionIds.forEach(sessionId => {
+        this.redis.del('session:' + sessionId)
+      })
+    }
   }
 
-  async unregisterLoginSession(sessionId: string, user: ISessionUser) {
-    await this.redis.srem(LOGIN_USERS_PREFIX + user.id, sessionId)
+  async registerUserSessions(sessionId: string, user: ISessionUser) {
+    await this.redis.zadd(USER_SESSIONS_PREFIX + user.id, dayjs().valueOf(), sessionId)
+    this.logoutExceededSessions(user.id)
   }
 
-  async updateLoginSession(userId: string, newUser: ISessionUser) {
-    const sessionIds = await this.redis.smembers(LOGIN_USERS_PREFIX + userId)
+  async unregisterUserSessions(sessionId: string, user: ISessionUser) {
+    await this.redis.zrem(USER_SESSIONS_PREFIX + user.id, sessionId)
+    this.logoutExceededSessions(user.id)
+  }
+
+  async updateUserSessions(userId: string, newUser: ISessionUser) {
+    const sessionIds = await this.redis.zrevrange(USER_SESSIONS_PREFIX + userId, 0, -1)
     await Promise.allSettled(
       sessionIds.map(
         sessionId =>
           new Promise<void>(async resolve => {
             const sessionRecord = await this.redis.get(sessionId)
             if (!sessionRecord) {
-              this.redis.srem(LOGIN_USERS_PREFIX + userId, sessionId)
+              this.redis.zrem(USER_SESSIONS_PREFIX + userId, sessionId)
               resolve()
             }
 
             const session = JSON.parse(sessionRecord) as IAppSession
             session.currentUser = newUser
-            await this.redis.set(sessionId, JSON.stringify(session))
+            await this.redis.set('session:' + sessionId, JSON.stringify(session))
             resolve()
           })
       )
