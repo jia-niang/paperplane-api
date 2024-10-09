@@ -1,4 +1,4 @@
-FROM paperplanecc/paperplane-api-base:latest
+FROM paperplanecc/paperplane-api-base:1.0.0
 
 EXPOSE 6100
 

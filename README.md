@@ -8,12 +8,12 @@
 本项目对系统内已安装的应用有要求：
 
 - 必须已安装 Node.js 20 及以上版本，这是必须的运行条件；
-- 如果有用到 `puppeteer` 相关功能（例如每日下班提醒生成图片），则需求已安装 Chrome；
+- 如果有用到 `puppeteer` 相关功能（例如每日下班提醒生成图片），则需求已安装 Chrome/Chromium；
 - 如果有用到 `simple-git` 相关功能（例如 Git 周报助手），则需求已安装 Git。
 
 为了让本地和云端环境一致，建议使用 Docker 来运行，项目中随附有相关配置，见下文。
 
------
+---
 
 本项目对外部服务有要求：
 
@@ -25,15 +25,15 @@
 
 这些配置均写在 `.env`、`.env.example` 中，可以参照其中的注释来设置。
 
------
+---
 
-注意：现在不再使用 `@nestjs/config` 来配置环境变量，因为其他工具（例如 `prisma`）并不能通过它来读取变量，所以现在统一使用 `dotenv` 配置，这导致环境变量文件更改后，必须重新运行项目。
+注意：现在不再使用 `@nestjs/config` 来配置环境变量，因为其他工具（例如 `prisma`）并不能通过它来读取变量，所以现在统一使用 `dotenv` 配置，这导致环境变量文件更改后，必须重新运行项目才能生效。
 
 # 运行指南
 
 ## macOS 在 Docker 中运行
 
-此运行方式需要已安装 Docker。
+此运行方式需要已安装 Docker。  
 此运行方式对环境依赖较小，且可以做到和部署后的服务端环境保持一致，推荐使用此方式来运行。
 
 ```bash
@@ -63,7 +63,7 @@ docker exec -it paperplane-api-local bash
 安装扩展后，VSCode 左侧边栏会出现 “远程资源管理器”，此时便可以在 wsl 子系统中克隆仓库并打开。  
 建议转到 VSCode “扩展” 页面，部分扩展需要在子系统中重新安装一遍。
 
-运行项目：
+运行项目：  
 打开 VSCode 终端，此时终端已连接到 wsl 子系统中，执行：
 
 ```bash
@@ -115,7 +115,7 @@ yarn dev
 yarn build && yarn start:prod
 ```
 
-需要注意的是，puppeteer 调用 Chrome 时，可能会有窗口闪过；同时 Chrome 会使用的默认字体在 Windows、macOS、Linux 系统上均不同，显示效果也会存在差异，因此不建议在开发设备上直接运行项目。 
+需要注意的是，puppeteer 调用浏览器时，浏览器窗口可能会一闪而过；同时浏览器的默认字体在 Windows、macOS、Linux 系统上均不同，显示效果也会存在差异，使用 Docker 运行则不会有此问题。
 
 # 关于 Prisma
 
@@ -135,7 +135,7 @@ yarn build && yarn start:prod
 因为使用到 `puppeteer`、`git` 等工具，对运行环境有要求，Node.js 基础镜像无法满足需求，需要使用特定的基础镜像来运行。
 注意，请不要使用 `-slim`、`-alpine` 类型的镜像，它们缺少一些指令（例如 `ps`）会导致某些功能运行时报错。
 
-在文件 `Dockerfile` 中可以看到使用 [`paperplanecc/paperplane-api-base`](https://hub.docker.com/r/paperplanecc/paperplane-api-base) 作为基础镜像。
+在文件 `Dockerfile` 中可以看到使用 [`paperplanecc/paperplane-api-base`](https://hub.docker.com/r/paperplanecc/paperplane-api-base) 作为基础镜像。  
 此镜像是专门为本项目准备、已事前构建好的。
 
 也可以自行构建基础镜像，此处给出基础镜像的构建方式：
@@ -143,33 +143,25 @@ yarn build && yarn start:prod
 ```Dockerfile
 FROM node:20.13.0
 
-RUN apt-get update 
+RUN apt-get update
 
 RUN apt-get install -y git
 
-RUN apt-get install -y wget gnupg
+RUN apt-get install -y chromium --no-install-recommends
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update 
-    
-RUN apt-get install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf fonts-noto-color-emoji --no-install-recommends
+RUN apt-get install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf fonts-noto-color-emoji  --no-install-recommends
 
-RUN apt-get install -y google-chrome-stable libxss1 --no-install-recommends
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN rm -rf /var/lib/apt/lists/*
-
-ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/google-chrome-stable
-
-CMD ["google-chrome-stable"]
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium
 ```
 
 构建的步骤中需要访问 Google，请确保具备国际互联网访问能力。  
-目前 Chrome 在非 macOS 的 arm64 平台没有提供二进制包，因此无法以 arm64 作为构建目标进行构建镜像。
+因为 Chrome 在非 macOS 的 arm64 平台没有提供二进制包，所以使用 Chromium 浏览器。
 
 ## macOS 的 Docker 问题
 
-在 Apple Silicon 芯片的设备上运行出现问题时，可参考以下步骤解决问题：
+注：目前已提供 arm 架构的基础镜像，以下这些因为芯片架构导致的问题不再会遇到了。
 
 出现 “Rosetta is only intended to run on Apple Silicon with a macOS host using Virtualization.framework with Rosetta mode enabled” 问题时：
 

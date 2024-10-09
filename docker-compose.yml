@@ -1,7 +1,7 @@
 # 本地运行专用 docker compose 文件
 services:
   paperplane-api-local:
-    image: paperplanecc/paperplane-api-base:latest
+    image: paperplanecc/paperplane-api-base:1.0.0
     container_name: paperplane-api-local
     working_dir: /paperplane-api
     volumes:
