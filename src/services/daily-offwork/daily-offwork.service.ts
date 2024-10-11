@@ -99,7 +99,7 @@ export class DailyOffworkService {
       )
       await page.setViewport({ width: 1500, height: 800 })
       await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
-      const file = await page.screenshot({ type: 'jpeg', quality: 100 })
+      const file = Buffer.from(await page.screenshot({ type: 'jpeg', quality: 100 }))
       await page.close()
       browser.close()
 

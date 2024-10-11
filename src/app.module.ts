@@ -1,6 +1,7 @@
 import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { ClientsModule, RmqOptions, Transport } from '@nestjs/microservices'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import RedisStore from 'connect-redis'
 import { Redis } from 'ioredis'
@@ -24,6 +25,8 @@ import { DockerStatusController } from './services/docker-status/docker-status.c
 import { DockerStatusService } from './services/docker-status/docker-status.service'
 import { GitHelperController } from './services/git-helper/git-helper.controller'
 import { GitHelperService } from './services/git-helper/git-helper.service'
+import { MessageQueueController } from './services/message-queue/message-queue.controller'
+import { MessageQueueService } from './services/message-queue/message-queue.service'
 import { MessageRobotController } from './services/message-robot/message-robot.controller'
 import { MessageRobotService } from './services/message-robot/message-robot.service'
 import { RedisService } from './services/redis/redis.service'
@@ -33,6 +36,17 @@ import { ThirdPartyService } from './services/third-party/third-party.service'
 import { UserController } from './services/user/user.controller'
 import { UserService } from './services/user/user.service'
 
+export const rabbitmqConfig: RmqOptions = {
+  transport: Transport.RMQ,
+  options: {
+    urls: [process.env.RABBITMQ_URL],
+    queue: 'paperplane-api-default',
+    queueOptions: { durable: true },
+    prefetchCount: 1,
+    noAck: true,
+  },
+}
+
 @Module({
   imports: [
     RedisModule.forRoot({ type: 'single', url: process.env.REDIS_URL }),
@@ -40,6 +54,7 @@ import { UserService } from './services/user/user.service'
       prismaServiceOptions: { middlewares: [prismaSoftDeleteMiddleware] },
       isGlobal: true,
     }),
+    ClientsModule.register([{ name: 'PAPERPLANE_API_MQ', ...rabbitmqConfig }]),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
     SessionModule.forRootAsync({
       useFactory(): NestSessionOptions {
@@ -77,6 +92,7 @@ import { UserService } from './services/user/user.service'
     DockerStatusController,
     UserController,
     ShortsController,
+    MessageQueueController,
   ],
   providers: [
     providePrismaClientExceptionFilter(),
@@ -86,6 +102,7 @@ import { UserService } from './services/user/user.service'
     { provide: APP_GUARD, useClass: RolesGuardService },
     AuthService,
     RedisService,
+    MessageQueueService,
     AiService,
     BusinessService,
     GitHelperService,

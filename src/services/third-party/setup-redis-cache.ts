@@ -39,6 +39,11 @@ export function setupRedisCache(redis: Redis) {
     async remove(key) {
       await redis.del(AXIOS_REDIS_CACHE_PREFIX + key)
     },
+
+    clear() {
+      // 按理说需要遍历删除键，Redis 很难做这个操作
+      // 此动作几乎不会有，况且就算有，也对本项目的业务无影响，此处不处理
+    },
   })
 }
 
