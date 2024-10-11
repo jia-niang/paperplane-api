@@ -25,10 +25,11 @@ model WorkdayRecord {
 
 // 公司
 model Company {
-  id         String  @id @default(cuid())
-  company    String
-  stockCode  String?
-  salaryDate Int?
+  id          String  @id @default(cuid())
+  company     String
+  stockCode   String?
+  salaryDate  Int?
+  offworkTime String?
 
   allDailyRecords  DailyCompanyRecord[]
   allWorkplaces    Workplace[]
@@ -54,6 +55,8 @@ model DailyCompanyRecord {
   workdayRecordId String
   belongToCompany Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId       String
+
+  DailyOffworkNoticeRecord DailyOffworkNoticeRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -103,6 +106,8 @@ model DailyWorkplaceRecord {
   belongToWorkplace Workplace     @relation(fields: [workplaceId], references: [id], onDelete: Cascade)
   workplaceId       String        @map("cityId")
 
+  DailyOffworkNoticeRecord DailyOffworkNoticeRecord[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -140,7 +145,7 @@ model MessageRobot {
   deletedAt DateTime?
 }
 
-// Offwork 提醒登记表
+// Offwork 公司-地点-机器人配置表
 model OffworkNoticeSetting {
   id       String  @id @default(cuid())
   disabled Boolean @default(false)
@@ -151,6 +156,21 @@ model OffworkNoticeSetting {
   companyId         String
   belongToWorkplace Workplace    @relation(fields: [workplaceId], references: [id])
   workplaceId       String       @map("cityId")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// 每日需发消息记录表
+model DailyOffworkNoticeRecord {
+  id       String  @id @default(cuid())
+  imageUrl String?
+
+  beloneToCompanyRecord   DailyCompanyRecord   @relation(fields: [dailyCompanyRecordId], references: [id])
+  dailyCompanyRecordId    String
+  beloneToWorkplaceRecord DailyWorkplaceRecord @relation(fields: [dailyWorkplaceRecordId], references: [id])
+  dailyWorkplaceRecordId  String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
