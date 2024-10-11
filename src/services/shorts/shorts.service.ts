@@ -88,7 +88,6 @@ export class ShortsService {
     const dbRecord = await this.prisma.shorts.findFirst({
       where: { key, expiredAt: { gt: new Date() } },
     })
-    this.redisRegister(dbRecord)
 
     return dbRecord
   }
