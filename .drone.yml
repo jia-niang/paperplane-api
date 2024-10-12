@@ -102,8 +102,8 @@ steps:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 20m
       script:
-        - docker tag paperplanecc/paperplane-api:previous-prod paperplanecc/paperplane-api:production
-        - docker rmi paperplanecc/paperplane-api:previous-prod
+        - docker tag paperplanecc/paperplane-api:previous-prod paperplanecc/paperplane-api:production || true
+        - docker rmi paperplanecc/paperplane-api:previous-prod || true
         - cd /root/project-config/paperplane-api
         - docker compose up -d
 
