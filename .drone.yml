@@ -49,7 +49,7 @@ steps:
       command_timeout: 20m
       script:
         - cd /root/project-config/paperplane-api
-        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production -v ./.env.production:/paperplane-api/.env.production:ro paperplanecc/paperplane-api:$COMMIT_TAG yarn dbdeploy:prod
+        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production -v ./.env.production:/paperplane-api/.env.production:ro paperplanecc/paperplane-api:${COMMIT_TAG} yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh
@@ -61,7 +61,6 @@ steps:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 20m
       script:
-        - docker tag paperplanecc/paperplane-api:$COMMIT_TAG paperplanecc/paperplane-api:production
         - cd /root/project-config/paperplane-api
         - docker compose up -d
 
