@@ -4,6 +4,9 @@ name: default
 workspace:
   path: /source
 
+environment:
+  COMMIT_TAG: ${DRONE_COMMIT_SHA:0:8}
+
 steps:
   - name: build-image
     image: docker:dind
@@ -13,19 +16,27 @@ steps:
       - name: yarncache
         path: /usr/local/share/.cache/yarn
     commands:
-      - docker build --progress plain --compress -t paperplanecc/paperplane-api:ci .
+      - docker build --progress plain --compress -t paperplanecc/paperplane-api:$COMMIT_TAG .
 
-  - name: prepare-docker
+  - name: stop-old-container
     image: docker:dind
+    failure: ignore
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
     commands:
-      - docker stop paperplane-api || true
-      - docker rm paperplane-api || true
-      - docker image rm paperplanecc/paperplane-api:latest || true
-      - docker tag paperplanecc/paperplane-api:ci paperplanecc/paperplane-api:latest || true
-      - docker image rm paperplanecc/paperplane-api:ci || true
+      - docker stop paperplane-api
+      - docker rm paperplane-api
+
+  - name: rename-old-image
+    image: docker:dind
+    failure: ignore
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker tag paperplanecc/paperplane-api:production paperplanecc/paperplane-api:previous-prod
+      - docker rmi paperplanecc/paperplane-api:production
 
   - name: prisma-sync-db
     image: appleboy/drone-ssh
@@ -38,7 +49,7 @@ steps:
       command_timeout: 20m
       script:
         - cd /root/project-config/paperplane-api
-        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production -v ./.env.production:/paperplane-api/.env.production:ro paperplanecc/paperplane-api:latest yarn dbdeploy:prod
+        - docker run -t --rm --name paperplane-api-prisma --network root_default -e NODE_ENV=production -v ./.env.production:/paperplane-api/.env.production:ro paperplanecc/paperplane-api:$COMMIT_TAG yarn dbdeploy:prod
 
   - name: deploy
     image: appleboy/drone-ssh
@@ -50,6 +61,49 @@ steps:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 20m
       script:
+        - docker tag paperplanecc/paperplane-api:$COMMIT_TAG paperplanecc/paperplane-api:production
+        - cd /root/project-config/paperplane-api
+        - docker compose up -d
+
+  - name: clean
+    image: docker:dind
+    failure: ignore
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker rmi paperplanecc/paperplane-api:previous-prod
+      - docker rmi paperplanecc/paperplane-api:$COMMIT_TAG
+
+  - name: rollback-handle-docker
+    image: docker:dind
+    when:
+      status:
+        - failure
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker stop paperplane-api || true
+      - docker rm paperplane-api || true
+      - docker rmi paperplanecc/paperplane-api:production || true
+      - docker rmi paperplanecc/paperplane-api:$COMMIT_TAG || true
+
+  - name: rollback-handle-ssh
+    image: appleboy/drone-ssh
+    when:
+      status:
+        - failure
+    settings:
+      host:
+        - 'paperplane.cc'
+      username: root
+      key:
+        from_secret: DEPLOY_SSH_PRIKEY
+      command_timeout: 20m
+      script:
+        - docker tag paperplanecc/paperplane-api:previous-prod paperplanecc/paperplane-api:production
+        - docker rmi paperplanecc/paperplane-api:previous-prod
         - cd /root/project-config/paperplane-api
         - docker compose up -d
 
