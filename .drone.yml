@@ -61,6 +61,7 @@ steps:
         from_secret: DEPLOY_SSH_PRIKEY
       command_timeout: 20m
       script:
+        - docker tag paperplanecc/paperplane-api:${DRONE_COMMIT_SHA:0:8} paperplanecc/paperplane-api:production
         - cd /root/project-config/paperplane-api
         - docker compose up -d
 
