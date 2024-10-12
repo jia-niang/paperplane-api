@@ -4,9 +4,6 @@ name: default
 workspace:
   path: /source
 
-environment:
-  COMMIT_TAG: ${DRONE_COMMIT_SHA:0:8}
-
 steps:
   - name: build-image
     image: docker:dind
@@ -16,7 +13,7 @@ steps:
       - name: yarncache
         path: /usr/local/share/.cache/yarn
     commands:
-      - docker build --progress plain --compress -t paperplanecc/paperplane-api:$COMMIT_TAG .
+      - docker build --progress plain --compress -t paperplanecc/paperplane-api:${DRONE_COMMIT_SHA:0:8} .
 
   - name: stop-old-container
     image: docker:dind
@@ -73,7 +70,7 @@ steps:
         path: /var/run/docker.sock
     commands:
       - docker rmi paperplanecc/paperplane-api:previous-prod
-      - docker rmi paperplanecc/paperplane-api:$COMMIT_TAG
+      - docker rmi paperplanecc/paperplane-api:${DRONE_COMMIT_SHA:0:8}
 
   - name: rollback-handle-docker
     image: docker:dind
@@ -87,7 +84,7 @@ steps:
       - docker stop paperplane-api || true
       - docker rm paperplane-api || true
       - docker rmi paperplanecc/paperplane-api:production || true
-      - docker rmi paperplanecc/paperplane-api:$COMMIT_TAG || true
+      - docker rmi paperplanecc/paperplane-api:${DRONE_COMMIT_SHA:0:8} || true
 
   - name: rollback-handle-ssh
     image: appleboy/drone-ssh
