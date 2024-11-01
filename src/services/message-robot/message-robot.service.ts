@@ -5,6 +5,8 @@ import { PrismaService } from 'nestjs-prisma'
 
 import { feishuUpload } from '@/utils/feishuUpload'
 
+import { isPrecofigAdmin } from '../auth/preconfig-admin'
+import { UserService } from '../user/user.service'
 import { feishuRobotSign, dingtalkRobotSign } from './robot-sign'
 
 export interface IMessageRobotAuth {
@@ -30,7 +32,10 @@ const feishuRobotUrl = `https://open.feishu.cn/open-apis/bot/v2/hook/`
 
 @Injectable()
 export class MessageRobotService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userService: UserService
+  ) {}
 
   async addUserRobot(userId: string, robot: MessageRobot) {
     robot.userId = userId
@@ -57,6 +62,25 @@ export class MessageRobotService {
     await this.prisma.messageRobot.findFirstOrThrow({ where: { id, userId } })
 
     return this.prisma.messageRobot.delete({ where: { id, userId } })
+  }
+
+  async ensureUserAndMessageRobot(userId: string, robotId: string, throwError?: string | Error) {
+    if (await this.userService.ensureAdminRole(userId)) {
+      return true
+    }
+
+    const relation = await this.prisma.messageRobot.findFirst({
+      where: { id: robotId, userId },
+      include: { belongToUser: true },
+    })
+
+    if (relation) {
+      return true
+    } else if (throwError) {
+      throw typeof throwError === 'string' ? new Error(throwError) : throwError
+    }
+
+    return false
   }
 
   async sendTextByUserRobotId(userId: string, id: string, text: string) {
@@ -96,6 +120,24 @@ export class MessageRobotService {
     await this.prisma.messageRobot.findFirstOrThrow({ where: { id, companyId } })
 
     return this.prisma.messageRobot.delete({ where: { id, companyId } })
+  }
+
+  async ensureCompanyAndMessageRobot(
+    companyId: string,
+    robotId: string,
+    throwError?: string | Error
+  ) {
+    const relation = await this.prisma.messageRobot.findFirst({
+      where: { id: robotId, companyId },
+    })
+
+    if (relation) {
+      return true
+    } else if (throwError) {
+      throw typeof throwError === 'string' ? new Error(throwError) : throwError
+    }
+
+    return false
   }
 
   async sendTextByCompanyRobotId(companyId: string, id: string, text: string) {

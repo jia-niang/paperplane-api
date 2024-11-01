@@ -9,6 +9,7 @@ import { uploadFile } from '@/utils/s3'
 
 import { IMessageRobotImage, MessageRobotService } from '../message-robot/message-robot.service'
 import { ShortsService } from '../shorts/shorts.service'
+import { WxBizService } from '../wxbiz/wxbiz.service'
 
 const imageCount = 31
 const darkThemeImages = [9, 26]
@@ -18,6 +19,7 @@ export class DailyOffworkService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly messageRobot: MessageRobotService,
+    private readonly wxbizService: WxBizService,
     private readonly shortsService: ShortsService
   ) {}
 
@@ -76,7 +78,6 @@ export class DailyOffworkService {
     workplaceId: string,
     robotId: string
   ) {
-    await this.getViewByCompanyWorkplaceAndDate(date, companyId, workplaceId)
     const image = await this.viewToImage(date, companyId, workplaceId)
 
     await this.messageRobot.sendImageByRobotId(robotId, image, {
@@ -90,6 +91,8 @@ export class DailyOffworkService {
     companyId: string,
     workplaceId: string
   ): Promise<IMessageRobotImage> {
+    await this.getViewByCompanyWorkplaceAndDate(date, companyId, workplaceId)
+
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })

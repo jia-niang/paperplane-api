@@ -150,12 +150,29 @@ model OffworkNoticeSetting {
   id       String  @id @default(cuid())
   disabled Boolean @default(false)
 
+  OffworkNoticeMailSubscription OffworkNoticeMailSubscription[]
+
   belongToRobot     MessageRobot @relation(fields: [messageRobotId], references: [id])
   messageRobotId    String
   belongToCompany   Company      @relation(fields: [companyId], references: [id])
   companyId         String
   belongToWorkplace Workplace    @relation(fields: [workplaceId], references: [id])
   workplaceId       String       @map("cityId")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// Offwork 订阅的邮件列表
+model OffworkNoticeMailSubscription {
+  id       String  @id @default(cuid())
+  disabled Boolean @default(false)
+  mail     String
+  label    String
+
+  belongToSetting        OffworkNoticeSetting @relation(fields: [offworkNoticeSettingId], references: [id])
+  offworkNoticeSettingId String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Post, Res } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put, Res } from '@nestjs/common'
+import { OffworkNoticeMailSubscription, OffworkNoticeSetting } from '@prisma/client'
 import { Response } from 'express'
 
 import { Public } from '@/app/auth.decorator'
@@ -6,12 +7,14 @@ import { AdminRole } from '@/app/role.decorator'
 
 import { DailyOffworkRecordService } from './daily-offwork-record.service'
 import { DailyOffworkService } from './daily-offwork.service'
+import { RobotManageService } from './robot-manage.service'
 
 @Controller('/daily-offwork')
 export class DailyOffworkController {
   constructor(
     private readonly dailyOffworkService: DailyOffworkService,
-    private readonly dailyOffworkRecordService: DailyOffworkRecordService
+    private readonly dailyOffworkRecordService: DailyOffworkRecordService,
+    private readonly robotManagerService: RobotManageService
   ) {}
 
   @AdminRole()
@@ -113,5 +116,69 @@ export class DailyOffworkController {
       'offwork-traffic-view',
       await this.dailyOffworkService.todayTrafficViewByWorkplace(workplaceId)
     )
+  }
+
+  @AdminRole()
+  @Post('/setting/company/:companyId/workplace/:workplaceId/robot/:robotId')
+  async addDailyOffworkNoticeSetting(
+    @Param('companyId') companyId: string,
+    @Param('workplaceId') workplaceId: string,
+    @Param('robotId') robotId: string
+  ) {
+    return this.robotManagerService.addOffworkNoticeSetting(companyId, workplaceId, robotId)
+  }
+
+  @AdminRole()
+  @Get('/setting/company/:companyId/workplace/:workplaceId/robot')
+  async listDailyOffworkNoticeSetting(
+    @Param('companyId') companyId: string,
+    @Param('workplaceId') workplaceId: string
+  ) {
+    return this.robotManagerService.listOffworkNoticeSetting(companyId, workplaceId)
+  }
+
+  @AdminRole()
+  @Put('/setting/:settingId')
+  async updateDailyOffworkNoticeSetting(
+    @Param('settingId') settingId: string,
+    @Body() body: Pick<OffworkNoticeSetting, 'disabled'>
+  ) {
+    return this.robotManagerService.updateOffworkNoticeSetting(settingId, body)
+  }
+
+  @AdminRole()
+  @Delete('/setting/:settingId')
+  async deleteDailyOffworkNoticeSetting(@Param('settingId') settingId: string) {
+    return this.robotManagerService.deleteOffworkNoticeSetting(settingId)
+  }
+
+  @AdminRole()
+  @Post('/setting/:settingId/mail-subscription')
+  async addOffworkMailSubscription(
+    @Param('settingId') settingId: string,
+    @Body() body: OffworkNoticeMailSubscription
+  ) {
+    return this.robotManagerService.addOffworkMailSubscription(settingId, body)
+  }
+
+  @AdminRole()
+  @Get('/setting/:settingId/mail-subscription')
+  async listOffworkMailSubscription(@Param('settingId') settingId: string) {
+    return this.robotManagerService.listOffworkMailSubscription(settingId)
+  }
+
+  @AdminRole()
+  @Put('/mail-subscription/:subId')
+  async updateOffworkMailSubscription(
+    @Param('subId') subId: string,
+    @Body() body: OffworkNoticeMailSubscription
+  ) {
+    return this.robotManagerService.updateOffworkMailSubscription(subId, body)
+  }
+
+  @AdminRole()
+  @Delete('/mail-subscription/:subId')
+  async deleteOffworkMailSubscription(@Param('subId') subId: string) {
+    return this.robotManagerService.deleteOffworkMailSubscription(subId)
   }
 }

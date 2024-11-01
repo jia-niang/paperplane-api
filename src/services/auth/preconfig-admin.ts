@@ -21,6 +21,8 @@ export function checkPreconfigAdmin(request: Request) {
   return false
 }
 
-export function isPrecofigAdmin(userSession: ISessionUser) {
-  return userSession.id === PRECONFIG_ADMIN_USER_ID
+export function isPrecofigAdmin(userIdOrSession: ISessionUser | string) {
+  return typeof userIdOrSession === 'string'
+    ? userIdOrSession === PRECONFIG_ADMIN_USER_ID
+    : userIdOrSession.id === PRECONFIG_ADMIN_USER_ID
 }

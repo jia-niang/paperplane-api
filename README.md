@@ -21,6 +21,7 @@
 - 必须配置 OpenAI 或 Azure OpenAI 的令牌不为空，否则会导致 SDK 初始化失败报错；
 - 如果用到文件存储相关功能（例如每日下班提醒生成图片），则需求正确配置兼容 S3 规范的存储服务；
 - 如果用到第三方数据接口（例如每日下班提醒生成图片），则需求正确配置百度地图和聚合数据等第三方数据 API 令牌；
+- 企微相关功能需要配置 IP 白名单，聚合数据、OpenAI 等服务需要网络连接通畅；
 - 如果用到本机运行状态相关功能，则需求能连接到 Docker Engine API。
 
 这些配置均写在 `.env`、`.env.example` 中，可以参照其中的注释来设置。
@@ -119,7 +120,7 @@ yarn build && yarn start:prod
 
 # 关于 Prisma
 
-项目使用 `prisma` 来持久化存储数据库表结构关系。
+项目使用 `prisma` 来持久化存储数据库表结构关系，建议安装 IDE 扩展（[VSCode 扩展](https://marketplace.visualstudio.com/items?itemName=Prisma.prisma)）。
 
 特性：
 

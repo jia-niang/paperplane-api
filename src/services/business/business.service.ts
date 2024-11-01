@@ -57,4 +57,22 @@ export class BusinessService {
   async deleteWorkplaceOfCompany(companyId: string, id: string) {
     return this.prisma.workplace.delete({ where: { id, companyId } })
   }
+
+  async ensureCompanyAndWorkplace(
+    companyId: string,
+    workplaceId: string,
+    throwError?: string | Error
+  ) {
+    const relation = await this.prisma.workplace.findFirst({
+      where: { id: workplaceId, companyId },
+    })
+
+    if (relation) {
+      return true
+    } else if (throwError) {
+      throw typeof throwError === 'string' ? new Error(throwError) : throwError
+    }
+
+    return false
+  }
 }

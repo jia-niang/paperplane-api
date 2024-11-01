@@ -4,6 +4,8 @@ import { PrismaService } from 'nestjs-prisma'
 
 import { bcryptCompare, bcryptHash } from '@/utils/bcrypt'
 
+import { isPrecofigAdmin } from '../auth/preconfig-admin'
+
 const userSelector = {
   id: true,
   name: true,
@@ -46,5 +48,39 @@ export class UserService {
     user.password = undefined
 
     return user
+  }
+
+  async ensureStaffRole(userId: string, throwError?: string | Error) {
+    if (isPrecofigAdmin(userId)) {
+      return true
+    }
+
+    const user = await this.prisma.user.findFirst({ where: { id: userId } })
+    if (!user) {
+      throw new Error('此用户不存在')
+    } else if (user.role === Role.ADMIN || user.role === Role.STAFF) {
+      return true
+    } else if (throwError) {
+      throw typeof throwError === 'string' ? new Error(throwError) : throwError
+    }
+
+    return false
+  }
+
+  async ensureAdminRole(userId: string, throwError?: string | Error) {
+    if (isPrecofigAdmin(userId)) {
+      return true
+    }
+
+    const user = await this.prisma.user.findFirst({ where: { id: userId } })
+    if (!user) {
+      throw new Error('此用户不存在')
+    } else if (user.role === Role.ADMIN) {
+      return true
+    } else if (throwError) {
+      throw typeof throwError === 'string' ? new Error(throwError) : throwError
+    }
+
+    return false
   }
 }

@@ -21,6 +21,7 @@ import { BusinessService } from './services/business/business.service'
 import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
 import { DailyOffworkController } from './services/daily-offwork/daily-offwork.controller'
 import { DailyOffworkService } from './services/daily-offwork/daily-offwork.service'
+import { RobotManageService } from './services/daily-offwork/robot-manage.service'
 import { DockerStatusController } from './services/docker-status/docker-status.controller'
 import { DockerStatusService } from './services/docker-status/docker-status.service'
 import { GitHelperController } from './services/git-helper/git-helper.controller'
@@ -35,6 +36,8 @@ import { ShortsService } from './services/shorts/shorts.service'
 import { ThirdPartyService } from './services/third-party/third-party.service'
 import { UserController } from './services/user/user.controller'
 import { UserService } from './services/user/user.service'
+import { WxBizController } from './services/wxbiz/wxbiz.controller'
+import { WxBizService } from './services/wxbiz/wxbiz.service'
 
 export const rabbitmqConfig: RmqOptions = {
   transport: Transport.RMQ,
@@ -93,6 +96,7 @@ export const rabbitmqConfig: RmqOptions = {
     UserController,
     ShortsController,
     MessageQueueController,
+    WxBizController,
   ],
   providers: [
     providePrismaClientExceptionFilter(),
@@ -113,6 +117,8 @@ export const rabbitmqConfig: RmqOptions = {
     DockerStatusService,
     UserService,
     ShortsService,
+    RobotManageService,
+    WxBizService,
   ],
 })
 export class AppModule {}
