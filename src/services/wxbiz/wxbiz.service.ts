@@ -1,17 +1,23 @@
 import { Injectable } from '@nestjs/common'
 import axios, { AxiosInstance } from 'axios'
-import { pick } from 'lodash'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 
 import { RedisService } from '../redis/redis.service'
 
 const WXBIZ_REDIS_PREFIX = 'wxbiz:'
 
+const wxBixProxyConfig = {
+  httpsAgent: process.env.WXBIZ_PROXY_URL
+    ? new HttpsProxyAgent(process.env.WXBIZ_PROXY_URL)
+    : undefined,
+}
+
 @Injectable()
 export class WxBizService {
-  client: AxiosInstance
+  private client: AxiosInstance
 
   constructor(private readonly redis: RedisService) {
-    this.client = axios.create()
+    this.client = axios.create({ ...wxBixProxyConfig })
 
     this.client.interceptors.request.use(async config => {
       const access_token = await this.useAccessToken()
@@ -38,7 +44,8 @@ export class WxBizService {
 
     const { access_token, expires_in } = await axios
       .get(
-        `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${process.env.WXBIZ_CROP_ID}&corpsecret=${process.env.WXBIZ_APP_SECRET}`
+        `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${process.env.WXBIZ_CROP_ID}&corpsecret=${process.env.WXBIZ_APP_SECRET}`,
+        { ...wxBixProxyConfig }
       )
       .then(response => response.data)
       .then(res => {
