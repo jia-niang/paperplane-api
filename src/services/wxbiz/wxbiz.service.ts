@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import axios, { AxiosInstance } from 'axios'
+import { pick } from 'lodash'
 
 import { RedisService } from '../redis/redis.service'
 

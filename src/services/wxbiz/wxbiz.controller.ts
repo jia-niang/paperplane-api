@@ -19,4 +19,10 @@ export class WxBizController {
   async setAppMailAddress(@Body() body: { newAddress: string }) {
     return this.wxBizService.setAppMailAddress(body.newAddress)
   }
+
+  @AdminRole()
+  @Post('/mail/send')
+  async sendMailByFullConfig(@Body() body: IWxBizSendMailOption) {
+    return this.wxBizService.sendMail(body)
+  }
 }
