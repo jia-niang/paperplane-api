@@ -25,11 +25,10 @@ model WorkdayRecord {
 
 // 公司
 model Company {
-  id          String  @id @default(cuid())
-  company     String
-  stockCode   String?
-  salaryDate  Int?
-  offworkTime String?
+  id         String  @id @default(cuid())
+  company    String
+  stockCode  String?
+  salaryDate Int?
 
   allDailyRecords  DailyCompanyRecord[]
   allWorkplaces    Workplace[]
