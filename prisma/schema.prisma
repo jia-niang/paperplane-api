@@ -95,11 +95,12 @@ model DailyWorkplaceRecord {
   tomorrowTemperature String?
   tomorrowWid         String?
 
-  h92          Float?
-  h95          Float?
-  h98          Float?
-  traffic      String?
-  trafficImage String?
+  h92            Float?
+  h95            Float?
+  h98            Float?
+  traffic        String?
+  trafficImage   String?
+  trafficViewUrl String?
 
   belongToWorkday   WorkdayRecord @relation(fields: [workdayRecordId], references: [id], onDelete: Cascade)
   workdayRecordId   String

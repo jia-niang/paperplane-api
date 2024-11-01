@@ -145,6 +145,7 @@ export class DailyOffworkRecordService {
       this.logger.log(` 开始记录工作地点 [${workplace.id}] 交通拥堵热力图`)
       const trafficImage = await this.trafficViewImageToUrl(workplaceId)
       data.trafficImage = trafficImage
+      data.trafficViewUrl = `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplaceId}/view`
     }
 
     await this.prisma.dailyWorkplaceRecord.deleteMany({
