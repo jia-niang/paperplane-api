@@ -56,8 +56,6 @@ model DailyCompanyRecord {
   belongToCompany Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId       String
 
-  DailyOffworkNoticeRecord DailyOffworkNoticeRecord[]
-
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -106,8 +104,6 @@ model DailyWorkplaceRecord {
   workdayRecordId   String
   belongToWorkplace Workplace     @relation(fields: [workplaceId], references: [id], onDelete: Cascade)
   workplaceId       String        @map("cityId")
-
-  DailyOffworkNoticeRecord DailyOffworkNoticeRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -174,21 +170,6 @@ model OffworkNoticeMailSubscription {
 
   belongToSetting        OffworkNoticeSetting @relation(fields: [offworkNoticeSettingId], references: [id])
   offworkNoticeSettingId String
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-}
-
-// 每日需发消息记录表
-model DailyOffworkNoticeRecord {
-  id       String  @id @default(cuid())
-  imageUrl String?
-
-  beloneToCompanyRecord   DailyCompanyRecord   @relation(fields: [dailyCompanyRecordId], references: [id])
-  dailyCompanyRecordId    String
-  beloneToWorkplaceRecord DailyWorkplaceRecord @relation(fields: [dailyWorkplaceRecordId], references: [id])
-  dailyWorkplaceRecordId  String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
