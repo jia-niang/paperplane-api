@@ -15,8 +15,9 @@ model WorkdayRecord {
   date      String
   isWorkDay Boolean
 
-  allCompanyRecords   DailyCompanyRecord[]
-  allWorkplaceRecords DailyWorkplaceRecord[]
+  allCompanyRecords     DailyCompanyRecord[]
+  allWorkplaceRecords   DailyWorkplaceRecord[]
+  allOffworkViewRecords OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -35,7 +36,8 @@ model Company {
   allWorkplaces    Workplace[]
   allMessageRobots MessageRobot[]
 
-  OffworkNoticeSetting OffworkNoticeSetting[]
+  OffworkNoticeSetting  OffworkNoticeSetting[]
+  allOffworkViewRecords OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -56,6 +58,8 @@ model DailyCompanyRecord {
   belongToCompany Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId       String
 
+  allOffworkViewRecords OffworkViewRecord[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -73,8 +77,9 @@ model Workplace {
   belongToCompany Company @relation(fields: [companyId], references: [id])
   companyId       String
 
-  allDailyRecords      DailyWorkplaceRecord[]
-  OffworkNoticeSetting OffworkNoticeSetting[]
+  allDailyRecords       DailyWorkplaceRecord[]
+  OffworkNoticeSetting  OffworkNoticeSetting[]
+  allOffworkViewRecords OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -104,6 +109,8 @@ model DailyWorkplaceRecord {
   workdayRecordId   String
   belongToWorkplace Workplace     @relation(fields: [workplaceId], references: [id], onDelete: Cascade)
   workplaceId       String        @map("cityId")
+
+  allOffworkViewRecords OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -135,7 +142,7 @@ model MessageRobot {
   belongToUser User?   @relation(fields: [userId], references: [id])
   userId       String?
 
-  OffworkNoticeSetting OffworkNoticeSetting[]
+  allSettings OffworkNoticeSetting[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -148,6 +155,18 @@ model OffworkViewRecord {
   date     String
   imageUrl String
 
+  companyId              String
+  workplaceId            String
+  workdayRecordId        String
+  dailyCompanyRecordId   String
+  dailyWorkplaceRecordId String
+
+  company         Company              @relation(fields: [companyId], references: [id])
+  workplace       Workplace            @relation(fields: [workplaceId], references: [id])
+  workdayRecord   WorkdayRecord        @relation(fields: [workdayRecordId], references: [id])
+  companyRecord   DailyCompanyRecord   @relation(fields: [dailyCompanyRecordId], references: [id])
+  workplaceRecord DailyWorkplaceRecord @relation(fields: [dailyWorkplaceRecordId], references: [id])
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -158,14 +177,14 @@ model OffworkNoticeSetting {
   id       String  @id @default(cuid())
   disabled Boolean @default(false)
 
-  OffworkNoticeMailSubscription OffworkNoticeMailSubscription[]
-
   belongToRobot     MessageRobot @relation(fields: [messageRobotId], references: [id])
   messageRobotId    String
   belongToCompany   Company      @relation(fields: [companyId], references: [id])
   companyId         String
   belongToWorkplace Workplace    @relation(fields: [workplaceId], references: [id])
   workplaceId       String       @map("cityId")
+
+  allMailSubscriptions OffworkNoticeMailSubscription[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
