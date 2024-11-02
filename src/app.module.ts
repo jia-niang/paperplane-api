@@ -2,6 +2,7 @@ import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { ClientsModule, RmqOptions, Transport } from '@nestjs/microservices'
+import { ScheduleModule } from '@nestjs/schedule'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import RedisStore from 'connect-redis'
 import { Redis } from 'ioredis'
@@ -19,6 +20,7 @@ import { RolesGuardService } from './services/auth/roles-guard.service'
 import { BusinessController } from './services/business/business.controller'
 import { BusinessService } from './services/business/business.service'
 import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
+import { DailyOffworkSchedulerService } from './services/daily-offwork/daily-offwork-scheduler.service'
 import { DailyOffworkController } from './services/daily-offwork/daily-offwork.controller'
 import { DailyOffworkService } from './services/daily-offwork/daily-offwork.service'
 import { RobotManageService } from './services/daily-offwork/robot-manage.service'
@@ -59,6 +61,7 @@ export const rabbitmqConfig: RmqOptions = {
     }),
     ClientsModule.register([{ name: 'PAPERPLANE_API_MQ', ...rabbitmqConfig }]),
     ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
+    ScheduleModule.forRoot(),
     SessionModule.forRootAsync({
       useFactory(): NestSessionOptions {
         const maxAgeInSecond = 180 * 24 * 3600
@@ -111,6 +114,7 @@ export const rabbitmqConfig: RmqOptions = {
     BusinessService,
     GitHelperService,
     DailyOffworkRecordService,
+    DailyOffworkSchedulerService,
     DailyOffworkService,
     ThirdPartyService,
     MessageRobotService,

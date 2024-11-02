@@ -44,6 +44,7 @@ export class DailyOffworkRecordService {
   /** 添加今日的工作日流水记录 */
   async addTodayDailyRecord() {
     const date = dayjs().format('YYYY-MM-DD')
+    this.logger.log(`[${date}] 工作日流水记录开始`)
 
     const isWorkDay = await this.thirdParty.todayIsWorkdayApi()
 
