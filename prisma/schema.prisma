@@ -36,7 +36,6 @@ model Company {
   allMessageRobots MessageRobot[]
 
   OffworkNoticeSetting OffworkNoticeSetting[]
-  OffworkViewRecord    OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -76,7 +75,6 @@ model Workplace {
 
   allDailyRecords      DailyWorkplaceRecord[]
   OffworkNoticeSetting OffworkNoticeSetting[]
-  OffworkViewRecord    OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -149,11 +147,6 @@ model OffworkViewRecord {
   id       String @id @default(cuid())
   date     String
   imageUrl String
-
-  companyId         String
-  beloneToCompany   Company   @relation(fields: [companyId], references: [id])
-  workplaceId       String
-  beloneToWorkplace Workplace @relation(fields: [workplaceId], references: [id])
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
