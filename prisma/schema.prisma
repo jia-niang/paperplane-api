@@ -7,22 +7,32 @@ datasource db {
   url      = env("POSTGRESQL_URL")
 }
 
-// ##################### 每日下班提醒 #####################
+// ##################### 用户与身份 #####################
 
-// 工作日流水记录
-model WorkdayRecord {
-  id        String  @id @default(cuid())
-  date      String
-  isWorkDay Boolean
+// 身份
+enum Role {
+  ADMIN
+  STAFF
+  USER
+}
 
-  allCompanyRecords     DailyCompanyRecord[]
-  allWorkplaceRecords   DailyWorkplaceRecord[]
-  allOffworkViewRecords OffworkViewRecord[]
+// 用户
+model User {
+  id String @id @default(cuid())
+
+  name     String
+  password String
+  role     Role   @default(USER)
+
+  MessageRobot MessageRobot[]
+  Shorts       Shorts[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 }
+
+// ##################### 业务管理 #####################
 
 // 公司
 model Company {
@@ -38,6 +48,76 @@ model Company {
 
   allOffworkNoticeSettings OffworkNoticeSetting[]
   allOffworkViewRecords    OffworkViewRecord[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// 工作地点
+model Workplace {
+  id           String  @id @default(cuid())
+  city         String
+  weatherCode  String?
+  oilpriceCode String?
+  mapLatitude  String?
+  mapLongitude String?
+
+  belongToCompany Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId       String
+
+  allDailyRecords       DailyWorkplaceRecord[]
+  OffworkNoticeSetting  OffworkNoticeSetting[]
+  allOffworkViewRecords OffworkViewRecord[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("City")
+}
+
+// 消息机器人类型
+enum MessageRobotType {
+  DINGTALK
+  WXBIZ
+  FEISHU
+}
+
+// 消息机器人
+model MessageRobot {
+  id                  String           @id @default(cuid())
+  name                String
+  type                MessageRobotType
+  accessToken         String?
+  secret              String?
+  extraAuthentication Json?
+  desc                String?
+
+  belongToCompany Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId       String?
+
+  belongToUser User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId       String?
+
+  allSettings OffworkNoticeSetting[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+// ##################### 每日下班提醒 #####################
+
+// 工作日流水记录
+model WorkdayRecord {
+  id        String  @id @default(cuid())
+  date      String
+  isWorkDay Boolean
+
+  allCompanyRecords     DailyCompanyRecord[]
+  allWorkplaceRecords   DailyWorkplaceRecord[]
+  allOffworkViewRecords OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -63,29 +143,6 @@ model DailyCompanyRecord {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-}
-
-// 工作地点
-model Workplace {
-  id           String  @id @default(cuid())
-  city         String
-  weatherCode  String?
-  oilpriceCode String?
-  mapLatitude  String?
-  mapLongitude String?
-
-  belongToCompany Company @relation(fields: [companyId], references: [id])
-  companyId       String
-
-  allDailyRecords       DailyWorkplaceRecord[]
-  OffworkNoticeSetting  OffworkNoticeSetting[]
-  allOffworkViewRecords OffworkViewRecord[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  @@map("City")
 }
 
 // 每日工作地点状况记录
@@ -119,53 +176,23 @@ model DailyWorkplaceRecord {
   @@map("DailyCityRecord")
 }
 
-// 消息机器人类型
-enum MessageRobotType {
-  DINGTALK
-  WXBIZ
-  FEISHU
-}
-
-// 消息机器人
-model MessageRobot {
-  id                  String           @id @default(cuid())
-  name                String
-  type                MessageRobotType
-  accessToken         String?
-  secret              String?
-  extraAuthentication Json?
-  desc                String?
-
-  belongToCompany Company? @relation(fields: [companyId], references: [id])
-  companyId       String?
-
-  belongToUser User?   @relation(fields: [userId], references: [id])
-  userId       String?
-
-  allSettings OffworkNoticeSetting[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-}
-
 // Offwork 视图记录表
 model OffworkViewRecord {
   id       String @id @default(cuid())
   date     String
   imageUrl String
 
-  companyId              String
-  workplaceId            String
-  workdayRecordId        String
-  dailyCompanyRecordId   String
-  dailyWorkplaceRecordId String
+  companyId              String?
+  workplaceId            String?
+  workdayRecordId        String?
+  dailyCompanyRecordId   String?
+  dailyWorkplaceRecordId String?
 
-  company         Company              @relation(fields: [companyId], references: [id])
-  workplace       Workplace            @relation(fields: [workplaceId], references: [id])
-  workdayRecord   WorkdayRecord        @relation(fields: [workdayRecordId], references: [id])
-  companyRecord   DailyCompanyRecord   @relation(fields: [dailyCompanyRecordId], references: [id])
-  workplaceRecord DailyWorkplaceRecord @relation(fields: [dailyWorkplaceRecordId], references: [id])
+  company         Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  workplace       Workplace?            @relation(fields: [workplaceId], references: [id], onDelete: SetNull)
+  workdayRecord   WorkdayRecord?        @relation(fields: [workdayRecordId], references: [id], onDelete: SetNull)
+  companyRecord   DailyCompanyRecord?   @relation(fields: [dailyCompanyRecordId], references: [id], onDelete: SetNull)
+  workplaceRecord DailyWorkplaceRecord? @relation(fields: [dailyWorkplaceRecordId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -177,11 +204,11 @@ model OffworkNoticeSetting {
   id       String  @id @default(cuid())
   disabled Boolean @default(false)
 
-  belongToRobot     MessageRobot @relation(fields: [messageRobotId], references: [id])
+  belongToRobot     MessageRobot @relation(fields: [messageRobotId], references: [id], onDelete: Cascade)
   messageRobotId    String
-  belongToCompany   Company      @relation(fields: [companyId], references: [id])
+  belongToCompany   Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId         String
-  belongToWorkplace Workplace    @relation(fields: [workplaceId], references: [id])
+  belongToWorkplace Workplace    @relation(fields: [workplaceId], references: [id], onDelete: Cascade)
   workplaceId       String       @map("cityId")
 
   allMailSubscriptions OffworkNoticeMailSubscription[]
@@ -198,7 +225,7 @@ model OffworkNoticeMailSubscription {
   mail     String
   label    String
 
-  belongToSetting        OffworkNoticeSetting @relation(fields: [offworkNoticeSettingId], references: [id])
+  belongToSetting        OffworkNoticeSetting @relation(fields: [offworkNoticeSettingId], references: [id], onDelete: Cascade)
   offworkNoticeSettingId String
 
   createdAt DateTime  @default(now())
@@ -299,31 +326,6 @@ model GitReport {
   gitStaffId      String
   beloneToProject GitProject @relation(fields: [gitProjectId], references: [id])
   beloneToStaff   GitStaff   @relation(fields: [gitStaffId], references: [id])
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-}
-
-// ##################### 用户与身份 #####################
-
-// 身份
-enum Role {
-  ADMIN
-  STAFF
-  USER
-}
-
-// 用户
-model User {
-  id String @id @default(cuid())
-
-  name     String
-  password String
-  role     Role   @default(USER)
-
-  MessageRobot MessageRobot[]
-  Shorts       Shorts[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
