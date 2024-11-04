@@ -34,6 +34,8 @@ import { MessageQueueService } from './services/message-queue/message-queue.serv
 import { MessageRobotController } from './services/message-robot/message-robot.controller'
 import { MessageRobotService } from './services/message-robot/message-robot.service'
 import { RedisService } from './services/redis/redis.service'
+import { S3Controller } from './services/s3/s3.controller'
+import { S3Service } from './services/s3/s3.service'
 import { ShortsController } from './services/shorts/shorts.controller'
 import { ShortsService } from './services/shorts/shorts.service'
 import { ThirdPartyService } from './services/third-party/third-party.service'
@@ -101,6 +103,7 @@ export const rabbitmqConfig: RmqOptions = {
     ShortsController,
     MessageQueueController,
     WxBizController,
+    S3Controller,
   ],
   providers: [
     providePrismaClientExceptionFilter(),
@@ -125,6 +128,7 @@ export const rabbitmqConfig: RmqOptions = {
     UserService,
     ShortsService,
     WxBizService,
+    S3Service,
   ],
 })
 export class AppModule {}
