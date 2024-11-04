@@ -1,166 +1,156 @@
 import { Injectable, Logger } from '@nestjs/common'
-import crypto from 'crypto'
+import { DailyWorkplaceRecord } from '@prisma/client'
 import dayjs from 'dayjs'
-import { noop, omit } from 'lodash'
+import { omit } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
-import puppeteer, { Browser } from 'puppeteer'
 
-import { uploadFile } from '@/utils/s3'
-
-import { IMessageRobotImage, MessageRobotService } from '../message-robot/message-robot.service'
 import { ShortsService } from '../shorts/shorts.service'
+import { DailyOffworkRecorderService } from './daily-offwork-recorder.service'
+import { DailyOffworkSenderService } from './daily-offwork-sender.service'
 
 const imageCount = 31
 const darkThemeImages = [9, 26]
+
+export type DailyOffworkModeType = 'run' | 'record' | 'send'
+
+export interface IDailyOffworkRunOption {
+  offworkTimeCondition?: any
+  mode?: DailyOffworkModeType
+  specificCompanyId?: string
+  specificWorkplaceId?: string
+  ignoreWorkday?: boolean
+}
 
 @Injectable()
 export class DailyOffworkService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly messageRobot: MessageRobotService,
-    private readonly shortsService: ShortsService
+    private readonly shortsService: ShortsService,
+    private readonly recorder: DailyOffworkRecorderService,
+    private readonly sender: DailyOffworkSenderService
   ) {}
 
   private readonly logger = new Logger(DailyOffworkService.name)
 
-  async sendTodayAll() {
-    const today = dayjs().format('YYYY-MM-DD')
+  /** 主方法，记录和发送 */
+  async run(options?: IDailyOffworkRunOption) {
+    const { offworkTimeCondition, mode, specificCompanyId, specificWorkplaceId, ignoreWorkday } = {
+      mode: 'record' as DailyOffworkModeType,
+      ...options,
+    }
 
-    return this.sendAllByDate(today)
-  }
-
-  async sendAllByDate(date: string) {
-    const todayRecord = await this.prisma.workdayRecord.findFirst({
-      where: { date },
+    const companies = await this.prisma.company.findMany({
+      where: { ...offworkTimeCondition, id: specificCompanyId },
+      include: {
+        allOffworkNoticeSettings: {
+          where: { disabled: false, workplaceId: specificWorkplaceId },
+          include: { belongToWorkplace: true },
+        },
+      },
     })
 
-    if (!todayRecord) {
-      this.logger.error(`未找到 [${date}] 日记录，发送消息步骤已略去`)
+    if (companies.length <= 0) {
       return
     }
 
-    if (!todayRecord.isWorkDay && process.env.NODE_ENV === 'production') {
-      this.logger.log(`[${date}] 不是工作日，跳过消息发送`)
-      return
-    } else if (!todayRecord.isWorkDay) {
-      this.logger.log(`[${date}] 不是工作日，但测试环境仍然发送`)
+    const workdayRecord = await this.recorder.ensureWorkdayRecord()
+
+    if (mode !== 'send') {
+      this.logger.log(`触发 Offwork 采集，共 [${companies.length}] 家公司`)
+
+      const workplaceRecordMap: Record<string, DailyWorkplaceRecord> = {}
+
+      for (const company of companies) {
+        const companyRecord = await this.recorder.recordCompany(workdayRecord, company)
+        for (const setting of company.allOffworkNoticeSettings) {
+          let workplaceRecord = workplaceRecordMap[setting.workplaceId]
+          if (!workplaceRecord) {
+            workplaceRecord = await this.recorder.recordWorkplace(
+              workdayRecord,
+              setting.belongToWorkplace
+            )
+            workplaceRecordMap[setting.workplaceId] = workplaceRecord
+          } else {
+            this.logger.log(` 工作地 [${setting.workplaceId}] 本次已获取过，命中缓存`)
+          }
+
+          await this.prisma.offworkViewRecord.deleteMany({
+            where: {
+              date: workdayRecord.date,
+              companyId: company.id,
+              workplaceId: setting.belongToWorkplace.id,
+            },
+          })
+          await this.prisma.offworkViewRecord.create({
+            data: {
+              date: workdayRecord.date,
+              imageUrl: '',
+
+              companyId: company.id,
+              workplaceId: setting.belongToWorkplace.id,
+
+              workdayRecordId: workdayRecord.id,
+              dailyCompanyRecordId: companyRecord.id,
+              dailyWorkplaceRecordId: workplaceRecord.id,
+            },
+          })
+        }
+      }
+
+      this.logger.log(`完成 Offwork 采集`)
     }
 
-    const allSetting = await this.prisma.offworkNoticeSetting.findMany({
-      where: { disabled: false },
-    })
+    if (mode !== 'record') {
+      this.logger.log(`触发 Offwork 推送，共 [${companies.length}] 家公司`)
 
-    this.logger.log(`发送 [${date}] 日期的 offwork 消息，共 [${allSetting.length}] 条`)
+      for (const company of companies) {
+        for (const setting of company.allOffworkNoticeSettings) {
+          const record = await this.prisma.offworkViewRecord.findFirst({
+            where: {
+              date: workdayRecord.date,
+              companyId: setting.companyId,
+              workplaceId: setting.workplaceId,
+            },
+          })
 
-    for (const item of allSetting) {
-      await this.sendByDateAndFullLayerId(
-        date,
-        item.companyId,
-        item.workplaceId,
-        item.messageRobotId
-      )
-    }
+          if (!record) {
+            this.logger.warn(
+              `未找到公司 [${company.id}] 工作地 [${setting.workplaceId}] 的 Offwork 记录，已跳过推送消息`
+            )
 
-    this.logger.log(`日期 [${date}] 的 offwork 消息发送完成`)
-  }
+            continue
+          } else if (!workdayRecord.isWorkDay && !ignoreWorkday) {
+            this.logger.log(`[${workdayRecord.date}] 不是工作日，已跳过推送消息`)
 
-  async sendTodayByFullLayerId(companyId: string, workplaceId: string, robotId: string) {
-    const today = dayjs().format('YYYY-MM-DD')
+            continue
+          }
 
-    return this.sendByDateAndFullLayerId(today, companyId, workplaceId, robotId)
-  }
+          const imageInfo = await this.recorder.offworkViewToImage(
+            workdayRecord.date || dayjs().format('YYYY-MM-DD'),
+            company.id,
+            setting.workplaceId
+          )
 
-  async sendByDateAndFullLayerId(
-    date: string,
-    companyId: string,
-    workplaceId: string,
-    robotId: string
-  ) {
-    const image = await this.viewToImage(date, companyId, workplaceId)
+          await this.prisma.offworkViewRecord.update({
+            where: { id: record.id },
+            data: { imageUrl: imageInfo.url },
+          })
 
-    await this.messageRobot.sendImageByRobotId(robotId, image, {
-      atAll: true,
-      dingtalkTitle: '下班了',
-    })
-  }
+          await this.sender.offworkSend(setting, imageInfo)
+        }
+      }
 
-  async viewToImage(
-    date: string,
-    companyId: string,
-    workplaceId: string
-  ): Promise<IMessageRobotImage> {
-    await this.getViewByCompanyWorkplaceAndDate(date, companyId, workplaceId)
-
-    let browser: Browser
-    try {
-      browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
-      const page = await browser.newPage()
-      await page.goto(
-        `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
-      )
-      await page.setViewport({ width: 1500, height: 800 })
-      await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
-      const file = Buffer.from(await page.screenshot({ type: 'jpeg', quality: 100 }))
-      await page.close()
-      browser.close()
-
-      const nowTimestamp = dayjs().valueOf()
-      const url = await uploadFile(
-        `/offwork-image/img-${date}-${companyId}-${workplaceId}-${nowTimestamp}.jpg`,
-        file
-      ).then(fileInfo => fileInfo.fileUrl)
-
-      const base64 = file.toString('base64')
-
-      const hash = crypto.createHash('md5')
-      hash.update(file)
-      const md5 = hash.digest('hex')
-
-      return { url, base64, md5, file }
-    } catch (e) {
-      throw e
-    } finally {
-      browser?.close()
+      this.logger.log(`完成 Offwork 推送`)
     }
   }
 
-  async todayOffworkDataByCompanyWorkplace(companyId: string, workplaceId: string) {
-    const today = dayjs().format('YYYY-MM-DD')
-
-    return this.getOffworkDataByCompanyWorkplaceAndDate(today, companyId, workplaceId)
-  }
-
-  async getOffworkDataByCompanyWorkplaceAndDate(
-    date: string,
-    companyId: string,
-    workplaceId: string
-  ) {
-    const workdayRecord = await this.prisma.workdayRecord.findFirst({ where: { date } })
-
-    const companyRecord = await this.prisma.dailyCompanyRecord.findFirst({
-      where: { workdayRecordId: workdayRecord.id, companyId },
-      include: { belongToCompany: true },
-    })
-    const company = companyRecord?.belongToCompany
-
-    if (!company) {
-      throw new Error(
-        `未找到 ID 为 "${companyId}" 的公司记录，请检查提供的 ID 是否正确。如果 ID 无误，请确保 [${date}] 日期生成记录时此公司已存在。`
-      )
-    }
-
-    const workplaceRecord = await this.prisma.dailyWorkplaceRecord.findFirst({
-      where: { workdayRecordId: workdayRecord.id, workplaceId: workplaceId },
-      include: { belongToWorkplace: true },
-    })
-    const workplace = workplaceRecord?.belongToWorkplace
-
-    if (!workplace) {
-      throw new Error(
-        `未找到 ID 为 "${workplaceId}" 的工作地点记录，请检查提供的 ID 是否正确以及此工作地点是否正确归属于公司 "${company.company}"。` +
-          `如果 ID 无误，请确保 [${date}] 日期生成记录时此工作地点已存在。`
-      )
-    }
+  /** Offwork 的 JSON 数据 */
+  async offworkData(date: string, companyId: string, workplaceId: string) {
+    const { companyRecord, workplaceRecord, company, workplace } =
+      await this.prisma.offworkViewRecord.findFirstOrThrow({
+        where: { date, companyId, workplaceId },
+        include: { companyRecord: true, workplaceRecord: true, company: true, workplace: true },
+      })
 
     const url = `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
     const shortUrl = await this.shortsService.generateDailyOffworkShorts(url)
@@ -176,15 +166,13 @@ export class DailyOffworkService {
     }
   }
 
-  async todayViewByCompanyWorkplace(companyId: string, workplaceId: string) {
-    const today = dayjs().format('YYYY-MM-DD')
-
-    return this.getViewByCompanyWorkplaceAndDate(today, companyId, workplaceId)
-  }
-
-  async getViewByCompanyWorkplaceAndDate(date: string, companyId: string, workplaceId: string) {
-    const { company, workplace, companyRecord, workplaceRecord, shortUrl } =
-      await this.getOffworkDataByCompanyWorkplaceAndDate(date, companyId, workplaceId)
+  /** Offwork 的视图数据 */
+  async offworkViewData(date: string, companyId: string, workplaceId: string) {
+    const { company, workplace, companyRecord, workplaceRecord, shortUrl } = await this.offworkData(
+      date,
+      companyId,
+      workplaceId
+    )
 
     const now = dayjs(date)
     const bgNumber = 1 + (now.dayOfYear() % imageCount)
@@ -225,11 +213,9 @@ export class DailyOffworkService {
     return viewData
   }
 
-  async todayTrafficViewByWorkplace(workplaceId: string) {
-    const workplace = await this.prisma.workplace.findFirst({
-      where: { id: workplaceId },
-    })
-
+  /** 提供数据用以渲染交通状况图 */
+  async trafficViewData(workplaceId: string) {
+    const workplace = await this.prisma.workplace.findFirst({ where: { id: workplaceId } })
     const viewData = {
       ...workplace,
       serviceUrl: process.env.SERVICE_URL,
@@ -239,6 +225,7 @@ export class DailyOffworkService {
     return viewData
   }
 
+  /** 从 id 获取天气图 */
   private getWeatherImageUrl(mid: string | number, weatherName?: string) {
     const numbericMid = Number(mid)
 

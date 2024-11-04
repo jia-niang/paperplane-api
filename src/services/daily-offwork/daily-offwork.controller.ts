@@ -1,103 +1,91 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Res } from '@nestjs/common'
 import { OffworkNoticeMailSubscription, OffworkNoticeSetting } from '@prisma/client'
+import dayjs from 'dayjs'
 import { Response } from 'express'
 
 import { Public } from '@/app/auth.decorator'
 import { AdminRole } from '@/app/role.decorator'
 
-import { DailyOffworkRecordService } from './daily-offwork-record.service'
+import { DailyOffworkSubscriptionService } from './daily-offwork-subscription.service'
 import { DailyOffworkService } from './daily-offwork.service'
-import { RobotManageService } from './robot-manage.service'
+
+export interface IDailyOffworkQuery {
+  nosend?: boolean
+}
 
 @Controller('/daily-offwork')
 export class DailyOffworkController {
   constructor(
-    private readonly dailyOffworkService: DailyOffworkService,
-    private readonly dailyOffworkRecordService: DailyOffworkRecordService,
-    private readonly robotManagerService: RobotManageService
+    private readonly offwork: DailyOffworkService,
+    private readonly subscription: DailyOffworkSubscriptionService
   ) {}
 
+  /** 手动触发 */
   @AdminRole()
-  @Post('/today/all/record')
-  async completeTodayRecord() {
-    await this.dailyOffworkRecordService.completeTodayRecord()
+  @Post(`/:mode`)
+  async run(@Param('mode') mode) {
+    return this.offwork.run({ mode, ignoreWorkday: true })
   }
 
+  /** 手动触发（指定公司） */
   @AdminRole()
-  @Post('/today/all/send')
-  async sendTodayAll() {
-    return this.dailyOffworkService.sendTodayAll()
+  @Post(`/:mode/company/:companyId`)
+  async runForCompany(@Param('mode') mode, @Param('companyId') companyId) {
+    return this.offwork.run({ mode, specificCompanyId: companyId, ignoreWorkday: true })
   }
 
-  @Public()
-  @Post(`/today/company/:companyId/workplace/:workplaceId/record`)
-  async todayOffworkNoticeViewRecord(
-    @Param('companyId') companyId: string,
-    @Param('workplaceId') workplaceId: string
+  /** 手动触发（指定公司和工作地） */
+  @AdminRole()
+  @Post(`/:mode/company/:companyId/workplace/:workplaceId`)
+  async runForCompanyAndWorkplace(
+    @Param('mode') mode,
+    @Param('companyId') companyId,
+    @Param('workplaceId') workplaceId
   ) {
-    return this.dailyOffworkRecordService.addTodayRecordByCompanyWorkplace(companyId, workplaceId)
+    return this.offwork.run({
+      mode,
+      specificCompanyId: companyId,
+      specificWorkplaceId: workplaceId,
+      ignoreWorkday: true,
+    })
   }
 
+  /** 查询记录数据（今天） */
   @Public()
   @Get(`/today/company/:companyId/workplace/:workplaceId`)
-  async todayOffworkDataByCompanyWorkplace(
-    @Param('companyId') companyId,
-    @Param('workplaceId') workplaceId
-  ) {
-    return this.dailyOffworkService.todayOffworkDataByCompanyWorkplace(companyId, workplaceId)
+  async offworkDataToday(@Param('companyId') companyId, @Param('workplaceId') workplaceId) {
+    return this.offwork.offworkData(dayjs().format('YYYY-MM-DD'), companyId, workplaceId)
   }
 
+  /** 查询记录数据 */
   @Public()
   @Get(`/date/:date/company/:companyId/workplace/:workplaceId`)
-  async getOffworkDataByCompanyWorkplaceAndDate(
+  async offworkData(
     @Param('date') date,
     @Param('companyId') companyId,
     @Param('workplaceId') workplaceId
   ) {
-    return this.dailyOffworkService.getOffworkDataByCompanyWorkplaceAndDate(
-      date,
-      companyId,
-      workplaceId
-    )
+    return this.offwork.offworkData(date, companyId, workplaceId)
   }
 
-  @Public()
-  @Post('/today/company/:companyId/workplace/:workplaceId/robot/:robotId/send')
-  async sendTodayByFullLayerId(
-    @Param('companyId') companyId: string,
-    @Param('workplaceId') workplaceId: string,
-    @Param('robotId') robotId: string
-  ) {
-    return this.dailyOffworkService.sendTodayByFullLayerId(companyId, workplaceId, robotId)
-  }
-
-  @Public()
-  @Post('/date/:date/company/:companyId/workplace/:workplaceId/robot/:robotId/send')
-  async sendByDateAndFullLayerId(
-    @Param('date') date,
-    @Param('companyId') companyId: string,
-    @Param('workplaceId') workplaceId: string,
-    @Param('robotId') robotId: string
-  ) {
-    return this.dailyOffworkService.sendByDateAndFullLayerId(date, companyId, workplaceId, robotId)
-  }
-
+  /** 主视图（今天） */
   @Public()
   @Get('/today/company/:companyId/workplace/:workplaceId/view')
-  async todayOffworkNoticeView(
+  async todayView(
     @Param('companyId') companyId: string,
     @Param('workplaceId') workplaceId: string,
     @Res() res: Response
   ) {
     return res.render(
       'offwork-view',
-      await this.dailyOffworkService.todayViewByCompanyWorkplace(companyId, workplaceId)
+      await this.offwork.offworkViewData(dayjs().format('YYYY-MM-DD'), companyId, workplaceId)
     )
   }
 
+  /** 主视图（按日期） */
   @Public()
   @Get('/date/:date/company/:companyId/workplace/:workplaceId/view')
-  async getOffworkNoticeViewByDate(
+  async dateView(
     @Param('date') date,
     @Param('companyId') companyId: string,
     @Param('workplaceId') workplaceId: string,
@@ -105,36 +93,36 @@ export class DailyOffworkController {
   ) {
     return res.render(
       'offwork-view',
-      await this.dailyOffworkService.getViewByCompanyWorkplaceAndDate(date, companyId, workplaceId)
+      await this.offwork.offworkViewData(date, companyId, workplaceId)
     )
   }
 
+  /** 交通视图 */
   @Public()
   @Get('/today/traffic/workplace/:workplaceId/view')
-  async todayOffworkTrafficView(@Param('workplaceId') workplaceId: string, @Res() res: Response) {
-    return res.render(
-      'offwork-traffic-view',
-      await this.dailyOffworkService.todayTrafficViewByWorkplace(workplaceId)
-    )
+  async trafficView(@Param('workplaceId') workplaceId: string, @Res() res: Response) {
+    return res.render('offwork-traffic-view', await this.offwork.trafficViewData(workplaceId))
   }
 
+  // 机器人管理
+
   @AdminRole()
-  @Post('/setting/company/:companyId/workplace/:workplaceId/robot/:robotId')
+  @Post('/setting/company/:companyId/workplace/:workplaceId')
   async addDailyOffworkNoticeSetting(
     @Param('companyId') companyId: string,
     @Param('workplaceId') workplaceId: string,
-    @Param('robotId') robotId: string
+    @Body() body: { robotId: string }
   ) {
-    return this.robotManagerService.addOffworkNoticeSetting(companyId, workplaceId, robotId)
+    return this.subscription.addOffworkNoticeSetting(companyId, workplaceId, body.robotId)
   }
 
   @AdminRole()
-  @Get('/setting/company/:companyId/workplace/:workplaceId/robot')
+  @Get('/setting/company/:companyId/workplace/:workplaceId')
   async listDailyOffworkNoticeSetting(
     @Param('companyId') companyId: string,
     @Param('workplaceId') workplaceId: string
   ) {
-    return this.robotManagerService.listOffworkNoticeSetting(companyId, workplaceId)
+    return this.subscription.listOffworkNoticeSetting(companyId, workplaceId)
   }
 
   @AdminRole()
@@ -143,14 +131,16 @@ export class DailyOffworkController {
     @Param('settingId') settingId: string,
     @Body() body: Pick<OffworkNoticeSetting, 'disabled'>
   ) {
-    return this.robotManagerService.updateOffworkNoticeSetting(settingId, body)
+    return this.subscription.updateOffworkNoticeSetting(settingId, body)
   }
 
   @AdminRole()
   @Delete('/setting/:settingId')
   async deleteDailyOffworkNoticeSetting(@Param('settingId') settingId: string) {
-    return this.robotManagerService.deleteOffworkNoticeSetting(settingId)
+    return this.subscription.deleteOffworkNoticeSetting(settingId)
   }
+
+  // 邮件订阅管理
 
   @AdminRole()
   @Post('/setting/:settingId/mail-subscription')
@@ -158,13 +148,13 @@ export class DailyOffworkController {
     @Param('settingId') settingId: string,
     @Body() body: OffworkNoticeMailSubscription
   ) {
-    return this.robotManagerService.addOffworkMailSubscription(settingId, body)
+    return this.subscription.addOffworkMailSubscription(settingId, body)
   }
 
   @AdminRole()
   @Get('/setting/:settingId/mail-subscription')
   async listOffworkMailSubscription(@Param('settingId') settingId: string) {
-    return this.robotManagerService.listOffworkMailSubscription(settingId)
+    return this.subscription.listOffworkMailSubscription(settingId)
   }
 
   @AdminRole()
@@ -173,12 +163,12 @@ export class DailyOffworkController {
     @Param('subId') subId: string,
     @Body() body: OffworkNoticeMailSubscription
   ) {
-    return this.robotManagerService.updateOffworkMailSubscription(subId, body)
+    return this.subscription.updateOffworkMailSubscription(subId, body)
   }
 
   @AdminRole()
   @Delete('/mail-subscription/:subId')
   async deleteOffworkMailSubscription(@Param('subId') subId: string) {
-    return this.robotManagerService.deleteOffworkMailSubscription(subId)
+    return this.subscription.deleteOffworkMailSubscription(subId)
   }
 }

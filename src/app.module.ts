@@ -19,11 +19,12 @@ import { AuthService } from './services/auth/auth.service'
 import { RolesGuardService } from './services/auth/roles-guard.service'
 import { BusinessController } from './services/business/business.controller'
 import { BusinessService } from './services/business/business.service'
-import { DailyOffworkRecordService } from './services/daily-offwork/daily-offwork-record.service'
+import { DailyOffworkRecorderService } from './services/daily-offwork/daily-offwork-recorder.service'
 import { DailyOffworkSchedulerService } from './services/daily-offwork/daily-offwork-scheduler.service'
+import { DailyOffworkSenderService } from './services/daily-offwork/daily-offwork-sender.service'
+import { DailyOffworkSubscriptionService } from './services/daily-offwork/daily-offwork-subscription.service'
 import { DailyOffworkController } from './services/daily-offwork/daily-offwork.controller'
 import { DailyOffworkService } from './services/daily-offwork/daily-offwork.service'
-import { RobotManageService } from './services/daily-offwork/robot-manage.service'
 import { DockerStatusController } from './services/docker-status/docker-status.controller'
 import { DockerStatusService } from './services/docker-status/docker-status.service'
 import { GitHelperController } from './services/git-helper/git-helper.controller'
@@ -113,15 +114,16 @@ export const rabbitmqConfig: RmqOptions = {
     AiService,
     BusinessService,
     GitHelperService,
-    DailyOffworkRecordService,
+    DailyOffworkRecorderService,
     DailyOffworkSchedulerService,
+    DailyOffworkSubscriptionService,
+    DailyOffworkSenderService,
     DailyOffworkService,
     ThirdPartyService,
     MessageRobotService,
     DockerStatusService,
     UserService,
     ShortsService,
-    RobotManageService,
     WxBizService,
   ],
 })

@@ -7,13 +7,14 @@ import { BusinessService } from '../business/business.service'
 import { MessageRobotService } from '../message-robot/message-robot.service'
 
 @Injectable()
-export class RobotManageService {
+export class DailyOffworkSubscriptionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly businessService: BusinessService,
     private readonly messageRobotService: MessageRobotService
   ) {}
 
+  /** 添加 Offwork 提醒配置 */
   async addOffworkNoticeSetting(companyId: string, workplaceId: string, messageRobotId: string) {
     await this.businessService.ensureCompanyAndWorkplace(
       companyId,
@@ -38,6 +39,7 @@ export class RobotManageService {
     })
   }
 
+  /** 依公司和工作地列出 Offwork 提醒配置 */
   async listOffworkNoticeSetting(companyId: string, workplaceId: string) {
     const result = await this.prisma.offworkNoticeSetting.findMany({
       where: { companyId, workplaceId },
@@ -46,6 +48,7 @@ export class RobotManageService {
     return result
   }
 
+  /** 更新 Offwork 提醒配置 */
   async updateOffworkNoticeSetting(id: string, config: Pick<OffworkNoticeSetting, 'disabled'>) {
     return this.prisma.offworkNoticeSetting.update({
       where: { id },
@@ -53,10 +56,12 @@ export class RobotManageService {
     })
   }
 
+  /** 删除 Offwork 提醒配置 */
   async deleteOffworkNoticeSetting(id: string) {
     return this.prisma.offworkNoticeSetting.delete({ where: { id } })
   }
 
+  /** 添加邮件订阅 */
   async addOffworkMailSubscription(
     settingId: string,
     mailSubscription: OffworkNoticeMailSubscription
@@ -77,12 +82,14 @@ export class RobotManageService {
     })
   }
 
+  /** 列出邮件订阅 */
   async listOffworkMailSubscription(settingId: string) {
     return this.prisma.offworkNoticeMailSubscription.findMany({
       where: { offworkNoticeSettingId: settingId },
     })
   }
 
+  /** 更新邮件订阅 */
   async updateOffworkMailSubscription(recordId: string, newRecord: OffworkNoticeMailSubscription) {
     const record = await this.prisma.offworkNoticeMailSubscription.findFirstOrThrow({
       where: { id: recordId },
@@ -104,6 +111,7 @@ export class RobotManageService {
     })
   }
 
+  /** 删除邮件订阅 */
   async deleteOffworkMailSubscription(recordId: string) {
     return this.prisma.offworkNoticeMailSubscription.delete({ where: { id: recordId } })
   }

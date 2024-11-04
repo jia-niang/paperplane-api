@@ -3,9 +3,8 @@ import { MessageRobot, MessageRobotType } from '@prisma/client'
 import axios from 'axios'
 import { PrismaService } from 'nestjs-prisma'
 
-import { feishuUpload } from '@/utils/feishuUpload'
+import { feishuUpload } from '@/utils/robotImageUpload'
 
-import { isPrecofigAdmin } from '../auth/preconfig-admin'
 import { UserService } from '../user/user.service'
 import { feishuRobotSign, dingtalkRobotSign } from './robot-sign'
 

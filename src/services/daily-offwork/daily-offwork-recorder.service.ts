@@ -1,81 +1,55 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Company, Prisma, WorkdayRecord, Workplace } from '@prisma/client'
+import crypto from 'crypto'
 import dayjs from 'dayjs'
-import { noop, uniq } from 'lodash'
+import { noop } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
 import puppeteer, { Browser } from 'puppeteer'
 
 import { uploadFile } from '@/utils/s3'
 
+import { IMessageRobotImage } from '../message-robot/message-robot.service'
 import { ThirdPartyService } from '../third-party/third-party.service'
 
 @Injectable()
-export class DailyOffworkRecordService {
+export class DailyOffworkRecorderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly thirdParty: ThirdPartyService
   ) {}
 
-  private readonly logger = new Logger(DailyOffworkRecordService.name)
+  private readonly logger = new Logger(DailyOffworkRecorderService.name)
 
-  /** 根据 offwork 配置表完成今日的记录 */
-  async completeTodayRecord() {
-    await this.addTodayDailyRecord()
+  /** 确保已完成工作日记录，没有则记录并返回，有则直接返回 */
+  async ensureWorkdayRecord() {
+    const date = dayjs().format('YYYY-MM-DD')
+    const exist = await this.prisma.workdayRecord.findFirst({ where: { date } })
+    if (exist) {
+      return exist
+    }
 
-    const allSettings = await this.prisma.offworkNoticeSetting.findMany({
-      where: { disabled: false },
-    })
-    const companyIds = uniq(allSettings.map(t => t.companyId))
-    const workplaceIds = uniq(allSettings.map(t => t.workplaceId))
-
-    this.logger.log(
-      `今日 Offwork 采集，[${allSettings.length}] 条配置，[${companyIds.length}] 家公司，[${workplaceIds.length}] 个工作地点`
-    )
-    this.logger.log(`公司记录合计[${companyIds.length}]条：`)
-    await Promise.all(companyIds.map(companyId => this.addTodayDailyCompanyRecord(companyId)))
-    this.logger.log(`工作地点记录合计[${workplaceIds.length}]条：`)
-    await Promise.all(
-      workplaceIds.map(workplaceId => this.addTodayDailyWorkplaceRecord(workplaceId))
-    )
-
-    this.logger.log(`今日 Offwork 采集完成`)
+    return await this.recordWorkday()
   }
 
   /** 添加今日的工作日流水记录 */
-  async addTodayDailyRecord() {
+  async recordWorkday() {
     const date = dayjs().format('YYYY-MM-DD')
+
     this.logger.log(`[${date}] 工作日流水记录开始`)
 
     const isWorkDay = await this.thirdParty.todayIsWorkdayApi()
-
     await this.prisma.workdayRecord.deleteMany({ where: { date } })
-    const result = await this.prisma.workdayRecord.create({
-      data: { date, isWorkDay },
-    })
+    const result = await this.prisma.workdayRecord.create({ data: { date, isWorkDay } })
 
     this.logger.log(`[${date}] 工作日流水记录完成`)
 
     return result
   }
 
-  /** 根据公司 ID 和工作地点 ID 添加今日的记录 */
-  async addTodayRecordByCompanyWorkplace(companyId: string, workplaceId: string) {
-    await this.prisma.workplace.findFirstOrThrow({ where: { id: workplaceId, companyId } })
-
-    await this.addTodayDailyCompanyRecord(companyId)
-    await this.addTodayDailyWorkplaceRecord(workplaceId)
-
-    return `${process.env.SERVICE_URL}/daily-offwork/today/company/${companyId}/workplace/${workplaceId}/view`
-  }
-
   /** 根据公司 ID 添加今日公司记录 */
-  async addTodayDailyCompanyRecord(companyId: string) {
-    const date = dayjs().format('YYYY-MM-DD')
-    const dailyRecord = await this.prisma.workdayRecord.findFirstOrThrow({ where: { date } })
-    const company = await this.prisma.company.findFirstOrThrow({ where: { id: companyId } })
-
+  async recordCompany(workdayRecord: WorkdayRecord, company: Company) {
     const data: Prisma.DailyCompanyRecordUncheckedCreateInput = {
-      workdayRecordId: dailyRecord.id,
+      workdayRecordId: workdayRecord.id,
       companyId: company.id,
     }
 
@@ -95,23 +69,19 @@ export class DailyOffworkRecordService {
     }
 
     await this.prisma.dailyCompanyRecord.deleteMany({
-      where: { workdayRecordId: dailyRecord.id, companyId: company.id },
+      where: { workdayRecordId: workdayRecord.id, companyId: company.id },
     })
     const result = await this.prisma.dailyCompanyRecord.create({ data })
 
-    this.logger.log(`添加公司记录 [${companyId}] 完成`)
+    this.logger.log(`添加公司记录 [${company.id}] 完成`)
 
     return result
   }
 
   /** 根据 ID 添加今日的工作地点记录 */
-  async addTodayDailyWorkplaceRecord(workplaceId: string) {
-    const date = dayjs().format('YYYY-MM-DD')
-    const dailyRecord = await this.prisma.workdayRecord.findFirstOrThrow({ where: { date } })
-    const workplace = await this.prisma.workplace.findFirstOrThrow({ where: { id: workplaceId } })
-
+  async recordWorkplace(workdayRecord: WorkdayRecord, workplace: Workplace) {
     const data: Prisma.DailyWorkplaceRecordUncheckedCreateInput = {
-      workdayRecordId: dailyRecord.id,
+      workdayRecordId: workdayRecord.id,
       workplaceId: workplace.id,
     }
 
@@ -144,23 +114,62 @@ export class DailyOffworkRecordService {
       data.traffic = trafficInfo
 
       this.logger.log(` 开始记录工作地点 [${workplace.id}] 交通拥堵热力图`)
-      const trafficImage = await this.trafficViewImageToUrl(workplaceId)
+      const trafficImage = await this.trafficViewImageToUrl(workplace.id)
       data.trafficImage = trafficImage
-      data.trafficViewUrl = `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplaceId}/view`
+      data.trafficViewUrl = `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplace.id}/view`
     }
 
     await this.prisma.dailyWorkplaceRecord.deleteMany({
-      where: { workdayRecordId: dailyRecord.id, workplaceId: workplace.id },
+      where: { workdayRecordId: workdayRecord.id, workplaceId: workplace.id },
     })
     const result = await this.prisma.dailyWorkplaceRecord.create({ data })
 
-    this.logger.log(`添加工作地点记录 [${workplaceId}] 完成`)
+    this.logger.log(`添加工作地点记录 [${workplace.id}] 完成`)
 
     return result
   }
 
+  /** 生成 Offwork 图片 */
+  async offworkViewToImage(
+    date: string,
+    companyId: string,
+    workplaceId: string
+  ): Promise<IMessageRobotImage> {
+    let browser: Browser
+    try {
+      browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
+      const page = await browser.newPage()
+      await page.goto(
+        `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
+      )
+      await page.setViewport({ width: 1500, height: 800 })
+      await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
+      const file = Buffer.from(await page.screenshot({ type: 'jpeg', quality: 100 }))
+      await page.close()
+      browser.close()
+
+      const nowTimestamp = dayjs().valueOf()
+      const url = await uploadFile(
+        `/offwork-image/img-${date}-${companyId}-${workplaceId}-${nowTimestamp}.jpg`,
+        file
+      ).then(fileInfo => fileInfo.fileUrl)
+
+      const base64 = file.toString('base64')
+
+      const hash = crypto.createHash('md5')
+      hash.update(file)
+      const md5 = hash.digest('hex')
+
+      return { url, base64, md5, file }
+    } catch (e) {
+      throw e
+    } finally {
+      browser?.close()
+    }
+  }
+
   /** 生成交通图 */
-  async trafficViewImageToUrl(workplaceId: string): Promise<string> {
+  private async trafficViewImageToUrl(workplaceId: string): Promise<string> {
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
