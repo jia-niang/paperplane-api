@@ -36,8 +36,8 @@ model Company {
   allWorkplaces    Workplace[]
   allMessageRobots MessageRobot[]
 
-  OffworkNoticeSetting  OffworkNoticeSetting[]
-  allOffworkViewRecords OffworkViewRecord[]
+  allOffworkNoticeSettings OffworkNoticeSetting[]
+  allOffworkViewRecords    OffworkViewRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
