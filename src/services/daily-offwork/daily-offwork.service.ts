@@ -35,7 +35,7 @@ export class DailyOffworkService {
   /** 主方法，记录和发送 */
   async run(options?: IDailyOffworkRunOption) {
     const { offworkTimeCondition, mode, specificCompanyId, specificWorkplaceId, ignoreWorkday } = {
-      mode: 'record' as DailyOffworkModeType,
+      mode: 'run' as DailyOffworkModeType,
       ...options,
     }
 
