@@ -3,7 +3,7 @@ import { endsWith, trimEnd } from 'lodash'
 import { extname } from 'path'
 
 import { isTruly } from '@/utils/formHelper'
-import { uploadFile, uploadFilePreSign } from '@/utils/s3'
+import { IUploadFilePreSignOption, uploadFile, uploadFilePreSign } from '@/utils/s3'
 
 import { IS3UploadBody } from './s3.controller'
 
@@ -30,7 +30,7 @@ export class S3Service {
   }
 
   /** 生成预签名的上传文件 url */
-  async uploadSign(key: string) {
-    return uploadFilePreSign(key)
+  async uploadSign(key: string, options?: IUploadFilePreSignOption) {
+    return uploadFilePreSign(key, options)
   }
 }

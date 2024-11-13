@@ -54,22 +54,41 @@ export async function uploadFile(
   return result
 }
 
-export interface IUploadFilePreSignOption {
+export interface IUploadFilePreSignOption extends IUploadFileOption {
   /** 过期时间秒数，默认为 `600`，也就是 10 分钟 */
   expiresIn?: number
+}
+
+export interface IUploadFilePreSignResult {
+  /** 预签名 S3 上传地址，请使用 PUT 上传 */
+  preSignUrl: string
+  /** 上传成功后，访问文件的路径 */
+  publicUrl: string
 }
 
 /** 生成预签名的上传文件 url */
 export async function uploadFilePreSign(
   key: string,
   options?: IUploadFilePreSignOption
-): Promise<any> {
-  const { expiresIn } = Object.assign<IUploadFilePreSignOption, any>({ expiresIn: 600 }, options)
+): Promise<IUploadFilePreSignResult> {
+  const { expiresIn, mime, withoutProtocolPrefix } = Object.assign<IUploadFilePreSignOption, any>(
+    { expiresIn: 600 },
+    options
+  )
 
   const uploadCommand = new PutObjectCommand({
     Bucket: process.env.S3_BUCKET_NAME,
     Key: trimStart(key, '/'),
+    ContentType: mime,
   })
 
-  return await getSignedUrl(s3Client, uploadCommand, { expiresIn })
+  const preSignUrl = await getSignedUrl(s3Client, uploadCommand, { expiresIn })
+
+  let publicUrl = `https://cdn.paperplane.cc/${trimStart(key, '/')}`
+  if (withoutProtocolPrefix) {
+    publicUrl = trimStart(publicUrl, 'https')
+    publicUrl = trimStart(publicUrl, 'http')
+  }
+
+  return { preSignUrl, publicUrl }
 }
