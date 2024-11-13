@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Company, Prisma, WorkdayRecord, Workplace } from '@prisma/client'
-import crypto from 'crypto'
 import dayjs from 'dayjs'
 import { noop } from 'lodash'
 import { PrismaService } from 'nestjs-prisma'
@@ -8,7 +7,6 @@ import puppeteer, { Browser } from 'puppeteer'
 
 import { uploadFile } from '@/utils/s3'
 
-import { IMessageRobotImage } from '../message-robot/message-robot.service'
 import { ThirdPartyService } from '../third-party/third-party.service'
 
 @Injectable()
@@ -130,11 +128,7 @@ export class DailyOffworkRecorderService {
   }
 
   /** 生成 Offwork 图片 */
-  async offworkViewToImage(
-    date: string,
-    companyId: string,
-    workplaceId: string
-  ): Promise<IMessageRobotImage> {
+  async offworkViewToImage(date: string, companyId: string, workplaceId: string): Promise<string> {
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
@@ -144,23 +138,17 @@ export class DailyOffworkRecorderService {
       )
       await page.setViewport({ width: 1500, height: 800 })
       await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
-      const file = Buffer.from(await page.screenshot({ type: 'jpeg', quality: 100 }))
+      const file = Buffer.from(await page.screenshot())
       await page.close()
       browser.close()
 
       const nowTimestamp = dayjs().valueOf()
       const url = await uploadFile(
-        `/offwork-image/img-${date}-${companyId}-${workplaceId}-${nowTimestamp}.jpg`,
+        `/offwork-image/img-${date}-${companyId}-${workplaceId}-${nowTimestamp}.png`,
         file
       ).then(fileInfo => fileInfo.fileUrl)
 
-      const base64 = file.toString('base64')
-
-      const hash = crypto.createHash('md5')
-      hash.update(file)
-      const md5 = hash.digest('hex')
-
-      return { url, base64, md5, file }
+      return url
     } catch (e) {
       throw e
     } finally {

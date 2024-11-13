@@ -66,6 +66,7 @@
     "puppeteer": "^23.5.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.33.5",
     "simple-git": "^3.27.0",
     "sshpk": "^1.18.0"
   },

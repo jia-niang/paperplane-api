@@ -3,7 +3,7 @@ import { MessageRobot, MessageRobotType } from '@prisma/client'
 import axios from 'axios'
 import { PrismaService } from 'nestjs-prisma'
 
-import { feishuUpload } from '@/utils/robotImageUpload'
+import { feishuUpload, handleWxBizImage } from '@/utils/robotHelper'
 
 import { UserService } from '../user/user.service'
 import { feishuRobotSign, dingtalkRobotSign } from './robot-sign'
@@ -16,13 +16,6 @@ export interface IMessageRobotAuth {
 export interface IMessageExtraAuthentication {
   feishuUploadAppId?: string
   feishuUploadAppSecret?: string
-}
-
-export interface IMessageRobotImage {
-  url: string
-  base64: string
-  md5: string
-  file: Buffer
 }
 
 const wxbizRobotUrl = `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=`
@@ -171,7 +164,7 @@ export class MessageRobotService {
   /** 提供机器人 ID，发送一张图片，可以配置艾特全体 */
   async sendImageByRobotId(
     id: string,
-    imageInfo: IMessageRobotImage,
+    imageUrl: string,
     options?: { atAll?: boolean; dingtalkTitle?: string }
   ) {
     const robotConfig = await this.prisma.messageRobot.findFirstOrThrow({ where: { id } })
@@ -184,7 +177,7 @@ export class MessageRobotService {
     if (type === MessageRobotType.DINGTALK) {
       return this.sendJSONByRobotConfig(robotConfig, {
         msgtype: 'markdown',
-        markdown: { title: dingtalkTitle, text: `![](${imageInfo.url})` },
+        markdown: { title: dingtalkTitle, text: `![](${imageUrl})` },
         at: { isAtAll: atAll },
       })
     } else if (type === MessageRobotType.FEISHU) {
@@ -196,7 +189,7 @@ export class MessageRobotService {
       }
 
       const feishuImageKey = await feishuUpload(
-        imageInfo.file,
+        imageUrl,
         imageExtraAuthentication?.feishuUploadAppId,
         imageExtraAuthentication?.feishuUploadAppSecret
       )
@@ -215,7 +208,7 @@ export class MessageRobotService {
 
       return this.sendJSONByRobotConfig(robotConfig, {
         msgtype: 'image',
-        image: { base64: imageInfo.base64, md5: imageInfo.md5 },
+        image: await handleWxBizImage(imageUrl),
       })
     } else {
       throw new Error('未知的机器人类型')
@@ -243,14 +236,37 @@ export class MessageRobotService {
       return axios
         .post(dintalkRobotUrl + accessToken + `&timestamp=${timestamp}&sign=${sign}`, messageBody)
         .then(res => res.data)
+        .then(res => {
+          if (res.errcode !== 0) {
+            throw new Error(`钉钉机器人调用出错 [${res.errmsg}]`)
+          }
+
+          return res
+        })
     } else if (type === MessageRobotType.FEISHU) {
       const { sign, timestamp } = feishuRobotSign(secret)
 
       return axios
         .post(feishuRobotUrl + accessToken, { timestamp: String(timestamp), sign, ...messageBody })
         .then(res => res.data)
+        .then(res => {
+          if (res.code !== 0) {
+            throw new Error(`飞书机器人调用出错 [${res.msg}]`)
+          }
+
+          return res
+        })
     } else if (type === MessageRobotType.WXBIZ) {
-      return axios.post(wxbizRobotUrl + accessToken, messageBody).then(res => res.data)
+      return axios
+        .post(wxbizRobotUrl + accessToken, messageBody)
+        .then(res => res.data)
+        .then(res => {
+          if (res.errcode !== 0) {
+            throw new Error(`企微机器人调用出错 [${res.errmsg}]`)
+          }
+
+          return res
+        })
     } else {
       throw new Error('未知的机器人类型')
     }

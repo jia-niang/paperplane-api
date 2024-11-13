@@ -81,7 +81,8 @@ export class DailyOffworkService {
               workplaceId: setting.belongToWorkplace.id,
             },
           })
-          await this.prisma.offworkViewRecord.create({
+
+          const record = await this.prisma.offworkViewRecord.create({
             data: {
               date: workdayRecord.date,
               imageUrl: '',
@@ -93,6 +94,17 @@ export class DailyOffworkService {
               dailyCompanyRecordId: companyRecord.id,
               dailyWorkplaceRecordId: workplaceRecord.id,
             },
+          })
+
+          const imageUrl = await this.recorder.offworkViewToImage(
+            workdayRecord.date || dayjs().format('YYYY-MM-DD'),
+            company.id,
+            setting.workplaceId
+          )
+
+          await this.prisma.offworkViewRecord.update({
+            where: { id: record.id },
+            data: { imageUrl },
           })
         }
       }
@@ -125,18 +137,7 @@ export class DailyOffworkService {
             continue
           }
 
-          const imageInfo = await this.recorder.offworkViewToImage(
-            workdayRecord.date || dayjs().format('YYYY-MM-DD'),
-            company.id,
-            setting.workplaceId
-          )
-
-          await this.prisma.offworkViewRecord.update({
-            where: { id: record.id },
-            data: { imageUrl: imageInfo.url },
-          })
-
-          await this.sender.offworkSend(setting, imageInfo)
+          await this.sender.offworkSend(setting, record.imageUrl)
         }
       }
 

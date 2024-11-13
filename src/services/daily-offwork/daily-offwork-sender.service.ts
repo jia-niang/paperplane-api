@@ -3,7 +3,7 @@ import { OffworkNoticeSetting } from '@prisma/client'
 import dayjs from 'dayjs'
 import { PrismaService } from 'nestjs-prisma'
 
-import { IMessageRobotImage, MessageRobotService } from '../message-robot/message-robot.service'
+import { MessageRobotService } from '../message-robot/message-robot.service'
 import { WxBizService } from '../wxbiz/wxbiz.service'
 
 @Injectable()
@@ -15,7 +15,7 @@ export class DailyOffworkSenderService {
   ) {}
 
   /** 发送所有消息 */
-  async offworkSend(robotSetting: OffworkNoticeSetting, image: IMessageRobotImage) {
+  async offworkSend(robotSetting: OffworkNoticeSetting, imageUrl: string) {
     const mailSubscriptions = await this.prisma.offworkNoticeMailSubscription.findMany({
       where: { offworkNoticeSettingId: robotSetting.id, disabled: false },
     })
@@ -26,11 +26,11 @@ export class DailyOffworkSenderService {
       await this.wxbiz.sendMail({
         to: { emails },
         subject: `Offwork Notice: ${date}`,
-        content: `<img src="${image.url}" />`,
+        content: `<img src="${imageUrl}" />`,
       })
     }
 
-    await this.robot.sendImageByRobotId(robotSetting.messageRobotId, image, {
+    await this.robot.sendImageByRobotId(robotSetting.messageRobotId, imageUrl, {
       atAll: true,
       dingtalkTitle: '下班了',
     })
