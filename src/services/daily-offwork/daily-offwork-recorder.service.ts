@@ -138,7 +138,7 @@ export class DailyOffworkRecorderService {
       await retry(
         async () => {
           await page.goto(
-            `http://localhost:6100/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
+            `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
           )
           await page.setViewport({ width: 1500, height: 800 })
           await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
@@ -174,7 +174,7 @@ export class DailyOffworkRecorderService {
       await retry(
         async () => {
           await page.goto(
-            `http://localhost:6100/daily-offwork/today/traffic/workplace/${workplaceId}/view`
+            `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplaceId}/view`
           )
           await page.setViewport({ width: 650, height: 650 })
           await page.waitForFunction('window.mapOK === true', { timeout: 15000 }).catch(noop)
