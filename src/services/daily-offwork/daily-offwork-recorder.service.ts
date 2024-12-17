@@ -113,7 +113,9 @@ export class DailyOffworkRecorderService {
       data.traffic = trafficInfo
 
       this.logger.log(` 开始记录工作地点 [${workplace.id}] 交通拥堵热力图`)
-      const trafficImage = await this.trafficViewImageToUrl(workplace.id)
+      const url = `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplace.id}/view`
+      const imageKey = `/offwork-traffic-image/${workdayRecord.date}-${workplace.id}.png`
+      const trafficImage = await this.trafficViewImageToUrl(url, imageKey)
       data.trafficImage = trafficImage
       data.trafficViewUrl = `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplace.id}/view`
     }
@@ -129,7 +131,7 @@ export class DailyOffworkRecorderService {
   }
 
   /** 生成 Offwork 图片 */
-  async offworkViewToImage(date: string, companyId: string, workplaceId: string): Promise<string> {
+  async offworkViewToImage(url: string, imageKey: string): Promise<string> {
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
@@ -137,9 +139,7 @@ export class DailyOffworkRecorderService {
 
       await retry(
         async () => {
-          await page.goto(
-            `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
-          )
+          await page.goto(url)
           await page.setViewport({ width: 1500, height: 800 })
           await page.waitForFunction('window.mapOK === true', { timeout: 5000 }).catch(noop)
         },
@@ -150,13 +150,9 @@ export class DailyOffworkRecorderService {
       await page.close()
       browser.close()
 
-      const nowTimestamp = dayjs().valueOf()
-      const url = await uploadFile(
-        `/offwork-image/img-${date}-${companyId}-${workplaceId}-${nowTimestamp}.png`,
-        file
-      ).then(fileInfo => fileInfo.fileUrl)
+      const result = await uploadFile(imageKey, file).then(fileInfo => fileInfo.fileUrl)
 
-      return url
+      return result
     } catch (e) {
       throw e
     } finally {
@@ -165,7 +161,7 @@ export class DailyOffworkRecorderService {
   }
 
   /** 生成交通图 */
-  private async trafficViewImageToUrl(workplaceId: string): Promise<string> {
+  private async trafficViewImageToUrl(url: string, imageKey: string): Promise<string> {
     let browser: Browser
     try {
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
@@ -173,9 +169,7 @@ export class DailyOffworkRecorderService {
 
       await retry(
         async () => {
-          await page.goto(
-            `${process.env.SERVICE_URL}/daily-offwork/today/traffic/workplace/${workplaceId}/view`
-          )
+          await page.goto(url)
           await page.setViewport({ width: 650, height: 650 })
           await page.waitForFunction('window.mapOK === true', { timeout: 15000 }).catch(noop)
         },
@@ -186,15 +180,9 @@ export class DailyOffworkRecorderService {
       await page.close()
       browser.close()
 
-      const now = dayjs()
-      const url = await uploadFile(
-        `/offwork-traffic-image/img-${now.format(
-          'YYYY-MM-DD'
-        )}-${workplaceId}-${now.valueOf()}.png`,
-        file
-      ).then(fileInfo => fileInfo.fileUrl)
+      const result = await uploadFile(imageKey, file).then(fileInfo => fileInfo.fileUrl)
 
-      return url
+      return result
     } catch (e) {
       throw e
     } finally {

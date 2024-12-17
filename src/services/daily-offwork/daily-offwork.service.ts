@@ -59,6 +59,7 @@ export class DailyOffworkService {
       this.logger.log(`触发 Offwork 采集，共 [${companies.length}] 家公司`)
 
       const workplaceRecordMap: Record<string, DailyWorkplaceRecord> = {}
+      const viewRepeatMap: Record<string, boolean> = {}
 
       for (const company of companies) {
         const companyRecord = await this.recorder.recordCompany(workdayRecord, company)
@@ -74,38 +75,50 @@ export class DailyOffworkService {
             this.logger.log(` 工作地 [${setting.workplaceId}] 本次已获取过，命中缓存`)
           }
 
-          await this.prisma.offworkViewRecord.deleteMany({
-            where: {
-              date: workdayRecord.date,
-              companyId: company.id,
-              workplaceId: setting.belongToWorkplace.id,
-            },
-          })
+          const isRepeat = viewRepeatMap[`${company.id}-${workplaceRecord.id}`]
+          if (!isRepeat) {
+            await this.prisma.offworkViewRecord.deleteMany({
+              where: {
+                date: workdayRecord.date,
+                companyId: company.id,
+                workplaceId: setting.belongToWorkplace.id,
+              },
+            })
 
-          const record = await this.prisma.offworkViewRecord.create({
-            data: {
-              date: workdayRecord.date,
-              imageUrl: '',
+            const record = await this.prisma.offworkViewRecord.create({
+              data: {
+                date: workdayRecord.date,
+                imageUrl: '',
+                viewUrl: '',
+                shortUrl: '',
+                trafficImageUrl: workplaceRecord.trafficImage,
 
-              companyId: company.id,
-              workplaceId: setting.belongToWorkplace.id,
+                companyId: company.id,
+                workplaceId: setting.belongToWorkplace.id,
 
-              workdayRecordId: workdayRecord.id,
-              dailyCompanyRecordId: companyRecord.id,
-              dailyWorkplaceRecordId: workplaceRecord.id,
-            },
-          })
+                workdayRecordId: workdayRecord.id,
+                dailyCompanyRecordId: companyRecord.id,
+                dailyWorkplaceRecordId: workplaceRecord.id,
+              },
+            })
 
-          const imageUrl = await this.recorder.offworkViewToImage(
-            workdayRecord.date || dayjs().format('YYYY-MM-DD'),
-            company.id,
-            setting.workplaceId
-          )
+            const viewUrl = `${process.env.SERVICE_URL}/daily-offwork/view/${record.id}`
+            const imageKey = `/offwork-image/${record.id}.png`
+            const imageUrl = await this.recorder.offworkViewToImage(viewUrl, imageKey)
 
-          await this.prisma.offworkViewRecord.update({
-            where: { id: record.id },
-            data: { imageUrl },
-          })
+            const shortUrl = await this.shortsService.generateDailyOffworkShorts(viewUrl)
+
+            await this.prisma.offworkViewRecord.update({
+              where: { id: record.id },
+              data: { imageUrl, viewUrl, shortUrl },
+            })
+
+            viewRepeatMap[`${company.id}-${workplaceRecord.id}`] = true
+          } else {
+            this.logger.log(
+              ` 公司 [${company.id}] 工作地 [${workplaceRecord.id}] 本次已获取过，命中缓存`
+            )
+          }
         }
       }
 
@@ -147,17 +160,15 @@ export class DailyOffworkService {
 
   /** Offwork 的 JSON 数据 */
   async offworkData(date: string, companyId: string, workplaceId: string) {
-    const { companyRecord, workplaceRecord, company, workplace } =
+    const { id, viewUrl, shortUrl, companyRecord, workplaceRecord, company, workplace } =
       await this.prisma.offworkViewRecord.findFirstOrThrow({
         where: { date, companyId, workplaceId },
         include: { companyRecord: true, workplaceRecord: true, company: true, workplace: true },
       })
 
-    const url = `${process.env.SERVICE_URL}/daily-offwork/date/${date}/company/${companyId}/workplace/${workplaceId}/view`
-    const shortUrl = await this.shortsService.generateDailyOffworkShorts(url)
-
     return {
-      url,
+      id,
+      viewUrl,
       date,
       shortUrl,
       company,
@@ -210,6 +221,14 @@ export class DailyOffworkService {
       tomorrowWeatherUrl,
       stockText,
     }
+
+    return viewData
+  }
+
+  /** Offwork 的 ID 视图 */
+  async offworkViewDataById(viewId: string) {
+    const record = await this.prisma.offworkViewRecord.findFirstOrThrow({ where: { id: viewId } })
+    const viewData = await this.offworkViewData(record.date, record.companyId, record.workplaceId)
 
     return viewData
   }

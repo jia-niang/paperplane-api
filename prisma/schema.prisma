@@ -178,9 +178,12 @@ model DailyWorkplaceRecord {
 
 // Offwork 视图记录表
 model OffworkViewRecord {
-  id       String @id @default(cuid())
-  date     String
-  imageUrl String
+  id              String @id @default(cuid())
+  date            String
+  imageUrl        String
+  viewUrl         String
+  shortUrl        String
+  trafficImageUrl String
 
   companyId              String?
   workplaceId            String?

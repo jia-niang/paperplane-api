@@ -97,6 +97,13 @@ export class DailyOffworkController {
     )
   }
 
+  /** 主视图（按 ID） */
+  @Public()
+  @Get('/view/:viewId')
+  async idView(@Param('viewId') viewId, @Res() res: Response) {
+    return res.render('offwork-view', await this.offwork.offworkViewDataById(viewId))
+  }
+
   /** 交通视图 */
   @Public()
   @Get('/today/traffic/workplace/:workplaceId/view')
