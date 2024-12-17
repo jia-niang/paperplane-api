@@ -67,14 +67,15 @@ export class ShortsService {
   }
 
   async generateDailyOffworkShorts(url: string): Promise<string> {
-    return this.generateShorts({
+    const short = await this.generateShorts({
       type: ShortsType.OFFWORK,
       url,
       expiredAt: undefined,
       userId: undefined,
-    }).then(result => {
-      return result.p01ShortUrl
     })
+    const shortUrl = `https://p01.cc/d/${short.key}`
+
+    return shortUrl
   }
 
   async queryRecordByKey(key: string): Promise<Shorts | null> {
