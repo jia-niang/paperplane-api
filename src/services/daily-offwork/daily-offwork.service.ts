@@ -103,14 +103,20 @@ export class DailyOffworkService {
             })
 
             const viewUrl = `${process.env.SERVICE_URL}/daily-offwork/view/${record.id}`
-            const imageKey = `/offwork-image/${record.id}.png`
-            const imageUrl = await this.recorder.offworkViewToImage(viewUrl, imageKey)
-
             const shortUrl = await this.shortsService.generateDailyOffworkShorts(viewUrl)
+            await this.prisma.offworkViewRecord.update({
+              where: { id: record.id },
+              data: { shortUrl },
+            })
+
+            const imageUrl = await this.recorder.offworkViewToImage(
+              viewUrl,
+              `/offwork-image/${record.id}.png`
+            )
 
             await this.prisma.offworkViewRecord.update({
               where: { id: record.id },
-              data: { imageUrl, viewUrl, shortUrl },
+              data: { imageUrl, viewUrl },
             })
 
             viewRepeatMap[`${company.id}-${workplaceRecord.id}`] = true
