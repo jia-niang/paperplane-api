@@ -63,7 +63,15 @@ export const rabbitmqConfig: RmqOptions = {
       isGlobal: true,
     }),
     ClientsModule.register([{ name: 'PAPERPLANE_API_MQ', ...rabbitmqConfig }]),
-    ServeStaticModule.forRoot({ rootPath: __dirname + '/res', serveRoot: '/res' }),
+    ServeStaticModule.forRoot({
+      rootPath: __dirname + '/res',
+      serveRoot: '/res',
+      serveStaticOptions: {
+        setHeaders(res) {
+          res.set('Access-Control-Allow-Origin', '*')
+        },
+      },
+    }),
     ScheduleModule.forRoot(),
     SessionModule.forRootAsync({
       useFactory(): NestSessionOptions {
