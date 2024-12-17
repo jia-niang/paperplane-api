@@ -180,10 +180,10 @@ model DailyWorkplaceRecord {
 model OffworkViewRecord {
   id              String @id @default(cuid())
   date            String
-  imageUrl        String
-  viewUrl         String
-  shortUrl        String
-  trafficImageUrl String
+  imageUrl        String @default("")
+  viewUrl         String @default("")
+  shortUrl        String @default("")
+  trafficImageUrl String @default("")
 
   companyId              String?
   workplaceId            String?
