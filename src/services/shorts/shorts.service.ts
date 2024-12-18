@@ -73,7 +73,7 @@ export class ShortsService {
       expiredAt: undefined,
       userId: undefined,
     })
-    const shortUrl = `https://p01.cc/d/${short.key}`
+    const shortUrl = `p01.cc/d/${short.key}`
 
     return shortUrl
   }
